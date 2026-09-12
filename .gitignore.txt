@@ -1,0 +1,20 @@
+# Java / Spring Boot
+backend/target/
+backend/.mvn/
+*.class
+*.jar
+
+# Node / React
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Python / FastAPI
+ml-service/__pycache__/
+ml-service/.venv/
+ml-service/*.pyc
+
+# Chung
+.env
+.DS_Store
+*.log
