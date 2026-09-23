@@ -151,41 +151,72 @@ src/
 
 ### 2.3 ESLint
 
-Dùng `eslint:recommended` \+ `eslint-plugin-react` \+ `eslint-plugin-react-hooks` (bộ khuyến nghị chuẩn cho React hiện tại, cấu hình dạng **flat config** — `eslint.config.js`, chuẩn từ ESLint 9 trở lên). **Không dùng Airbnb config**: bộ quy tắc Airbnb rất chi tiết nhưng thường cần chỉnh sửa nhiều mới hợp với từng dự án — không đáng chi phí cấu hình/bảo trì thêm cho một người làm trong 15 tuần, trong khi bộ `recommended` đã đủ bắt các lỗi quan trọng (hook dùng sai, biến không dùng, so sánh lỏng lẻo `==`...).
+Dùng **ESLint 10**, cấu hình dạng **flat config** (`frontend/eslint.config.js`) — đúng cấu hình Vite tự sinh khi khởi tạo dự án (chọn ESLint thay vì Oxlint mặc định), cộng thêm phần nối với Prettier. Gồm 4 phần:
 
-// eslint.config.js
+- `eslint:recommended` — bộ rule lõi, đã gồm `no-unused-vars` mức error.  
+- `eslint-plugin-react-hooks` — bắt lỗi dùng hook sai.  
+- `eslint-plugin-react-refresh` — cảnh báo file vừa export component vừa export thứ khác (Vite không hot-reload được file đó, phải tải lại cả trang, mất state đang có).  
+- `eslint-config-prettier` — tắt các rule định dạng có thể xung đột với Prettier; đặt **cuối cùng** để ghi đè các phần trên.
 
-import js from "@eslint/js";
+**Không dùng Airbnb config**: bộ quy tắc Airbnb rất chi tiết nhưng thường cần chỉnh sửa nhiều mới hợp với từng dự án — không đáng chi phí cấu hình/bảo trì thêm cho một người làm trong 15 tuần, trong khi các bộ `recommended` trên đã đủ bắt các lỗi quan trọng (hook dùng sai, biến không dùng, biến chưa khai báo, đoạn code không bao giờ chạy tới...).
 
-import react from "eslint-plugin-react";
+// frontend/eslint.config.js
 
-import reactHooks from "eslint-plugin-react-hooks";
+import js from '@eslint/js';
+
+import globals from 'globals';
+
+import reactHooks from 'eslint-plugin-react-hooks';
+
+import reactRefresh from 'eslint-plugin-react-refresh';
+
+import eslintConfigPrettier from 'eslint-config-prettier/flat';
+
+import { defineConfig, globalIgnores } from 'eslint/config';
 
 &nbsp;
 
-export default \[
+export default defineConfig(\[
 
-&nbsp;&nbsp;js.configs.recommended,
+&nbsp;&nbsp;globalIgnores(\['dist'\]),
 
 &nbsp;&nbsp;{
 
-&nbsp;&nbsp;&nbsp;&nbsp;plugins: { react, "react-hooks": reactHooks },
+&nbsp;&nbsp;&nbsp;&nbsp;files: \['\*\*/\*.{js,jsx}'\],
 
-&nbsp;&nbsp;&nbsp;&nbsp;rules: {
+&nbsp;&nbsp;&nbsp;&nbsp;extends: \[
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...react.configs.recommended.rules,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;js.configs.recommended,
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...reactHooks.configs.recommended.rules,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reactHooks.configs.flat.recommended,
 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"no-unused-vars": "error",
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reactRefresh.configs.vite,
+
+&nbsp;&nbsp;&nbsp;&nbsp;\],
+
+&nbsp;&nbsp;&nbsp;&nbsp;languageOptions: {
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;globals: globals.browser,
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parserOptions: { ecmaFeatures: { jsx: true } },
 
 &nbsp;&nbsp;&nbsp;&nbsp;},
 
 &nbsp;&nbsp;},
 
-\];
+&nbsp;&nbsp;eslintConfigPrettier,
+
+\]);
+
+*Cập nhật 23/09/2026 (Tuần 4, lúc dựng khung React) — khác bản gốc của mục này ở 3 điểm:*
+
+1. **Tạm chưa dùng `eslint-plugin-react`.** Bản ổn định mới nhất (7.37.5, tính tới 09/2026) chỉ khai báo hỗ trợ tới ESLint 9 (`^9.7`) — cài chung với ESLint 10 sẽ lỗi xung đột phụ thuộc (ERESOLVE); chỉ bản thử nghiệm (rc) hỗ trợ ESLint 10\. Không ép cài (`--legacy-peer-deps`) hay dùng bản rc — cùng nguyên tắc tránh bản thử nghiệm. Mất ít: một phần lý do trước đây phải cài plugin này là để ESLint hiểu biến dùng trong JSX — ESLint 10 đã tự làm được; rule đáng tiếc nhất là `react/jsx-key` (quên `key` khi render danh sách), nhưng React vẫn tự cảnh báo lỗi này trong Console lúc chạy dev. Thêm lại khi có bản ổn định hỗ trợ ESLint 10 (theo dõi ở `ho-so-du-an.md` Mục 6).  
+2. **Thêm `eslint-plugin-react-refresh`** (mặc định của Vite) **và `eslint-config-prettier`** (bản gốc chưa nối ESLint với Prettier).  
+3. **Bỏ dòng `"no-unused-vars": "error"` riêng** (`eslint:recommended` đã bật sẵn ở mức error), và sửa 1 ví dụ sai của bản gốc: `eslint:recommended` **không** bắt so sánh lỏng lẻo `==` — rule `eqeqeq` không nằm trong bộ này.
 
 ### 2.4 Prettier
+
+File `frontend/.prettierrc.json`:
 
 {
 
@@ -220,6 +251,4 @@ Khuyến nghị thêm (tùy chọn, không bắt buộc Tuần 4): cài **Husky 
 
 ---
 
-**Tổng cộng:** quy ước đặt tên \+ cấu trúc thư mục cho cả 2 ngôn ngữ, cấu hình sẵn dùng được cho Checkstyle (Google Java Style) \+ Spotless (google-java-format) \+ ESLint (flat config, recommended \+ react \+ react-hooks) \+ Prettier — đáp ứng đúng yêu cầu Tuần 3 của `ke-hoach-15-tuan.md`. Đóng gói vào Tuần 4 lúc khởi tạo 3 service, không cần quyết định thêm gì mới.
-
-&nbsp;
+**Tổng cộng:** quy ước đặt tên \+ cấu trúc thư mục cho cả 2 ngôn ngữ, cấu hình sẵn dùng được cho Checkstyle (Google Java Style) \+ Spotless (google-java-format) \+ ESLint 10 (flat config, recommended \+ react-hooks \+ react-refresh \+ eslint-config-prettier — xem cập nhật 23/09/2026 ở Mục 2.3) \+ Prettier — đáp ứng đúng yêu cầu Tuần 3 của `ke-hoach-15-tuan.md`. Đóng gói vào Tuần 4 lúc khởi tạo 3 service, không cần quyết định thêm gì mới.
