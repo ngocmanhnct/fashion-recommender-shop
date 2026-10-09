@@ -26,10 +26,13 @@ Monorepo, 3 service + 1 CSDL, triển khai qua Docker Compose (1 VPS, không Kub
 - Checkstyle/Spotless là plugin bên thứ ba — **bắt buộc khai `<version>` tường minh** trong `pom.xml`, không như `spring-boot-maven-plugin` (được quản lý version sẵn). Thiếu version → lỗi khó hiểu "No plugin found for prefix"/"plugin absent from the project".
 - `google-java-format` (Spotless dùng để format Java) cần cờ JVM `--add-exports` để chạy trên JDK 16+ — đã có sẵn ở `backend/.mvn/jvm.config`, đừng xóa.
 - `java.version` trong `pom.xml` giữ **21**. Máy dev hiện dùng JDK 24 — biên dịch được cho 21, KHÔNG biên dịch được cho 25. Đừng nâng `java.version` theo JDK trên máy.
-- CORS có 2 chỗ tách biệt: `config/WebConfig.java` chỉ áp dụng cho controller thường; endpoint Actuator (`/actuator/*`) có CORS riêng qua `management.endpoints.web.cors.*` trong `application.properties`.
+- CORS có 2 chỗ tách biệt: `config/WebConfig.java` chỉ áp dụng cho controller thường; endpoint Actuator (`/actuator/*`) có CORS riêng qua `management.endpoints.web.cors.*` trong `application.properties`. Cả 2 dùng chung danh sách origin `app.cors.allowed-origins` (biến môi trường `CORS_ALLOWED_ORIGINS`).
 - Frontend dùng ESLint 10 — **chưa dùng `eslint-plugin-react`** vì bản ổn định mới nhất chưa hỗ trợ ESLint 10 (cài sẽ lỗi ERESOLVE). Đừng ép cài bằng `--legacy-peer-deps`.
 - Trang React hiện "Network Error" cho **cả** lỗi CORS lẫn backend không chạy — đọc Console trình duyệt mới phân biệt được.
 - Mỗi service chỉ chạy ở đúng 1 nơi (không vừa IntelliJ vừa terminal) — tránh "Port 8080 was already in use". IntelliJ có thể dùng JDK riêng: trước khi commit, kiểm tra bằng `.\mvnw.cmd clean spring-boot:run`.
+- Trong Docker Compose, container gọi nhau bằng **tên service** (`mysql`, `ml-service`), không phải `localhost`. Backend đọc `DB_HOST`, `ML_SERVICE_URL`, `CORS_ALLOWED_ORIGINS` từ biến môi trường (mặc định khớp lúc chạy trên máy), nên cùng 1 `application.properties` chạy được cả 2 nơi.
+- `VITE_API_BASE_URL` được Vite đóng cứng vào JS **lúc build**, không đọc lúc chạy — đổi địa chỉ backend cho frontend Docker phải sửa build arg trong `docker-compose.yml` rồi `--build` lại.
+- Chạy cả stack bằng Docker thì tắt backend/ml-service đang chạy trên máy trước (trùng cổng 8080; MySQL 3306 dùng chung được).
 - `ml-service` **không cấu hình CORS** — cố ý: trình duyệt không bao giờ gọi FastAPI (Spring Boot gọi nội bộ, server gọi server).
 - Chạy FastAPI bằng `uv run fastapi dev app/main.py` (trong `ml-service/`). Chạy thẳng `python app/main.py` hay nút ▶ của VS Code không bật server nào — `app` chỉ là đối tượng, server là uvicorn. Đừng thêm `uvicorn.run()` vào `main.py`.
 - Test FastAPI cần `httpx2` (TestClient của Starlette đã bỏ `httpx`) và `pythonpath = ["."]` trong `[tool.pytest.ini_options]` — cả hai đã có sẵn, đừng xóa.
@@ -53,7 +56,14 @@ Mỗi công cụ tìm 1 file riêng ngay trong thư mục đang đứng: `docker
 .\mvnw.cmd clean spring-boot:run   # build lại từ đầu, giống CI
 .\mvnw.cmd spotless:apply
 
-# MySQL (chạy ở gốc repo)
+# Cả 4 container (chạy ở gốc repo): frontend http://localhost:3000, backend :8080
+docker compose up -d --build
+docker compose ps                                           # cả 4 phải Up, 3 cái có (healthy)
+docker compose exec backend curl -s http://ml-service:8000/health   # backend gọi ml-service
+docker compose logs -f backend
+docker compose down                                         # thêm -v là XÓA luôn dữ liệu MySQL
+
+# Chỉ MySQL, còn 3 service chạy trên máy để code (chạy ở gốc repo)
 docker compose up -d mysql
 docker compose exec mysql mysql -uroot -p<mật khẩu trong .env> fashionshop -e "SHOW TABLES;"
 
@@ -72,4 +82,4 @@ uv run ruff check .
 
 ## Trạng thái hiện tại (cập nhật thủ công khi tiến độ đổi)
 
-Tuần 4/15 — dựng khung kỹ thuật. Đã xong: Bước 1 (khung Spring Boot backend), Bước 2 (schema MySQL 17 bảng qua Flyway + docker-compose cho MySQL), Bước 3 (khung React + Vite, trang test gọi `/actuator/health` qua CORS), Bước 4 (khung FastAPI `ml-service` với uv + Ruff + pytest, endpoint `/health`). Chưa làm: Bước 5 (Docker Compose đủ 4 container), Bước 6 (GitHub Actions), Bước 7 (SonarCloud + gitleaks), Bước 8 (báo cáo Tuần 4). Chi tiết kế hoạch: `docs/ke-hoach-15-tuan.md`.
+Tuần 4/15 — dựng khung kỹ thuật. Đã xong: Bước 1 (khung Spring Boot backend), Bước 2 (schema MySQL 17 bảng qua Flyway + docker-compose cho MySQL), Bước 3 (khung React + Vite, trang test gọi `/actuator/health` qua CORS), Bước 4 (khung FastAPI `ml-service` với uv + Ruff + pytest, endpoint `/health`), Bước 5 (Docker Compose đủ 4 container: mỗi service có `Dockerfile`, frontend phục vụ bằng Nginx ở cổng 3000, `ml-service` không mở cổng ra host và giới hạn 1 CPU/1 GB RAM). Chưa làm: Bước 6 (GitHub Actions), Bước 7 (SonarCloud + gitleaks), Bước 8 (báo cáo Tuần 4). Chi tiết kế hoạch: `docs/ke-hoach-15-tuan.md`.
