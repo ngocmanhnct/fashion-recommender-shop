@@ -1,3 +1,6 @@
+# 4 container theo deployment diagram (docs/dac-ta-yeu-cau.md Mục 11).
+# Trong mạng nội bộ Compose, các service gọi nhau bằng tên service (mysql, ml-service...),
+# không dùng localhost — localhost bên trong 1 container là chính container đó.
 services:
   mysql:
     image: mysql:8.4
@@ -15,6 +18,65 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  ml-service:
+    build: ./ml-service
+    container_name: fashionshop-ml-service
+    restart: unless-stopped
+    # Không mở cổng ra máy host: chỉ backend gọi ml-service, qua mạng nội bộ Compose
+    # (trình duyệt không bao giờ gọi thẳng FastAPI — xem CLAUDE.md).
+    expose:
+      - "8000"
+    # Giới hạn tài nguyên để lô chạy đêm (K-Means, tính lại gợi ý) không tranh CPU/RAM với web.
+    # Đo thử 03/10/2026: tối đa khoảng 500 MB RAM -> để 1 GB cho dư.
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build: ./backend
+    container_name: fashionshop-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      ML_SERVICE_URL: http://ml-service:8000
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:3000
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Trình duyệt (ngoài Docker) gọi backend, nên đây là địa chỉ nhìn từ máy host.
+        VITE_API_BASE_URL: http://localhost:8080
+    container_name: fashionshop-frontend
+    restart: unless-stopped
+    # Cổng 3000 để không đụng cổng 5173 của "npm run dev" khi vẫn code frontend trên máy.
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
 
 volumes:
   mysql_data:
