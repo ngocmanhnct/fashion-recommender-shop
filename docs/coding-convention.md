@@ -292,8 +292,12 @@ Các công cụ trên chạy trong pipeline GitHub Actions (`.github/workflows/c
 | React — kiểm tra quy tắc | `npx eslint .` | Có lỗi ESLint |
 | Python — kiểm tra format | `uv run ruff format --check .` | Có file chưa format đúng |
 | Python — kiểm tra quy tắc | `uv run ruff check .` | Có lỗi Ruff |
+| Cả repo — phân tích tĩnh | SonarQube Cloud (cấu hình ở `sonar-project.properties`, Bước 7) | Lần quét bị lỗi (sai cấu hình, token hết hạn). Cổng chất lượng chưa chặn, xem đoạn dưới bảng |
+| Cả repo — quét secret | `gitleaks git .` trên toàn bộ lịch sử Git (Bước 7) | Có token hoặc khóa mà bộ quy tắc mặc định của gitleaks nhận ra, trong bất kỳ commit nào (không bắt được mật khẩu người tự đặt, không quét .docx và ảnh) |
 
 CI gọi `sh ./mvnw` vì `mvnw` commit từ Windows không có quyền thực thi trên Linux. Test của backend khởi động cả Spring context nên CI bật kèm 1 MySQL 8.4 tạm. Trên máy (Windows), kiểm tra nhanh không cần MySQL: `.\mvnw.cmd spotless:check checkstyle:check`; muốn chạy giống hệt CI: bật MySQL rồi `.\mvnw.cmd verify`. Frontend còn chạy `npm run build`; CI có thêm 1 job build thử 3 Docker image.
+
+SonarQube Cloud (trước gọi là SonarCloud) dùng gói Free, nên cổng chất lượng là "Sonar way" cố định, trong đó có điều kiện coverage của code mới từ 80%. Coverage đến Tuần 11 mới đo, nên tới lúc đó cổng chỉ để báo cáo, không chặn merge. Trước khi merge, tự xem kết quả Sonar trên PR và chỉ merge khi: 0 bug mới, 0 lỗ hổng mới, mọi security hotspot mới đã review, trùng lặp trên code mới không quá 3%. Coverage báo đỏ là chuyện đã biết cho tới Tuần 11.
 
 Bước **test** chạy thêm `uv run pytest` cho `ml-service` — Python không có bước biên dịch như Java, nên cài đúng thư viện theo `uv.lock` rồi chạy test qua được cũng chính là bằng chứng app khởi động được.
 
