@@ -12,7 +12,7 @@ Monorepo, 3 service + 1 CSDL, triển khai qua Docker Compose (1 VPS, không Kub
 - `ml-service/` — FastAPI, Python **3.13**, quản lý bằng **uv** (`pyproject.toml` + `uv.lock` + `.python-version`; không dùng pip/`requirements.txt`). Package `app/` gồm 2 module: `recommendation/` (content-based filtering, đọc-only) và `segmentation/` (RFM + K-Means, đọc+ghi `account_segment`). Hiện mới có `GET /health` (trả `{"status": "UP"}`, cùng định dạng `/actuator/health`); ML thật làm từ Tuần 8.
 - MySQL **8.4**, schema quản lý hoàn toàn bằng **Flyway** — không bao giờ để Hibernate tự tạo/sửa bảng (`spring.jpa.hibernate.ddl-auto=validate`, luôn luôn).
 
-**React không bao giờ gọi thẳng FastAPI** — mọi request kể cả xin gợi ý sản phẩm đều qua Spring Boot (`MLServiceClient` gọi nội bộ sang FastAPI qua mạng Docker). Đây là quyết định kiến trúc đã chốt, không phải thiếu sót.
+**React không bao giờ gọi thẳng FastAPI** — mọi request kể cả xin gợi ý sản phẩm đều qua Spring Boot (`MlServiceClient` gọi nội bộ sang FastAPI qua mạng Docker). Đây là quyết định kiến trúc đã chốt, không phải thiếu sót.
 
 ## Nguồn tham khảo đầy đủ
 
@@ -25,6 +25,10 @@ Monorepo, 3 service + 1 CSDL, triển khai qua Docker Compose (1 VPS, không Kub
 - Spring Boot 4.x đổi tên nhiều dependency so với 3.x: `spring-boot-starter-web` → `spring-boot-starter-webmvc`. Flyway cần **2 dependency riêng**: `spring-boot-starter-flyway` (bắt buộc để tự chạy migration) + `org.flywaydb:flyway-mysql` (module riêng cho MySQL, không tự có trong starter, không cần `<version>` vì được `spring-boot-starter-parent` quản lý).
 - Checkstyle/Spotless là plugin bên thứ ba — **bắt buộc khai `<version>` tường minh** trong `pom.xml`, không như `spring-boot-maven-plugin` (được quản lý version sẵn). Thiếu version → lỗi khó hiểu "No plugin found for prefix"/"plugin absent from the project".
 - `google-java-format` (Spotless dùng để format Java) cần cờ JVM `--add-exports` để chạy trên JDK 16+ — đã có sẵn ở `backend/.mvn/jvm.config`, đừng xóa.
+- Checkstyle chỉ chặn được build nhờ `<violationSeverity>warning</violationSeverity>` trong `pom.xml`: mọi quy tắc của `google_checks.xml` ở mức warning, còn mặc định plugin chỉ tính mức error. Xóa dòng đó thì vi phạm chỉ còn là cảnh báo, CI vẫn xanh. `pom.xml` cũng chỉ định Checkstyle 14.3.0 vì bản 9.3 mặc định của plugin không đọc được cú pháp Java 21. Checkstyle chạy ở pha `verify`, không chạy khi `spring-boot:run`; kiểm tra nhanh không cần MySQL: `.\mvnw.cmd spotless:check checkstyle:check`.
+- Google Style (Checkstyle chặn thật) đòi Javadoc cho **mọi** class và method/constructor public (trừ `@Override`, `@Test`, getter/setter), không riêng Controller/Service — chỗ khác 1 dòng là đủ. Tên có chữ viết tắt viết như 1 từ: `MlServiceClient`, `VnPayClient`, `JwtFilter`. Tài liệu đặc tả/báo cáo ghi `MLServiceClient`, `VNPayClient` là tên khái niệm; lớp Java thật thì đặt theo kiểu trên, đặt `MLServiceClient` là CI đỏ (`AbbreviationAsWordInName`).
+- `backend/mvnw` trong git **không có quyền thực thi** (commit từ Windows) — trên Linux (CI, `backend/Dockerfile`) luôn gọi `sh ./mvnw`, đừng đổi thành `./mvnw` (lỗi "Permission denied").
+- CI ở `.github/workflows/ci.yml`, chạy trên mỗi PR vào `main` và mỗi commit lên `main`, 4 job: backend (Spotless, rồi `verify` = build + test + Checkstyle, có 1 MySQL 8.4 tạm vì test khởi động cả Spring context), frontend (Prettier, ESLint, build), ml-service (Ruff, pytest), build thử 3 Docker image. Lệnh trong CI giống lệnh chạy tay ở dưới. `astral-sh/setup-uv` không có tag rút gọn kiểu `@v10`, phải ghi đủ phiên bản.
 - `java.version` trong `pom.xml` giữ **21**. Máy dev hiện dùng JDK 24 — biên dịch được cho 21, KHÔNG biên dịch được cho 25. Đừng nâng `java.version` theo JDK trên máy.
 - CORS có 2 chỗ tách biệt: `config/WebConfig.java` chỉ áp dụng cho controller thường; endpoint Actuator (`/actuator/*`) có CORS riêng qua `management.endpoints.web.cors.*` trong `application.properties`. Cả 2 dùng chung danh sách origin `app.cors.allowed-origins` (biến môi trường `CORS_ALLOWED_ORIGINS`).
 - Frontend dùng ESLint 10 — **chưa dùng `eslint-plugin-react`** vì bản ổn định mới nhất chưa hỗ trợ ESLint 10 (cài sẽ lỗi ERESOLVE). Đừng ép cài bằng `--legacy-peer-deps`.
@@ -41,7 +45,7 @@ Monorepo, 3 service + 1 CSDL, triển khai qua Docker Compose (1 VPS, không Kub
 
 ## Quy ước code (tóm tắt — đầy đủ ở `docs/coding-convention.md`)
 
-- Java: Google Java Style (Checkstyle) + `google-java-format` (Spotless). Chạy `.\mvnw.cmd spotless:apply` trước khi commit (trong `backend/`). Javadoc bắt buộc cho method public ở Controller/Service.
+- Java: Google Java Style (Checkstyle) + `google-java-format` (Spotless). Chạy `.\mvnw.cmd spotless:apply` trước khi commit (trong `backend/`). Javadoc bắt buộc cho mọi class và method public (Checkstyle chặn); Controller/Service viết đầy đủ, chỗ khác 1 dòng.
 - React: ESLint 10 flat config (`recommended` + `react-hooks` + `react-refresh` + `eslint-config-prettier` đặt cuối; KHÔNG dùng Airbnb config) + Prettier (`printWidth: 100`, `singleQuote: true`, `semi: true`, `trailingComma: "es5"`). Chạy `npx prettier --write .` và `npx eslint .` (trong `frontend/`) trước khi commit.
 - Python: PEP 8 + Ruff (`line-length = 100`, thêm rule sắp xếp import `I`); docstring cho mọi package (`__init__.py`) và hàm endpoint. Chạy `uv run ruff format .` và `uv run ruff check .` (trong `ml-service/`) trước khi commit.
 - Tên: Java/React — PascalCase cho class/component, camelCase cho method/biến/hook (tiền tố `use`), UPPER_SNAKE_CASE cho hằng số; Python — snake_case cho hàm/biến/module, PascalCase cho class.
@@ -55,6 +59,7 @@ Mỗi công cụ tìm 1 file riêng ngay trong thư mục đang đứng: `docker
 .\mvnw.cmd spring-boot:run
 .\mvnw.cmd clean spring-boot:run   # build lại từ đầu, giống CI
 .\mvnw.cmd spotless:apply
+.\mvnw.cmd verify                  # như CI: build + test + Checkstyle (cần MySQL đang chạy)
 
 # Cả 4 container (chạy ở gốc repo): frontend http://localhost:3000, backend :8080
 docker compose up -d --build
@@ -82,4 +87,4 @@ uv run ruff check .
 
 ## Trạng thái hiện tại (cập nhật thủ công khi tiến độ đổi)
 
-Tuần 4/15 — dựng khung kỹ thuật. Đã xong: Bước 1 (khung Spring Boot backend), Bước 2 (schema MySQL 17 bảng qua Flyway + docker-compose cho MySQL), Bước 3 (khung React + Vite, trang test gọi `/actuator/health` qua CORS), Bước 4 (khung FastAPI `ml-service` với uv + Ruff + pytest, endpoint `/health`), Bước 5 (Docker Compose đủ 4 container: mỗi service có `Dockerfile`, frontend phục vụ bằng Nginx ở cổng 3000, `ml-service` không mở cổng ra host và giới hạn 1 CPU/1 GB RAM). Chưa làm: Bước 6 (GitHub Actions), Bước 7 (SonarCloud + gitleaks), Bước 8 (báo cáo Tuần 4). Chi tiết kế hoạch: `docs/ke-hoach-15-tuan.md`.
+Tuần 4/15 — dựng khung kỹ thuật. Đã xong: Bước 1 (khung Spring Boot backend), Bước 2 (schema MySQL 17 bảng qua Flyway + docker-compose cho MySQL), Bước 3 (khung React + Vite, trang test gọi `/actuator/health` qua CORS), Bước 4 (khung FastAPI `ml-service` với uv + Ruff + pytest, endpoint `/health`), Bước 5 (Docker Compose đủ 4 container: mỗi service có `Dockerfile`, frontend phục vụ bằng Nginx ở cổng 3000, `ml-service` không mở cổng ra host và giới hạn 1 CPU/1 GB RAM), Bước 6 (GitHub Actions: `.github/workflows/ci.yml`, 4 job; từ đây mọi thay đổi vào `main` đi qua PR và phải xanh CI). Chưa làm: Bước 7 (SonarCloud + gitleaks), Bước 8 (báo cáo Tuần 4). Chi tiết kế hoạch: `docs/ke-hoach-15-tuan.md`.

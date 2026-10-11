@@ -1,2 +1,2 @@
-/** REST endpoint — nhận request, gọi service xử lý, không chứa business logic. */
+/** Custom exception + xử lý tập trung. */
 package com.manhdn.fashionshop.exception;
