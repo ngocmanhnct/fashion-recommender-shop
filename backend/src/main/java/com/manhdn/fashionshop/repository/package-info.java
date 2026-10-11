@@ -1,2 +1,2 @@
-/** REST endpoint — nhận request, gọi service xử lý, không chứa business logic. */
+/** Spring Data JPA, interface extends JpaRepository. */
 package com.manhdn.fashionshop.repository;

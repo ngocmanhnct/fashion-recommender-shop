@@ -1,2 +1,2 @@
-/** REST endpoint — nhận request, gọi service xử lý, không chứa business logic. */
+/** JWT filter, Spring Security config. */
 package com.manhdn.fashionshop.security;

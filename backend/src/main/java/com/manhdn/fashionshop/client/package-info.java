@@ -1,2 +1,2 @@
-/** REST endpoint — nhận request, gọi service xử lý, không chứa business logic. */
+/** Gọi service ngoài (MlServiceClient, VnPayClient). */
 package com.manhdn.fashionshop.client;
