@@ -87,7 +87,19 @@
 				<configuration>
 					<configLocation>google_checks.xml</configLocation>
 					<failOnViolation>true</failOnViolation>
+					<!-- google_checks.xml de moi quy tac o muc warning; mac dinh plugin chi tinh muc error,
+					     nen phai ha nguong xuong warning thi vi pham moi lam build that bai -->
+					<violationSeverity>warning</violationSeverity>
 				</configuration>
+				<!-- Plugin 3.6.0 mac dinh dung Checkstyle 9.3 (2022), khong doc duoc cu phap Java 21
+				     (switch co "when", record pattern) -> chi dinh ban Checkstyle moi -->
+				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>14.3.0</version>
+					</dependency>
+				</dependencies>
 				<executions>
 					<execution><goals><goal>check</goal></goals><phase>verify</phase></execution>
 				</executions>

@@ -42,9 +42,12 @@ com.manhdn.fashionshop
 | Method, biến | camelCase | `createOrder()`, `idempotencyKey` |
 | Hằng số | UPPER_SNAKE_CASE | `MAX_LOGIN_ATTEMPTS` |
 | Package | chữ thường, không gạch dưới | `com.manhdn.fashionshop.service` |
+| Chữ viết tắt trong tên | viết như 1 từ, chỉ hoa chữ đầu | `MlServiceClient`, `VnPayClient`, `JwtFilter` (không phải `MLServiceClient`) |
 | Cột/bảng CSDL | snake_case | `sku_code`, `order_item` (đã chốt ở Mục 3.4 `dac-ta-yeu-cau.md`) |
 
 *Về lệch quy ước Java (camelCase) vs CSDL (snake_case):* đây là **cố ý, không phải thiếu nhất quán** — mỗi ngôn ngữ/hệ thống dùng đúng chuẩn phổ biến của nó, và Spring Data JPA tự động ánh xạ giữa 2 chuẩn này qua `CamelCaseToUnderscoresNamingStrategy` (mặc định sẵn có, không cần cấu hình tay): field Java `skuCode` tự khớp cột CSDL `sku_code`. Không cần ghi `@Column(name = "sku_code")` thủ công cho từng field trừ khi tên lệch nhiều hơn quy tắc mặc định xử lý được.
+
+*Về chữ viết tắt (bổ sung 09/10/2026):* Checkstyle (quy tắc `AbbreviationAsWordInName` của Google Style) chặn tên có 2 chữ hoa liền nhau. Tài liệu đặc tả và báo cáo ghi `MLServiceClient`, `VNPayClient` là tên khái niệm; lớp Java thật đặt `MlServiceClient`, `VnPayClient`.
 
 ### 1.3 Checkstyle — kiểm tra quy tắc
 
@@ -55,10 +58,19 @@ Dùng thẳng ruleset **Google Java Style** (`google_checks.xml`, đóng gói s�
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-checkstyle-plugin</artifactId>
+    <version>3.6.0</version>
     <configuration>
         <configLocation>google_checks.xml</configLocation>
         <failOnViolation>true</failOnViolation>
+        <violationSeverity>warning</violationSeverity>
     </configuration>
+    <dependencies>
+        <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>14.3.0</version>
+        </dependency>
+    </dependencies>
     <executions>
         <execution>
             <goals><goal>check</goal></goals>
@@ -67,6 +79,10 @@ Dùng thẳng ruleset **Google Java Style** (`google_checks.xml`, đóng gói s�
     </executions>
 </plugin>
 ```
+
+*Cập nhật 09/10/2026 (Bước 6, lúc dựng CI):* bản đầu thiếu 2 dòng, và với cấu hình đó Checkstyle **không bao giờ chặn** được gì:
+- `<violationSeverity>warning</violationSeverity>`: mọi quy tắc trong `google_checks.xml` ở mức *warning*, còn plugin mặc định chỉ tính vi phạm mức *error*, nên `failOnViolation` không có tác dụng và CI luôn xanh dù code sai style. Hạ ngưỡng xuống *warning* thì vi phạm làm build thất bại thật.
+- Phụ thuộc `checkstyle` 14.3.0: plugin 3.6.0 mặc định dùng Checkstyle 9.3 (2022), không đọc được cú pháp Java 21 như `switch` có `when` hay record pattern (báo lỗi phân tích cú pháp dù code biên dịch được).
 
 ### 1.4 Spotless — tự động format
 
@@ -90,7 +106,11 @@ Lệnh dùng hàng ngày: `mvn spotless:apply` (tự sửa format trước khi c
 
 ### 1.5 Javadoc
 
-Bắt buộc cho method **public** ở Controller và Service (đây là "hợp đồng" người khác/hội đồng đọc để hiểu API và business logic mà không cần đọc hết code) — không bắt buộc cho method private hay Repository (interface JPA đã tự mô tả qua tên method, vd `findByIdempotencyKey`).
+Checkstyle (`google_checks.xml`) bắt buộc Javadoc cho mọi class, interface, record, enum **public/protected**, và mọi method, constructor **public/protected** — trừ method có `@Override` hoặc `@Test`, và getter/setter đơn giản. Thiếu là CI đỏ.
+
+Mức chi tiết thì khác nhau: method public ở Controller và Service viết đầy đủ (đây là "hợp đồng" người khác/hội đồng đọc để hiểu API và business logic mà không cần đọc hết code). Ở chỗ khác (Repository, DTO, Entity, config) 1 dòng là đủ, vd `/** Tìm đơn theo khóa chống trùng. */` cho `findByIdempotencyKey`.
+
+*Cập nhật 09/10/2026:* bản đầu ghi "chỉ bắt buộc ở Controller và Service" — đúng ý nhưng khác quy tắc Checkstyle thật sự kiểm tra; Checkstyle không chạy chặn nên trước đây không lộ ra.
 
 ---
 
@@ -262,16 +282,18 @@ testpaths = ["tests"]
 
 *(Mục này trước là Mục 3, đổi thành Mục 4 ngày 30/09/2026 khi thêm phần Python — các tham chiếu "Mục 3" trong nhật ký 23/09/2026 của `ho-so-du-an.md` là trỏ tới mục này.)*
 
-Các công cụ trên chạy ở bước **lint** của pipeline GitHub Actions (`ho-so-du-an.md` Mục 3), mỗi lệnh chạy trong đúng thư mục service của nó (`backend/`, `frontend/`, `ml-service/`):
+Các công cụ trên chạy trong pipeline GitHub Actions (`.github/workflows/ci.yml`, dựng ở Bước 6 Tuần 4) trên mỗi Pull Request vào `main`, mỗi lệnh chạy trong đúng thư mục service của nó (`backend/`, `frontend/`, `ml-service/`):
 
 | Bước | Lệnh | Chặn merge nếu |
 | :---- | :---- | :---- |
-| Java — kiểm tra format | `mvn spotless:check` | Có file chưa format đúng |
-| Java — kiểm tra quy tắc | `mvn checkstyle:check` | Vi phạm Google Java Style |
+| Java — kiểm tra format | `sh ./mvnw -B -ntp spotless:check` | Có file chưa format đúng |
+| Java — build, test, kiểm tra quy tắc | `sh ./mvnw -B -ntp verify` (Checkstyle gắn vào pha `verify`) | Lỗi biên dịch, test hỏng, hoặc vi phạm Google Java Style |
 | React — kiểm tra format | `npx prettier --check .` | Có file chưa format đúng |
 | React — kiểm tra quy tắc | `npx eslint .` | Có lỗi ESLint |
 | Python — kiểm tra format | `uv run ruff format --check .` | Có file chưa format đúng |
 | Python — kiểm tra quy tắc | `uv run ruff check .` | Có lỗi Ruff |
+
+CI gọi `sh ./mvnw` vì `mvnw` commit từ Windows không có quyền thực thi trên Linux. Test của backend khởi động cả Spring context nên CI bật kèm 1 MySQL 8.4 tạm. Trên máy (Windows), kiểm tra nhanh không cần MySQL: `.\mvnw.cmd spotless:check checkstyle:check`; muốn chạy giống hệt CI: bật MySQL rồi `.\mvnw.cmd verify`. Frontend còn chạy `npm run build`; CI có thêm 1 job build thử 3 Docker image.
 
 Bước **test** chạy thêm `uv run pytest` cho `ml-service` — Python không có bước biên dịch như Java, nên cài đúng thư viện theo `uv.lock` rồi chạy test qua được cũng chính là bằng chứng app khởi động được.
 

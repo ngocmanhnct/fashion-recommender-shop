@@ -1,0 +1,154 @@
+# CI cơ bản (Tuần 4, Bước 6): mỗi service được build, kiểm tra format/quy tắc code và chạy test;
+# thêm 1 job build thử 3 Docker image. Các lệnh giống hệt lệnh chạy tay trên máy
+# (CLAUDE.md, docs/coding-convention.md Mục 4), chỉ khác là chạy trên Linux.
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  # Cho phép bấm "Run workflow" trong tab Actions để chạy lại CI mà không cần commit.
+  workflow_dispatch:
+
+# Chỉ cần đọc code, không ghi gì lên repo.
+permissions:
+  contents: read
+
+# PR: đẩy commit mới thì hủy lần chạy cũ của PR đó, đỡ chờ.
+# main: không hủy, để commit nào trên main cũng có kết quả CI trong lịch sử chạy.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  backend:
+    name: Backend (Spring Boot)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    # Test FashionshopApplicationTests khởi động cả Spring context: Flyway chạy migration lên
+    # MySQL thật, rồi Hibernate kiểm tra entity khớp schema (ddl-auto=validate, khi đã có entity).
+    # Nên CI cần 1 MySQL 8.4. Kiểm tra sức khỏe qua 127.0.0.1 (TCP) để chỉ báo "sẵn sàng" khi
+    # MySQL đã mở cổng 3306, không phải lúc nó còn đang khởi tạo.
+    # Mật khẩu dưới đây chỉ dùng cho container tạm của CI, không phải mật khẩu thật nào.
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_DATABASE: fashionshop
+          MYSQL_ROOT_PASSWORD: ci_only_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pci_only_password"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DB_HOST: 127.0.0.1
+      MYSQL_ROOT_PASSWORD: ci_only_password
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # không job nào cần đẩy code, không giữ token trong .git
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      # mvnw được commit từ Windows nên không có quyền thực thi trên Linux -> gọi qua sh,
+      # giống backend/Dockerfile. -B: không hỏi tương tác; -ntp: không in hàng nghìn dòng tải thư viện.
+      - name: Kiểm tra format (Spotless)
+        run: sh ./mvnw -B -ntp spotless:check
+
+      # verify = biên dịch + chạy test + Checkstyle (pom.xml gắn checkstyle:check vào pha verify,
+      # và hạ ngưỡng xuống warning để vi phạm Google Java Style làm build thất bại thật).
+      - name: Build, test, Checkstyle
+        run: sh ./mvnw -B -ntp verify
+
+  frontend:
+    name: Frontend (React + Vite)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # không job nào cần đẩy code, không giữ token trong .git
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Cài thư viện đúng package-lock.json
+        run: npm ci
+
+      - name: Kiểm tra format (Prettier)
+        run: npx prettier --check .
+
+      - name: Kiểm tra quy tắc (ESLint)
+        run: npx eslint .
+
+      - name: Build
+        run: npm run build
+
+  ml-service:
+    name: ML service (FastAPI)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ml-service
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # không job nào cần đẩy code, không giữ token trong .git
+
+      # setup-uv không còn tag rút gọn kiểu @v10 nên ghi đủ phiên bản.
+      # uv cùng phiên bản với ml-service/Dockerfile; Python lấy theo ml-service/.python-version.
+      # Đường dẫn cache-dependency-glob tính từ working-directory (ml-service/), không phải gốc repo.
+      - uses: astral-sh/setup-uv@v10.1.0
+        with:
+          version: "0.12.24"
+          working-directory: ml-service
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+          cache-python: true
+
+      - name: Cài thư viện đúng uv.lock (kèm nhóm dev)
+        run: uv sync --locked
+
+      - name: Kiểm tra format (Ruff)
+        run: uv run ruff format --check .
+
+      - name: Kiểm tra quy tắc (Ruff)
+        run: uv run ruff check .
+
+      - name: Test (pytest)
+        run: uv run pytest
+
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false # không job nào cần đẩy code, không giữ token trong .git
+
+      # Chỉ build image để chắc 3 Dockerfile còn build được, chưa chạy thử cả cụm (để Tuần 11).
+      # docker-compose.yml đọc MYSQL_ROOT_PASSWORD từ .env (không có trên CI): đặt tạm để
+      # compose không cảnh báo biến trống.
+      - name: Build 3 image (backend, frontend, ml-service)
+        env:
+          MYSQL_ROOT_PASSWORD: ci_only_password
+        run: docker compose build
