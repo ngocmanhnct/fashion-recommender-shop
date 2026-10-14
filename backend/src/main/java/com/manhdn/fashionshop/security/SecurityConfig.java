@@ -44,6 +44,8 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/categories", "/api/brands")
+                    .permitAll()
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                     .permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**")

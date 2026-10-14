@@ -297,7 +297,9 @@ Các công cụ trên chạy trong pipeline GitHub Actions (`.github/workflows/c
 
 CI gọi `sh ./mvnw` vì `mvnw` commit từ Windows không có quyền thực thi trên Linux. Test của backend khởi động cả Spring context nên CI bật kèm 1 MySQL 8.4 tạm. Trên máy (Windows), kiểm tra nhanh không cần MySQL: `.\mvnw.cmd spotless:check checkstyle:check`; muốn chạy giống hệt CI: bật MySQL rồi `.\mvnw.cmd verify`. Frontend còn chạy `npm run build`; CI có thêm 1 job build thử 3 Docker image.
 
-SonarQube Cloud (trước gọi là SonarCloud) dùng gói Free, nên cổng chất lượng là "Sonar way" cố định, trong đó có điều kiện coverage của code mới từ 80%. Coverage đến Tuần 11 mới đo, nên tới lúc đó cổng chỉ để báo cáo, không chặn merge. Trước khi merge, tự xem kết quả Sonar trên PR và chỉ merge khi: 0 bug mới, 0 lỗ hổng mới, mọi security hotspot mới đã review, trùng lặp trên code mới không quá 3%. Coverage báo đỏ là chuyện đã biết cho tới Tuần 11.
+SonarQube Cloud (trước gọi là SonarCloud) dùng gói Free, nên cổng chất lượng là "Sonar way" cố định, trong đó có điều kiện coverage của code mới từ 80%. Coverage đến Tuần 11 mới đo, nên tới lúc đó cổng chỉ để báo cáo, không chặn merge. Trước khi merge, tự xem kết quả Sonar trên PR và chỉ merge khi: 0 bug mới, 0 lỗ hổng mới, mọi issue bảo mật mới đã được xử lý (sửa, hoặc đánh dấu False positive/Accept trên SonarQube Cloud kèm lý do), trùng lặp trên code mới không quá 3%. Coverage báo đỏ là chuyện đã biết cho tới Tuần 11.
+
+*Cập nhật 14/10/2026:* SonarQube Cloud đã bỏ trang Security Hotspots; các phát hiện kiểu "hãy chắc chắn chỗ này an toàn" (vd tắt CSRF trong `SecurityConfig.java`) giờ hiện như issue bảo mật ở trang Issues. Đánh dấu ngay trên issue, không dùng `// NOSONAR` để ẩn: trạng thái và lý do được lưu lại trên SonarQube Cloud làm bằng chứng review. Ví dụ đầu tiên: PR #6, tắt CSRF đánh dấu False positive vì API stateless dùng JWT trong header `Authorization`, không có cookie phiên.
 
 Bước **test** chạy thêm `uv run pytest` cho `ml-service` — Python không có bước biên dịch như Java, nên cài đúng thư viện theo `uv.lock` rồi chạy test qua được cũng chính là bằng chứng app khởi động được.
 

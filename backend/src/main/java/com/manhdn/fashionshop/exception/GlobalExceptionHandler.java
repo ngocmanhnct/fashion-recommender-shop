@@ -44,6 +44,12 @@ public class GlobalExceptionHandler {
     return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
   }
 
+  /** Xung đột với dữ liệu hiện có: 409. */
+  @ExceptionHandler(ConflictException.class)
+  public ProblemDetail handleConflict(ConflictException ex) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+  }
+
   /** Sai thông tin đăng nhập: 401. */
   @ExceptionHandler(InvalidCredentialsException.class)
   public ProblemDetail handleInvalidCredentials(InvalidCredentialsException ex) {
