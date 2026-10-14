@@ -16,12 +16,14 @@ Monorepo, 3 service + 1 CSDL, triển khai qua Docker Compose (1 VPS, không Kub
 
 ## Nguồn tham khảo đầy đủ
 
-- `docs/dac-ta-yeu-cau.md` — đặc tả đầy đủ: 22 user story, 36 business rule, **từ điển dữ liệu 17 bảng** (Mục 3 — nguồn duy nhất đáng tin cho tên bảng/cột/kiểu/ràng buộc, ERD ở Mục 8 chỉ là bản đơn giản hóa). Đọc mục này trước khi tạo/sửa bất kỳ `@Entity` nào.
+- `docs/dac-ta-yeu-cau.md` — đặc tả đầy đủ: 22 user story, 36 business rule, **từ điển dữ liệu 19 bảng** (Mục 3 — nguồn duy nhất đáng tin cho tên bảng/cột/kiểu/ràng buộc, ERD ở Mục 8 chỉ là bản đơn giản hóa). Đọc mục này trước khi tạo/sửa bất kỳ `@Entity` nào.
 - `docs/coding-convention.md` — quy ước đặt tên, cấu trúc thư mục, cấu hình Checkstyle/Spotless (Java), ESLint/Prettier (React), Ruff/pytest/uv (Python) đầy đủ.
 
 ## Điểm dễ nhầm — đã tốn công phát hiện, đừng lặp lại
 
 - Bảng `order` trong ERD/từ điển dữ liệu **thực ra tên là `orders`** trong migration SQL thật — `order` là từ khóa dành riêng của MySQL (`ORDER BY`), đổi tên ở tầng cài đặt, tài liệu đặc tả cố tình giữ tên gốc `order` vì đó là tên nghiệp vụ đúng. `order_item` không đổi (không xung đột).
+- Tương tự, thuộc tính `rank` của lớp `Recommendation` lưu ở cột **`rank_position`** (migration V2): `RANK` là từ khóa dành riêng của MySQL 8 (hàm cửa sổ `RANK()`). Entity khai `@Column(name = "rank_position")`.
+- Không bao giờ sửa file migration đã chạy (`V1__...`): Flyway so checksum, sửa file cũ làm mọi máy đã migrate lỗi khi khởi động. Thay đổi lược đồ luôn là file `V<n+1>__...sql` mới.
 - Spring Boot 4.x đổi tên nhiều dependency so với 3.x: `spring-boot-starter-web` → `spring-boot-starter-webmvc`. Flyway cần **2 dependency riêng**: `spring-boot-starter-flyway` (bắt buộc để tự chạy migration) + `org.flywaydb:flyway-mysql` (module riêng cho MySQL, không tự có trong starter, không cần `<version>` vì được `spring-boot-starter-parent` quản lý).
 - Checkstyle/Spotless là plugin bên thứ ba — **bắt buộc khai `<version>` tường minh** trong `pom.xml`, không như `spring-boot-maven-plugin` (được quản lý version sẵn). Thiếu version → lỗi khó hiểu "No plugin found for prefix"/"plugin absent from the project".
 - `google-java-format` (Spotless dùng để format Java) cần cờ JVM `--add-exports` để chạy trên JDK 16+ — đã có sẵn ở `backend/.mvn/jvm.config`, đừng xóa.

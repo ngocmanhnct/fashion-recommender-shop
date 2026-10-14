@@ -520,15 +520,49 @@ UNIQUE(account\_id, product\_id).
 | valid\_until | DATETIME | NOT NULL | Hết hạn tự nhiên theo ngày |
 | usage\_limit\_total | INT UNSIGNED | NULLABLE | NULL \= không giới hạn tổng lượt dùng |
 | usage\_limit\_per\_account | INT UNSIGNED | NULLABLE | NULL \= không giới hạn theo từng tài khoản |
+| max\_discount\_amount | BIGINT UNSIGNED | NULLABLE | Trần số tiền giảm cho mã PERCENT, NULL \= không giới hạn; mã FIXED để NULL (bổ sung 14/10/2026, migration V2) |
 | used\_count | INT UNSIGNED | NOT NULL, DEFAULT 0 | Bộ đếm tổng lượt đã dùng, tăng/giảm bằng UPDATE có điều kiện (BR-30) — không suy ra bằng COUNT, vì COUNT không chặn được 2 request đồng thời cùng lọt qua điều kiện |
 | is\_active | BOOLEAN | NOT NULL, DEFAULT TRUE | US-22: cho phép admin vô hiệu hóa mã thủ công trước hạn |
 | created\_at | DATETIME | NOT NULL |  |
 
 *Không có bảng `voucher_usage` riêng: giới hạn **tổng** dùng cột `used_count` ở trên (an toàn với race condition). Giới hạn **theo tài khoản** vẫn dùng truy vấn đếm trên `order` (`WHERE voucher_id = :id AND account_id = :accountId AND status != 'CANCELLED'`) — rủi ro race condition ở đây thấp hơn nhiều, không đáng thêm cơ chế riêng.*
 
+### 3.12 Sở thích khảo sát — `user_preference`
+
+*Nguồn: US-23, BR-37, BR-38, QĐ\_KH10 (bổ sung 07/10/2026, migration V2)*
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- |
+| id | BIGINT UNSIGNED | PK |  |
+| account\_id | BIGINT UNSIGNED | FK → account.id, NOT NULL | Khách chưa đăng nhập lưu sở thích ở trình duyệt; đăng ký/đăng nhập thì chuyển vào đây nếu tài khoản chưa có |
+| category\_id | BIGINT UNSIGNED | FK → category.id, NOT NULL | Một dòng cho mỗi danh mục quan tâm (chọn 1 đến 3) |
+| brand\_id | BIGINT UNSIGNED | FK → brand.id, NULLABLE | Thương hiệu yêu thích, tùy chọn |
+| price\_min | BIGINT UNSIGNED | NOT NULL, DEFAULT 0 | Cận dưới tầm giá, VNĐ |
+| price\_max | BIGINT UNSIGNED | NULLABLE | Cận trên tầm giá, NULL \= không giới hạn trên |
+| created\_at | DATETIME | NOT NULL |  |
+| updated\_at | DATETIME | NOT NULL |  |
+
+UNIQUE(account\_id, category\_id); CHECK(price\_max IS NULL OR price\_max ≥ price\_min). Khoảng giá và thương hiệu chọn một lần trong khảo sát nên các dòng của cùng tài khoản mang cùng giá trị. Làm lại khảo sát (BR-37) \= xóa các dòng cũ của tài khoản rồi ghi dòng mới trong cùng transaction.
+
+### 3.13 Gợi ý tính sẵn — `recommendation`
+
+*Nguồn: US-13, BR-20 (bổ sung 14/10/2026, migration V2)*
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- |
+| id | BIGINT UNSIGNED | PK |  |
+| account\_id | BIGINT UNSIGNED | FK → account.id, NOT NULL |  |
+| product\_id | BIGINT UNSIGNED | FK → product.id, NOT NULL |  |
+| rank\_position | INT UNSIGNED | NOT NULL | Thứ hạng, 1 \= phù hợp nhất. Thuộc tính `rank` trên sơ đồ lớp; cột đổi tên vì RANK là từ khóa dành riêng của MySQL 8 |
+| score | DOUBLE | NOT NULL | Độ tương đồng cosine giữa hồ sơ sở thích và sản phẩm |
+| reason | VARCHAR(255) | NOT NULL | Lý do gợi ý hiển thị cho người mua |
+| generated\_at | DATETIME | NOT NULL | Lần chạy batch tạo danh sách này |
+
+UNIQUE(account\_id, rank\_position); UNIQUE(account\_id, product\_id). Batch hằng ngày ghi đè toàn bộ danh sách của từng tài khoản, không lưu lịch sử; trang chủ chỉ đọc bảng này, không gọi dịch vụ học máy (BR-20).
+
 ---
 
-**Tổng cộng: 17 bảng dữ liệu**, bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 19 bảng dữ liệu**, bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 
