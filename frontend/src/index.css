@@ -1,109 +1,412 @@
+/* Giao diện cơ bản cho Tuần 5 (đăng nhập, đăng ký, trang quản trị). Chưa dùng thư viện UI. */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --text: #1f2430;
+  --muted: #6b7280;
+  --border: #e3e6eb;
+  --primary: #2f5bea;
+  --primary-hover: #2349c7;
+  --danger: #c93636;
+  --success-bg: #e8f6ee;
+  --success-text: #1d6b3e;
+  --error-bg: #fdecec;
+  --error-text: #a12828;
+  --warning-bg: #fff6e0;
+  --warning-text: #8a5a00;
+  --radius: 8px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+  font:
+    15px/1.5 system-ui,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   color: var(--text);
   background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow: rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+  background: var(--bg);
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: 1.6rem;
+  margin: 0 0 16px;
 }
+
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  font-size: 1.2rem;
+  margin: 28px 0 12px;
 }
-p {
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  border-color: var(--primary);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  background: var(--bg);
+  color: var(--muted);
+}
+
+/* ---- Khung trang ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.topbar-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.topbar-nav a.active:not(.btn) {
+  font-weight: 600;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.85rem;
+}
+
+.hero {
+  text-align: center;
+  padding: 48px 0;
+}
+
+/* ---- Nút ---- */
+.btn {
+  display: inline-block;
+  font: inherit;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.btn:hover {
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn-ghost {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  border-color: var(--muted);
+}
+
+.btn-danger {
+  background: var(--surface);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 40%, transparent);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--error-bg);
+}
+
+.btn-block {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* ---- Form ---- */
+.auth-card {
+  max-width: 420px;
+  margin: 24px auto;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.field-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.field-error {
+  display: block;
+  color: var(--error-text);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0 14px;
+}
+
+.form-wide {
+  max-width: 900px;
+}
+
+.form-actions {
+  margin-top: 16px;
+}
+
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.inline-form input:not([type='checkbox']),
+.inline-form select {
+  width: auto;
+  min-width: 200px;
+}
+
+.checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkbox input {
+  width: auto;
+}
+
+.alert {
+  padding: 10px 12px;
+  border-radius: 6px;
+  margin: 12px 0;
+}
+
+.alert-error {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
+.alert-success {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.alert-warning {
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+/* ---- Trang quản trị ---- */
+.admin {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 24px;
+}
+
+.admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-nav a {
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.admin-nav a:hover {
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.admin-nav a.active {
+  background: var(--surface);
+  color: var(--primary);
+  font-weight: 600;
+  border: 1px solid var(--border);
+}
+
+.admin-content {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.page-header h1 {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+@media (max-width: 720px) {
+  .admin {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* ---- Bảng ---- */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.table th,
+.table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--muted);
+  background: var(--bg);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table .actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table .actions .btn + .btn {
+  margin-left: 6px;
+}
+
+.table-inputs td {
+  padding: 6px 8px;
+}
+
+.table-inputs input {
+  min-width: 90px;
+}
+
+.row-deleted td {
+  color: var(--muted);
+}
+
+.row-new td {
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+}
+
+.thumb {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.thumb-empty {
+  background: var(--bg);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 16px;
 }
