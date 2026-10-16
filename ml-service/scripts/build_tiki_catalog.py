@@ -5,11 +5,12 @@ Nguồn: "TIKI E-Commerce Fashion Products Dataset" trên Kaggle
 giày, túi, balo - vali và phụ kiện, thu thập từ API công khai của Tiki, dùng cho mục đích giáo
 dục. Không có quần áo, màu, size, tồn kho, ảnh. Xem data/tiki/README.md.
 
-Cách chọn (quyết định D16, bản đầu): gộp danh mục lá của Tiki thành các danh mục của cửa hàng
-(CATEGORIES), bỏ sản phẩm thuộc danh mục chung chung ("Root", "Thời Trang"), giá 0 hoặc chưa bán
-được cái nào; tên sản phẩm phải có từ khóa của danh mục (lọc hàng xếp nhầm danh mục, vd mặt nạ
-trong "Kính mát nữ"); bỏ hàng combo và sản phẩm gần trùng tên với sản phẩm đã chọn; trong mỗi
-danh mục lấy các sản phẩm bán nhiều nhất trên Tiki.
+Cách chọn (quyết định D16, mở rộng ngày 16/10/2026 để demo gợi ý rõ hơn: 42 danh mục, mỗi danh
+mục 25 sản phẩm): gộp danh mục lá của Tiki thành các danh mục của cửa hàng (CATEGORIES), bỏ sản
+phẩm thuộc danh mục chung chung ("Root", "Thời Trang"), giá 0 hoặc chưa bán được cái nào; tên sản
+phẩm phải có từ khóa của danh mục và không có từ bị loại (lọc hàng xếp nhầm danh mục, vd mặt nạ
+trong "Kính mát nữ", giày đi mưa trong "Giày búp bê"); bỏ hàng combo và sản phẩm gần trùng tên
+với sản phẩm đã chọn; trong mỗi danh mục lấy các sản phẩm bán nhiều nhất trên Tiki.
 
 Phần sinh thêm (ghi rõ trong báo cáo): giày dép có 1 tầng phân loại "Kích cỡ" (nam 39-43, nữ
 35-39), sản phẩm khác không có phân loại; tồn kho 0-40 sinh giả ngẫu nhiên nhưng cố định theo mã
@@ -58,152 +59,272 @@ EXCLUDED_WORDS = ["combo"]
 
 @dataclass(frozen=True)
 class ShopCategory:
-    """Một danh mục của cửa hàng, gộp từ các danh mục lá của Tiki trong cùng 1 tệp CSV."""
+    """Một danh mục của cửa hàng, gộp từ các danh mục lá của Tiki trong các tệp CSV đã nêu."""
 
     name: str
-    file: str
+    files: tuple[str, ...]
     tiki_categories: tuple[str, ...]
     keywords: tuple[str, ...]
     excluded: tuple[str, ...] = ()
     sizes: tuple[str, ...] = ()
 
 
+SHOE_CARE_EXCLUDED = ("da nang",)
+WALLET_EXCLUDED = ("bao dung", "vo boc", "passport", "ho chieu", "tui nhua")
+GLASSES_EXCLUDED = ("chan giot", "mat na", "trong kinh", "bao ho")
+BELT_EXCLUDED = ("dinh", "duc lo", "vong tay", "chu y")
+MEN = tuple(MEN_SIZES)
+WOMEN = tuple(WOMEN_SIZES)
+
 CATEGORIES = [
+    # Giày dép nam
     ShopCategory(
         "Giày thể thao nam",
-        "men_shoes",
+        ("men_shoes",),
         ("Giày thể thao nam cổ cao", "Giày thể thao nam cổ thấp"),
         ("giay",),
-        sizes=tuple(MEN_SIZES),
+        sizes=MEN,
     ),
     ShopCategory(
-        "Giày tây, giày lười nam",
-        "men_shoes",
-        (
-            "Giày tây nam có dây",
-            "Giày tây nam không dây",
-            "Giày tây nam",
-            "Giày lười da nam",
-            "Giày lười vải nam",
-        ),
+        "Giày tây nam",
+        ("men_shoes",),
+        ("Giày tây nam có dây", "Giày tây nam không dây", "Giày tây nam"),
         ("giay",),
-        sizes=tuple(MEN_SIZES),
+        sizes=MEN,
     ),
     ShopCategory(
-        "Dép, sandal nam",
-        "men_shoes",
-        (
-            "Giày sandals nam quai ngang",
-            "Giày sandals nam quai chéo",
-            "Giày sandals nam",
-            "Dép nam xỏ ngón",
-            "Dép nam quai ngang",
-            "Dép nam đi trong nhà",
-        ),
-        ("dep", "sandal", "xang dan"),
-        sizes=tuple(MEN_SIZES),
+        "Giày lười nam",
+        ("men_shoes",),
+        ("Giày lười da nam", "Giày lười vải nam"),
+        ("giay",),
+        sizes=MEN,
     ),
+    ShopCategory(
+        "Giày boots nam",
+        ("men_shoes",),
+        ("Giày boots nam cổ cao", "Giày boots nam cổ thấp"),
+        ("giay", "boot", "boots"),
+        sizes=MEN,
+    ),
+    ShopCategory(
+        "Sandal nam",
+        ("men_shoes",),
+        ("Giày sandals nam quai ngang", "Giày sandals nam quai chéo", "Giày sandals nam"),
+        ("sandal", "sandals", "xang dan", "dep"),
+        sizes=MEN,
+    ),
+    ShopCategory(
+        "Dép nam",
+        ("men_shoes",),
+        ("Dép nam xỏ ngón", "Dép nam quai ngang", "Dép nam đi trong nhà"),
+        ("dep",),
+        sizes=MEN,
+    ),
+    # Giày dép nữ
     ShopCategory(
         "Giày thể thao nữ",
-        "women_shoes",
+        ("women_shoes",),
         ("Giày thể thao cổ cao", "Giày thể thao cổ thấp"),
         ("giay",),
-        sizes=tuple(WOMEN_SIZES),
+        sizes=WOMEN,
     ),
     ShopCategory(
         "Giày cao gót nữ",
-        "women_shoes",
+        ("women_shoes",),
         (
             "Giày cao gót quai sau",
             "Giày cao gót hở mũi",
             "Giày cao gót sục",
             "Giày cao gót nhọn",
-            "Giày Đế xuồng nữ",
+            "Giày lười cao gót",
         ),
-        ("giay", "dep", "sandal", "guoc"),
-        sizes=tuple(WOMEN_SIZES),
+        ("giay", "guoc", "sandal"),
+        sizes=WOMEN,
     ),
     ShopCategory(
-        "Giày búp bê, giày lười nữ",
-        "women_shoes",
+        "Giày đế xuồng nữ",
+        ("women_shoes",),
+        ("Giày Đế xuồng nữ",),
+        ("xuong",),
+        sizes=WOMEN,
+    ),
+    ShopCategory(
+        "Giày búp bê nữ",
+        ("women_shoes",),
         (
             "Giày búp bê mũi nhọn",
             "Giày búp bê mũi tròn",
             "Giày búp bê mũi vuông",
             "Giày búp bê",
-            "Giày lười mũi nhọn",
-            "Giày lười hở gót",
             "Giày bít mũi quai ngang",
         ),
-        ("giay", "suc"),
-        excluded=("ballet", "bale"),
-        sizes=tuple(WOMEN_SIZES),
+        ("giay",),
+        excluded=("ballet", "bale", "di mua", "giay mua", "nhua", "cao got"),
+        sizes=WOMEN,
     ),
     ShopCategory(
-        "Dép, sandal nữ",
-        "women_shoes",
+        "Giày lười nữ",
+        ("women_shoes",),
+        ("Giày lười mũi nhọn", "Giày lười hở gót", "Giày lười mũi vuông"),
+        ("giay", "suc"),
+        excluded=("di mua", "nhua", "the thao"),
+        sizes=WOMEN,
+    ),
+    ShopCategory(
+        "Giày boots nữ",
+        ("women_shoes",),
+        (
+            "Giày boots nữ cổ ngắn",
+            "Giày boots nữ cổ cao",
+            "Giày boots nữ",
+            "Giày boots nữ gót nhọn",
+        ),
+        ("giay", "boot", "boots", "bot"),
+        sizes=WOMEN,
+    ),
+    ShopCategory(
+        "Sandal nữ",
+        ("women_shoes",),
         (
             "Giày sandals đế bằng",
             "Giày sandals xỏ ngón",
-            "Dép xỏ ngón",
-            "Dép quai ngang",
-            "Dép đi trong nhà",
+            "Giày sandals chiến binh",
+            "Giày sandals buộc dây",
         ),
-        ("dep", "sandal", "xang dan"),
-        sizes=tuple(WOMEN_SIZES),
+        ("sandal", "sandals", "xang dan", "dep", "giay"),
+        sizes=WOMEN,
     ),
     ShopCategory(
-        "Túi xách nữ",
-        "women_bags",
+        "Dép nữ",
+        ("women_shoes",),
+        ("Dép xỏ ngón", "Dép quai ngang", "Dép đi trong nhà", "Dép - Guốc nữ"),
+        ("dep", "guoc"),
+        sizes=WOMEN,
+    ),
+    ShopCategory(
+        "Phụ kiện, vệ sinh giày",
+        ("men_shoes", "women_shoes"),
         (
-            "Túi xách to bản",
-            "Túi xách vừa và nhỏ",
-            "Túi tote có khóa",
-            "Túi tote không khóa",
-            "Túi đeo chéo dạo phố",
-            "Túi đeo chéo công sở",
+            "Phụ kiện cho giày nam",
+            "Phụ kiện cho giày",
+            "Vệ sinh giày",
+            "Miếng lót giày nam",
+            "Miếng lót giày",
         ),
+        ("giay",),
+        excluded=SHOE_CARE_EXCLUDED,
+    ),
+    # Túi ví
+    ShopCategory(
+        "Túi xách nữ",
+        ("women_bags",),
+        ("Túi xách to bản", "Túi xách vừa và nhỏ", "Túi thời trang nữ"),
+        ("tui",),
+        excluded=WALLET_EXCLUDED,
+    ),
+    ShopCategory(
+        "Túi tote nữ",
+        ("women_bags",),
+        ("Túi tote có khóa", "Túi tote không khóa"),
+        ("tui",),
+    ),
+    ShopCategory(
+        "Túi đeo chéo nữ",
+        ("women_bags",),
+        ("Túi đeo chéo dạo phố", "Túi đeo chéo công sở"),
         ("tui",),
     ),
     ShopCategory(
         "Ví nữ",
-        "women_bags",
+        ("women_bags",),
         ("Ví ngắn", "Ví dài"),
         ("vi", "bop"),
-        excluded=("bao dung", "vo boc", "passport", "ho chieu", "tui nhua"),
+        excluded=WALLET_EXCLUDED,
     ),
     ShopCategory(
         "Túi xách nam",
-        "men_bags",
-        ("Túi xách công sở nam", "Túi đeo chéo nam", "Túi bao tử, túi đeo bụng"),
+        ("men_bags",),
+        ("Túi xách công sở nam", "Túi thời trang nam"),
+        ("tui", "cap"),
+        excluded=WALLET_EXCLUDED,
+    ),
+    ShopCategory(
+        "Túi đeo chéo nam",
+        ("men_bags",),
+        ("Túi đeo chéo nam", "Túi bao tử, túi đeo bụng"),
         ("tui",),
     ),
     ShopCategory(
         "Ví nam",
-        "men_bags",
+        ("men_bags",),
         ("Ví nam đứng", "Ví nam ngang", "Ví nam"),
         ("vi", "bop"),
-        excluded=("bao dung", "vo boc", "passport", "ho chieu", "tui nhua"),
+        excluded=WALLET_EXCLUDED,
     ),
+    # Balo - vali
     ShopCategory(
-        "Balo",
-        "backpacks_suitcases",
-        ("Balo laptop", "Balo nam", "Balo nữ", "Balo du lịch, phượt"),
+        "Balo laptop",
+        ("backpacks_suitcases",),
+        ("Balo laptop",),
         ("balo", "ba lo"),
     ),
     ShopCategory(
+        "Balo thời trang",
+        ("backpacks_suitcases",),
+        ("Balo nam", "Balo nữ", "Balo dây rút", "Balo và Vali"),
+        ("balo", "ba lo"),
+    ),
+    ShopCategory(
+        "Balo du lịch",
+        ("backpacks_suitcases",),
+        ("Balo du lịch, phượt",),
+        ("balo", "ba lo"),
+    ),
+    ShopCategory(
+        "Cặp, túi chống sốc laptop",
+        ("backpacks_suitcases",),
+        ("Cặp đựng laptop", "Túi chống sốc"),
+        ("cap", "tui"),
+        excluded=("bong khi", "chiet", "my pham"),
+    ),
+    ShopCategory(
+        "Túi đựng đồ du lịch",
+        ("backpacks_suitcases",),
+        ("Túi trống",),
+        ("tui",),
+        excluded=("zip", "ca phe"),
+    ),
+    ShopCategory(
         "Vali",
-        "backpacks_suitcases",
-        ("Vali nhựa", "Vali vải"),
+        ("backpacks_suitcases",),
+        ("Vali nhựa", "Vali vải", "Vali trẻ em"),
         ("vali", "valy"),
     ),
     ShopCategory(
-        "Nón",
-        "fashion_accessories",
+        "Phụ kiện du lịch",
+        ("backpacks_suitcases",),
+        ("Phụ kiện vali", "Phụ kiện du lịch khác", "Ổ khóa"),
+        ("vali", "valy", "du lich", "hanh ly", "o khoa"),
+        excluded=("khan", "khau trang", "mat kinh"),
+    ),
+    # Phụ kiện thời trang
+    ShopCategory(
+        "Nón nam",
+        ("fashion_accessories",),
         (
             "Nón lưỡi trai nam",
             "Nón snapback nam",
             "Nón tai bèo nam - bucket nam",
+            "Nón len nam",
+            "Nón nam",
+            "Nón phớt cao bồi nam",
+        ),
+        ("non", "mu"),
+    ),
+    ShopCategory(
+        "Nón nữ",
+        ("fashion_accessories",),
+        (
             "Nón lưỡi trai nữ",
             "Nón tai bèo nữ",
             "Nón chống nắng nữ",
@@ -211,20 +332,78 @@ CATEGORIES = [
             "Nón nửa đầu nữ",
         ),
         ("non", "mu"),
+        excluded=("khau trang",),
     ),
     ShopCategory(
-        "Kính mắt",
-        "fashion_accessories",
+        "Kính mát",
+        ("fashion_accessories",),
         ("Kính mát nam", "Kính mát nữ", "Kính mát"),
         ("kinh",),
-        excluded=("chan giot", "mat na", "trong kinh", "bao ho"),
+        excluded=GLASSES_EXCLUDED,
     ),
     ShopCategory(
-        "Thắt lưng",
-        "fashion_accessories",
-        ("Dây thắt lưng - Dây nịt", "Thắt lưng nữ bản to", "Thắt lưng nữ bản nhỏ"),
+        "Gọng kính",
+        ("fashion_accessories",),
+        ("Gọng kính nữ", "Gọng kính nam", "Gọng kính"),
+        ("gong", "kinh"),
+        excluded=(*GLASSES_EXCLUDED, "kinh lao", "vien thi", "doc sach"),
+    ),
+    ShopCategory(
+        "Thắt lưng nam",
+        ("fashion_accessories",),
+        ("Dây thắt lưng - Dây nịt", "Thắt lưng, dây nịt nam"),
         ("that lung", "day nit", "dai"),
-        excluded=("dinh", "duc lo", "vong tay", "chu y"),
+        excluded=BELT_EXCLUDED,
+    ),
+    ShopCategory(
+        "Thắt lưng nữ",
+        ("fashion_accessories",),
+        ("Thắt lưng nữ bản to", "Thắt lưng nữ bản nhỏ"),
+        ("that lung", "day nit", "dai"),
+        excluded=BELT_EXCLUDED,
+    ),
+    ShopCategory(
+        "Vớ nam",
+        ("fashion_accessories",),
+        ("Vớ cổ ngắn nam", "Vớ cổ cao nam", "Tất, vớ nam"),
+        ("vo", "tat"),
+    ),
+    ShopCategory(
+        "Vớ nữ",
+        ("fashion_accessories",),
+        ("Vớ ngắn nữ", "Vớ dài nữ"),
+        ("vo", "tat"),
+    ),
+    ShopCategory(
+        "Khăn",
+        ("fashion_accessories",),
+        ("Khăn choàng - Khăn tay nữ", "Khăn - Găng tay nam"),
+        ("khan",),
+    ),
+    ShopCategory(
+        "Găng tay",
+        ("fashion_accessories",),
+        ("Găng tay nam",),
+        ("gang tay", "bao tay"),
+    ),
+    ShopCategory(
+        "Phụ kiện tóc",
+        ("fashion_accessories",),
+        ("Cài tóc", "Cột tóc", "Băng đô", "Phụ kiện tóc khác", "Phụ kiện thời trang nữ"),
+        ("toc", "bang do", "bom", "turban"),
+    ),
+    ShopCategory(
+        "Khẩu trang",
+        ("fashion_accessories",),
+        ("Khẩu trang nữ",),
+        ("khau trang",),
+        excluded=("moc", "day deo", "tai gia", "dem", "khung", "hat khu mui", "hat lam thom"),
+    ),
+    ShopCategory(
+        "Ghim cài áo",
+        ("fashion_accessories",),
+        ("Cài Áo",),
+        ("cai ao", "ghim", "tram"),
     ),
 ]
 
@@ -355,7 +534,7 @@ def select(rows: list[dict[str, str]], per_category: int) -> list[dict]:
         candidates = [
             row
             for row in rows
-            if row["_file"] == category.file
+            if row["_file"] in category.files
             and row["category"].strip() in category.tiki_categories
             and int(row["price"] or 0) > 0
             and int(row["quantity_sold"] or 0) > 0
@@ -399,7 +578,7 @@ def read_rows(raw_dir: Path) -> list[dict[str, str]]:
 def main() -> None:
     """Đọc bộ Tiki, chọn sản phẩm và ghi file JSON cho backend."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--per-category", type=int, default=18)
+    parser.add_argument("--per-category", type=int, default=25)
     args = parser.parse_args()
 
     rows = read_rows(RAW_DIR)
