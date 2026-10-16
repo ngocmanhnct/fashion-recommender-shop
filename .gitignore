@@ -17,3 +17,5 @@ ml-service/*.pyc
 .env
 .DS_Store
 *.log
+# Dữ liệu gốc tải từ Kaggle (data/tiki/README.md), không đưa lên repo công khai
+data/tiki/raw/
