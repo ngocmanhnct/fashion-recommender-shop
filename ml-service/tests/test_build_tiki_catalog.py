@@ -105,3 +105,18 @@ def test_select_keeps_best_sellers_and_drops_bad_rows():
 
     names = [(p["category"], p["tikiId"]) for p in products]
     assert names == [("Giày thể thao nam", 2), ("Giày thể thao nam", 1), ("Ví nữ", 8)]
+
+
+def test_category_takes_rows_from_several_files():
+    rows = [
+        row("20", "Lót giày êm chân", "Miếng lót giày nam", sold="9"),
+        row("21", "Xịt khử mùi giày", "Vệ sinh giày", file="women_shoes", sold="5"),
+    ]
+
+    products = select(rows, per_category=25)
+
+    assert [(p["category"], p["tikiId"]) for p in products] == [
+        ("Phụ kiện, vệ sinh giày", 20),
+        ("Phụ kiện, vệ sinh giày", 21),
+    ]
+    assert products[0]["variationName1"] is None
