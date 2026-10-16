@@ -32,6 +32,12 @@ public class GlobalExceptionHandler {
     return problem;
   }
 
+  /** Dữ liệu sai quy tắc nghiệp vụ phụ thuộc nhiều trường: 400, không có danh sách theo trường. */
+  @ExceptionHandler(InvalidRequestException.class)
+  public ProblemDetail handleInvalidRequest(InvalidRequestException ex) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+  }
+
   /** Không tìm thấy dữ liệu được yêu cầu: 404. */
   @ExceptionHandler(NoSuchElementException.class)
   public ProblemDetail handleNotFound(NoSuchElementException ex) {

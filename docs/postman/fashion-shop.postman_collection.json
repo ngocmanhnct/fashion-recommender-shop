@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Fashion Shop API (Tuần 5)",
+    "name": "Fashion Shop API (Tuần 6)",
     "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể.\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm. Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng.\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -453,14 +453,14 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Giày chạy bộ\",\n  \"description\": \"Đế êm, nhẹ\",\n  \"categoryId\": {{categoryId}},\n  \"brandId\": {{brandId}},\n  \"imageUrls\": [\n    \"https://example.com/giay-1.jpg\"\n  ],\n  \"variants\": [\n    {\n      \"size\": \"42\",\n      \"color\": \"Đen\",\n      \"price\": 890000,\n      \"stock\": 10,\n      \"skuCode\": \"GCB-42-DEN\"\n    }\n  ]\n}",
+                  "raw": "{\n  \"name\": \"Giày chạy bộ\",\n  \"description\": \"Đế êm, nhẹ\",\n  \"categoryId\": {{categoryId}},\n  \"brandId\": {{brandId}},\n  \"variationName1\": \"Màu sắc\",\n  \"variationName2\": \"Kích cỡ\",\n  \"imageUrls\": [\n    \"https://example.com/giay-1.jpg\"\n  ],\n  \"variants\": [\n    {\n      \"option1Value\": \"Đen\",\n      \"option2Value\": \"42\",\n      \"price\": 890000,\n      \"stock\": 10,\n      \"skuCode\": \"GCB-DEN-42\"\n    },\n    {\n      \"option1Value\": \"Đen\",\n      \"option2Value\": \"43\",\n      \"price\": 890000,\n      \"stock\": 6,\n      \"skuCode\": null\n    }\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
                 },
-                "description": "Phải có ít nhất 1 biến thể. Không được có 2 biến thể trùng size và màu. skuCode không trùng trong toàn hệ thống."
+                "description": "Sản phẩm có tối đa 2 tầng phân loại do admin đặt tên (variationName1, variationName2, vd Màu sắc, Kích cỡ). Mỗi biến thể là 1 tổ hợp giá trị: option1Value cho tầng 1, option2Value cho tầng 2; tầng không dùng thì để null. Không có tầng nào thì sản phẩm có đúng 1 biến thể (xem request kế tiếp). Không được có 2 biến thể trùng tổ hợp giá trị (không phân biệt hoa thường và dấu: \"Đen\" trùng \"den\"). skuCode không trùng trong toàn hệ thống. Lỗi 400 nếu biến thể thiếu hoặc thừa giá trị so với số tầng."
               },
               "event": [
                 {
@@ -474,6 +474,34 @@
                   }
                 }
               ]
+            },
+            {
+              "name": "Thêm sản phẩm không có phân loại",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/products",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "products"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sổ tay A5\",\n  \"description\": \"Bìa cứng, 200 trang\",\n  \"categoryId\": {{categoryId}},\n  \"brandId\": null,\n  \"variationName1\": null,\n  \"variationName2\": null,\n  \"imageUrls\": [],\n  \"variants\": [\n    {\n      \"option1Value\": null,\n      \"option2Value\": null,\n      \"price\": 45000,\n      \"stock\": 20,\n      \"skuCode\": null\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "description": "Để trống variationName1, variationName2: sản phẩm có đúng 1 biến thể, option1Value và option2Value đều null. Gửi 2 biến thể trở lên thì lỗi 400. Request này không lưu productId, các request sau vẫn dùng sản phẩm 2 tầng ở trên."
+              }
             },
             {
               "name": "Tìm kiếm sản phẩm (phân trang)",
@@ -558,14 +586,14 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Giày chạy bộ 2026\",\n  \"description\": \"Đế êm, nhẹ, thoáng khí\",\n  \"categoryId\": {{categoryId}},\n  \"brandId\": {{brandId}},\n  \"imageUrls\": [\n    \"https://example.com/giay-1.jpg\",\n    \"https://example.com/giay-2.jpg\"\n  ]\n}",
+                  "raw": "{\n  \"name\": \"Giày chạy bộ 2026\",\n  \"description\": \"Đế êm, nhẹ, thoáng khí\",\n  \"categoryId\": {{categoryId}},\n  \"brandId\": {{brandId}},\n  \"variationName1\": \"Màu\",\n  \"variationName2\": \"Size\",\n  \"imageUrls\": [\n    \"https://example.com/giay-1.jpg\",\n    \"https://example.com/giay-2.jpg\"\n  ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
                 },
-                "description": "Danh sách ảnh gửi lên thay thế toàn bộ ảnh cũ. Biến thể sửa ở mục 6."
+                "description": "Danh sách ảnh gửi lên thay thế toàn bộ ảnh cũ. Đổi được tên các tầng phân loại, nhưng số tầng phải giữ nguyên (gửi ít hoặc nhiều tầng hơn lúc tạo thì lỗi 409). Biến thể sửa ở thư mục Biến thể."
               }
             },
             {
@@ -613,13 +641,14 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"size\": \"43\",\n  \"color\": \"Trắng\",\n  \"price\": 890000,\n  \"stock\": 5,\n  \"skuCode\": \"GCB-43-TRANG\"\n}",
+                  "raw": "{\n  \"option1Value\": \"Trắng\",\n  \"option2Value\": \"43\",\n  \"price\": 890000,\n  \"stock\": 5,\n  \"skuCode\": \"GCB-TRANG-43\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "description": "Số giá trị phải khớp số tầng của sản phẩm (2 tầng: cả option1Value và option2Value; 1 tầng: chỉ option1Value). Sản phẩm không có phân loại không thêm được biến thể (409)."
               },
               "event": [
                 {
@@ -654,13 +683,14 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"size\": \"43\",\n  \"color\": \"Trắng\",\n  \"price\": 850000,\n  \"stock\": 8,\n  \"skuCode\": \"GCB-43-TRANG\"\n}",
+                  "raw": "{\n  \"option1Value\": \"Trắng\",\n  \"option2Value\": \"43\",\n  \"price\": 850000,\n  \"stock\": 8,\n  \"skuCode\": \"GCB-TRANG-43\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "description": "Gửi đủ mọi trường như khi thêm. Đổi sang tổ hợp giá trị mà biến thể khác đã có thì lỗi 409."
               }
             },
             {

@@ -18,7 +18,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Thông tin chung của sản phẩm, bảng product (Mục 3.4), hỗ trợ xóa mềm qua deleted_at. */
+/**
+ * Thông tin chung của sản phẩm và tên các tầng phân loại (tối đa 2, BR-05), bảng product (Mục 3.4),
+ * hỗ trợ xóa mềm qua deleted_at.
+ */
 @Entity
 @Table(name = "product")
 public class Product {
@@ -41,6 +44,12 @@ public class Product {
   @Column(columnDefinition = "TEXT")
   private String description;
 
+  @Column(length = 50)
+  private String variationName1;
+
+  @Column(length = 50)
+  private String variationName2;
+
   private LocalDateTime deletedAt;
 
   @Column(nullable = false)
@@ -60,9 +69,16 @@ public class Product {
   /** Constructor rỗng cho JPA. */
   protected Product() {}
 
-  /** Tạo sản phẩm mới, chưa có biến thể và ảnh. */
-  public Product(Category category, Brand brand, String name, String description) {
+  /** Tạo sản phẩm mới với tên các tầng phân loại (null = không dùng), chưa có biến thể và ảnh. */
+  public Product(
+      Category category,
+      Brand brand,
+      String name,
+      String description,
+      String variationName1,
+      String variationName2) {
     updateInfo(category, brand, name, description);
+    renameVariations(variationName1, variationName2);
   }
 
   /** Cập nhật thông tin chung. */
@@ -73,6 +89,20 @@ public class Product {
     this.description = description;
   }
 
+  /** Đặt tên các tầng phân loại; null = không dùng tầng đó. */
+  public void renameVariations(String variationName1, String variationName2) {
+    this.variationName1 = variationName1;
+    this.variationName2 = variationName2;
+  }
+
+  /** Số tầng phân loại đang dùng: 0, 1 hoặc 2. */
+  public int variationCount() {
+    if (variationName1 == null) {
+      return 0;
+    }
+    return variationName2 == null ? 1 : 2;
+  }
+
   /** Thay toàn bộ danh sách ảnh; thứ tự trong danh sách là thứ tự hiển thị. */
   public void replaceImages(List<String> imageUrls) {
     images.clear();
@@ -81,10 +111,11 @@ public class Product {
     }
   }
 
-  /** Thêm một biến thể vào sản phẩm. */
+  /** Thêm một biến thể vào sản phẩm; giá trị phân loại null ở tầng không dùng. */
   public ProductVariant addVariant(
-      String size, String color, long price, int stock, String skuCode) {
-    ProductVariant variant = new ProductVariant(this, size, color, price, stock, skuCode);
+      String option1Value, String option2Value, long price, int stock, String skuCode) {
+    ProductVariant variant =
+        new ProductVariant(this, option1Value, option2Value, price, stock, skuCode);
     variants.add(variant);
     return variant;
   }
@@ -133,6 +164,14 @@ public class Product {
 
   public String getDescription() {
     return description;
+  }
+
+  public String getVariationName1() {
+    return variationName1;
+  }
+
+  public String getVariationName2() {
+    return variationName2;
   }
 
   public LocalDateTime getDeletedAt() {

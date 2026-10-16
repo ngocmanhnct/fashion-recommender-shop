@@ -1,14 +1,22 @@
 import { useState } from 'react';
 import { getErrorMessage } from '../services/errorMessage';
 import { addVariant, deleteVariant, updateVariant } from '../services/productAdminApi';
-import { EMPTY_VARIANT, toVariantForm, toVariantPayload } from '../services/variantForm';
+import {
+  EMPTY_VARIANT,
+  toVariantForm,
+  toVariantPayload,
+  variantLabel,
+} from '../services/variantForm';
 import VariantInputs from './VariantInputs';
 
 /**
  * Bảng biến thể của sản phẩm đã có: mỗi dòng lưu hoặc xóa riêng (gọi API biến thể), cộng 1 dòng
- * trống ở cuối để thêm biến thể mới. Sau mỗi thao tác thành công thì gọi onChanged để tải lại.
+ * trống ở cuối để thêm biến thể mới. Mỗi tầng phân loại (variationNames) là một cột; sản phẩm
+ * không có phân loại có đúng 1 biến thể nên không có dòng thêm. Sau mỗi thao tác thành công thì
+ * gọi onChanged để tải lại.
  */
-function VariantManager({ productId, variants, readOnly, onChanged }) {
+function VariantManager({ productId, variationNames, variants, readOnly, onChanged }) {
+  const variationCount = variationNames.length;
   const [drafts, setDrafts] = useState(() =>
     Object.fromEntries(variants.map((v) => [v.id, toVariantForm(v)]))
   );
@@ -33,18 +41,20 @@ function VariantManager({ productId, variants, readOnly, onChanged }) {
 
   const handleSave = (variantId) =>
     run(
-      () => updateVariant(productId, variantId, toVariantPayload(drafts[variantId])),
+      () =>
+        updateVariant(productId, variantId, toVariantPayload(drafts[variantId], variationCount)),
       'Đã lưu biến thể'
     );
 
   const handleDelete = async (variant) => {
-    if (window.confirm(`Xóa biến thể ${variant.size} / ${variant.color}?`)) {
+    if (window.confirm(`Xóa biến thể ${variantLabel(variant)}?`)) {
       await run(() => deleteVariant(productId, variant.id), 'Đã xóa biến thể');
     }
   };
 
   const handleAdd = async () => {
-    if (await run(() => addVariant(productId, toVariantPayload(newVariant)), 'Đã thêm biến thể')) {
+    const payload = toVariantPayload(newVariant, variationCount);
+    if (await run(() => addVariant(productId, payload), 'Đã thêm biến thể')) {
       setNewVariant(EMPTY_VARIANT);
     }
   };
@@ -57,8 +67,9 @@ function VariantManager({ productId, variants, readOnly, onChanged }) {
       <table className="table table-inputs">
         <thead>
           <tr>
-            <th>Size</th>
-            <th>Màu</th>
+            {variationNames.map((name) => (
+              <th key={name}>{name}</th>
+            ))}
             <th>Giá (VNĐ)</th>
             <th>Tồn kho</th>
             <th>Mã SKU</th>
@@ -70,6 +81,7 @@ function VariantManager({ productId, variants, readOnly, onChanged }) {
             <tr key={v.id}>
               <VariantInputs
                 variant={drafts[v.id] ?? toVariantForm(v)}
+                variationCount={variationCount}
                 onChange={(draft) => setDrafts({ ...drafts, [v.id]: draft })}
                 disabled={readOnly}
               />
@@ -82,16 +94,26 @@ function VariantManager({ productId, variants, readOnly, onChanged }) {
                   >
                     Lưu
                   </button>
-                  <button type="button" className="btn btn-danger" onClick={() => handleDelete(v)}>
-                    Xóa
-                  </button>
+                  {variationCount > 0 && (
+                    <button
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={() => handleDelete(v)}
+                    >
+                      Xóa
+                    </button>
+                  )}
                 </td>
               )}
             </tr>
           ))}
-          {!readOnly && (
+          {!readOnly && variationCount > 0 && (
             <tr className="row-new">
-              <VariantInputs variant={newVariant} onChange={setNewVariant} />
+              <VariantInputs
+                variant={newVariant}
+                variationCount={variationCount}
+                onChange={setNewVariant}
+              />
               <td className="actions">
                 <button type="button" className="btn btn-ghost" onClick={handleAdd}>
                   + Thêm
