@@ -62,8 +62,9 @@ def test_brand_of_treats_oem_as_no_brand():
 
 
 def test_stock_is_fixed_per_product_and_option():
-    assert stock_of("123", "40") == stock_of("123", "40")
-    assert 0 <= stock_of("123", None) <= 40
+    # Giá trị cố định theo SHA-256: chạy lại script ở máy nào cũng ra cùng tồn kho.
+    assert stock_of("123", "40") == 7
+    assert stock_of("123", None) == 37
 
 
 def test_near_duplicate_by_shared_words():

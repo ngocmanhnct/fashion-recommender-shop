@@ -18,8 +18,9 @@ sản phẩm; mã SKU "TK<mã Tiki>[-<cỡ>]". Thương hiệu "OEM", "No Brand"
 
 Chạy trong ml-service/:
     uv run python scripts/build_tiki_catalog.py
-Mặc định đọc mọi tệp .zip, .csv trong ../data/tiki/raw và ghi
-../backend/src/main/resources/seed/tiki-catalog.json (backend tự nạp khi bảng product còn trống).
+Đọc mọi tệp .zip, .csv trong data/tiki/raw và ghi backend/src/main/resources/seed/tiki-catalog.json
+(backend tự nạp khi bảng product còn trống). Hai đường dẫn này cố định theo vị trí của repo, không
+nhận từ dòng lệnh, để script không bao giờ đọc hay ghi ra ngoài repo.
 """
 
 from __future__ import annotations
@@ -41,6 +42,10 @@ SOURCE = (
     "Giấy phép: Product crawled from open public API from TIKI. "
     "Dataset used for education purpose."
 )
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RAW_DIR = REPO_ROOT / "data" / "tiki" / "raw"
+OUT_FILE = REPO_ROOT / "backend" / "src" / "main" / "resources" / "seed" / "tiki-catalog.json"
 
 MEN_SIZES = ["39", "40", "41", "42", "43"]
 WOMEN_SIZES = ["35", "36", "37", "38", "39"]
@@ -394,25 +399,19 @@ def read_rows(raw_dir: Path) -> list[dict[str, str]]:
 def main() -> None:
     """Đọc bộ Tiki, chọn sản phẩm và ghi file JSON cho backend."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--raw", type=Path, default=Path("../data/tiki/raw"))
-    parser.add_argument(
-        "--out",
-        type=Path,
-        default=Path("../backend/src/main/resources/seed/tiki-catalog.json"),
-    )
     parser.add_argument("--per-category", type=int, default=18)
     args = parser.parse_args()
 
-    rows = read_rows(args.raw)
+    rows = read_rows(RAW_DIR)
     if not rows:
-        raise SystemExit(f"Không thấy tệp .zip hay .csv nào trong {args.raw}")
+        raise SystemExit(f"Không thấy tệp .zip hay .csv nào trong {RAW_DIR}")
     products = select(rows, args.per_category)
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(
+    OUT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    OUT_FILE.write_text(
         json.dumps({"source": SOURCE, "products": products}, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(f"Đọc {len(rows)} dòng, chọn {len(products)} sản phẩm, ghi {args.out}")
+    print(f"Đọc {len(rows)} dòng, chọn {len(products)} sản phẩm, ghi {OUT_FILE}")
 
 
 if __name__ == "__main__":
