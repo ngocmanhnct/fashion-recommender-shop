@@ -11,6 +11,8 @@ import java.util.List;
  * @param id mã sản phẩm
  * @param name tên
  * @param description mô tả
+ * @param variationName1 tên tầng phân loại 1, null nếu sản phẩm không có phân loại
+ * @param variationName2 tên tầng phân loại 2, null nếu sản phẩm có ít hơn 2 tầng
  * @param category danh mục
  * @param brand thương hiệu, có thể null
  * @param imageUrls ảnh theo thứ tự hiển thị
@@ -23,6 +25,8 @@ public record ProductResponse(
     Long id,
     String name,
     String description,
+    String variationName1,
+    String variationName2,
     CategoryResponse category,
     BrandResponse brand,
     List<String> imageUrls,
@@ -37,6 +41,8 @@ public record ProductResponse(
         p.getId(),
         p.getName(),
         p.getDescription(),
+        p.getVariationName1(),
+        p.getVariationName2(),
         CategoryResponse.from(p.getCategory()),
         BrandResponse.from(p.getBrand()),
         p.getImages().stream().map(ProductImage::getImageUrl).toList(),

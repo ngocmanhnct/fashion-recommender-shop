@@ -13,7 +13,7 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 **US-01: Xem danh mục sản phẩm** Là khách (đã hoặc chưa đăng nhập), tôi muốn xem danh sách sản phẩm theo danh mục, để duyệt các lựa chọn phù hợp. Tiêu chí chấp nhận:
 
 - Xem được danh sách sản phẩm không cần đăng nhập  
-- Lọc được theo danh mục, khoảng giá, size, màu sắc  
+- Lọc được theo danh mục, khoảng giá, thương hiệu, mức đánh giá  
 - Sắp xếp được theo giá, mới nhất, phổ biến  
 - Phân trang hoặc cuộn vô hạn khi danh sách dài
 
@@ -26,7 +26,7 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 
 **US-03: Xem chi tiết sản phẩm** Là khách, tôi muốn xem đầy đủ thông tin một sản phẩm, để quyết định có mua hay không. Tiêu chí chấp nhận:
 
-- Hiển thị ảnh, giá, mô tả, size/màu còn hàng  
+- Hiển thị ảnh, giá, mô tả, các phân loại còn hàng  
 - Hiển thị rõ trạng thái hết hàng nếu có  
 - Hiển thị mục "Gợi ý sản phẩm liên quan" (xem US-12)  
 - Hệ thống ghi lại lượt xem sản phẩm của tài khoản **đã đăng nhập** (tài khoản, sản phẩm, thời điểm) — dữ liệu đầu vào cho ngưỡng "đã xem ≥5 sản phẩm/30 ngày" ở BR-19 và cho gợi ý cá nhân hóa ở US-13. Không ghi lượt xem của khách chưa đăng nhập, nhất quán với BR-06 (không xử lý định danh khách vãng lai ở server)
@@ -55,7 +55,7 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 **US-06: Thêm sản phẩm vào giỏ hàng** Là khách (đã hoặc chưa đăng nhập), tôi muốn thêm sản phẩm vào giỏ hàng, để gom nhiều sản phẩm trước khi thanh toán. Tiêu chí chấp nhận:
 
 - Thêm được khi chưa đăng nhập (giỏ hàng lưu tạm theo phiên/trình duyệt)  
-- Chọn được size/màu/số lượng trước khi thêm  
+- Chọn được phân loại (nếu sản phẩm có) và số lượng trước khi thêm  
 - Không cho thêm quá số lượng tồn kho *(kiểm tra này chỉ mang tính tham khảo tại thời điểm thêm giỏ hàng — kiểm tra thật sự, có tính ràng buộc, diễn ra ở bước xác nhận đơn hàng, xem BR-08)*  
 - Giỏ hàng của khách chưa đăng nhập được giữ lại khi đăng nhập/đăng ký (merge giỏ hàng, không mất dữ liệu)
 
@@ -114,7 +114,7 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 **US-13: Xem gợi ý cá nhân hóa trên trang chủ** Là người mua đã đăng nhập và có lịch sử xem/mua, tôi muốn thấy một khu vực gợi ý riêng trên trang chủ, để nhanh tìm sản phẩm hợp gu mà không cần tự tìm kiếm. Tiêu chí chấp nhận:
 
 - Chỉ hiển thị khi đã có đủ dữ liệu hành vi (xem ngưỡng ở BR-19); chưa đủ dữ liệu thì hiển thị sản phẩm phổ biến thay thế (tránh khu vực trống)  
-- Gợi ý cập nhật theo batch hàng ngày (xem BR-20), không cần real-time  
+- Gợi ý tính sẵn, cập nhật vài giây sau hành động rõ ý và tối đa 5 phút sau lượt xem (xem BR-20); mở trang chủ không phải chờ tính  
 - Tín hiệu hành vi đầu vào phân cấp trọng số theo **loại hành vi**: đã mua \> đã thêm giỏ hàng \> chỉ xem — dùng 3 nguồn dữ liệu đã có sẵn ở Mục 3, không đo thời gian xem (dwell time) vì cần cơ chế tracking phức tạp và dễ nhiễu. Trọng số cụ thể chốt khi cài đặt mô hình **\[Giả định\]**
 
 ### Epic 7 — Tính năng phụ, ưu tiên thấp (có thể cắt nếu thiếu thời gian)
@@ -142,7 +142,7 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 
 **US-16: Quản lý sản phẩm (CRUD)** Là admin, tôi muốn thêm/sửa/xóa sản phẩm, để duy trì catalog cập nhật. Tiêu chí chấp nhận:
 
-- Thêm sản phẩm mới với thuộc tính chung (tên, mô tả, danh mục, thương hiệu, ảnh) kèm **ít nhất 1 biến thể** (tổ hợp size × màu); mỗi biến thể có giá và tồn kho riêng (mô hình SKU, xem BR-05)  
+- Thêm sản phẩm mới với thuộc tính chung (tên, mô tả, danh mục, thương hiệu, ảnh) kèm tối đa 2 tầng phân loại do admin tự đặt tên (vd Màu sắc, Kích cỡ) và **ít nhất 1 biến thể** (một tổ hợp giá trị phân loại; sản phẩm không có phân loại thì đúng 1 biến thể); mỗi biến thể có giá và tồn kho riêng (mô hình SKU, xem BR-05)  
 - Sửa/xóa sản phẩm hiện có — xóa mềm (soft delete) nếu sản phẩm đã có trong đơn hàng cũ, để không phá dữ liệu lịch sử  
 - Sản phẩm bị xóa mềm hoặc hết hàng hoàn toàn khi đang nằm trong giỏ hàng của khách khác → tự động loại khỏi giỏ hàng đó kèm thông báo (xem BR-11)  
 - Chỉ admin mới truy cập được (kiểm tra phân quyền)
@@ -184,7 +184,7 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
 ### 2.2 Giỏ hàng & tồn kho
 
-- **BR-05**: Mỗi biến thể sản phẩm (một tổ hợp size × màu) là một đơn vị tồn kho (SKU) riêng, có số lượng tồn kho độc lập. *(US-01, US-06)*
+- **BR-05**: Sản phẩm có tối đa 2 tầng phân loại do quản trị viên đặt tên (ví dụ Màu sắc, Kích cỡ). Mỗi biến thể (một tổ hợp giá trị phân loại, ví dụ Đen – 42; sản phẩm không có phân loại có đúng 1 biến thể) là một đơn vị tồn kho (SKU) có giá và số lượng tồn riêng. *(US-01, US-06, US-16; đổi từ "tổ hợp size × màu" ngày 15/10/2026, migration V3)*
 
 - **BR-06**: Giỏ hàng của khách **chưa đăng nhập** lưu phía client (trình duyệt), không lưu ở server; giỏ hàng của tài khoản **đã đăng nhập** lưu ở server (DB) để đồng bộ giữa các thiết bị. Hệ quả chấp nhận được: khách vãng lai xóa dữ liệu trình duyệt sẽ mất giỏ hàng. *(US-06)*
 
@@ -228,7 +228,7 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
 - **BR-14**: Đơn hàng được xác nhận thành công → trừ tồn kho ngay lập tức theo đúng cơ chế ở BR-08 (không đợi đến khi giao hàng xong).
 
-- **BR-15**: Mỗi dòng đơn hàng (order item) lưu lại **bản sao (snapshot)** tên sản phẩm, thuộc tính (size/màu), và đơn giá **tại thời điểm đặt hàng** — không chỉ tham chiếu đến sản phẩm gốc. Nếu sản phẩm bị đổi giá/tên hoặc soft-delete sau này, đơn hàng cũ vẫn phải hiển thị đúng thông tin tại thời điểm khách đã mua (US-11).
+- **BR-15**: Mỗi dòng đơn hàng (order item) lưu lại **bản sao (snapshot)** tên sản phẩm, phân loại đã chọn (vd "Đen – 42"), và đơn giá **tại thời điểm đặt hàng** — không chỉ tham chiếu đến sản phẩm gốc. Nếu sản phẩm bị đổi giá/tên hoặc soft-delete sau này, đơn hàng cũ vẫn phải hiển thị đúng thông tin tại thời điểm khách đã mua (US-11).
 
 - **BR-16**: Đơn hàng chuyển sang "Đã hủy" (dù do khách tự hủy qua US-20 hay admin hủy qua US-17) → hoàn lại đúng số lượng tồn kho đã trừ cho đơn đó.
 
@@ -250,13 +250,13 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 ### 2.5 Gợi ý sản phẩm (ML — US-12, US-13)
 
 - **BR-19**: Ngưỡng "đủ dữ liệu hành vi" để hiển thị khu vực gợi ý cá nhân hóa ở trang chủ (US-13): tài khoản có **≥1 đơn hàng đã hoàn tất** HOẶC **đã xem ≥5 sản phẩm trong 30 ngày gần nhất** (dữ liệu từ nhật ký xem sản phẩm ở US-03). Chưa đạt ngưỡng → hiển thị sản phẩm bán chạy nhất thay thế (giải quyết cold-start problem). **\[Giả định\]** ngưỡng cụ thể sẽ tinh chỉnh bằng dữ liệu thật khi cài đặt mô hình.  
-- **BR-20**: Khu vực gợi ý cá nhân hóa trên trang chủ (US-13) cập nhật lại theo batch **hàng ngày** — tần suất dày hơn phân nhóm khách hàng (BR-23, hàng tuần) vì gợi ý cần phản ánh hành vi gần đây để còn hữu ích. **\[Giả định\]**  
+- **BR-20**: Gợi ý cá nhân hóa trên trang chủ (US-13) được tính sẵn và lưu vào bảng `recommendation`; mở trang chủ chỉ đọc danh sách đã lưu, không gọi dịch vụ học máy. Danh sách của một tài khoản được tính lại vài giây sau khi tài khoản đó đặt đơn, có đơn bị hủy hoặc chuyển sang Đã giao, thay đổi giỏ hàng, yêu thích hoặc sở thích khảo sát; sau tối đa 5 phút với lượt xem (lượt xem làm tài khoản vừa đạt ngưỡng BR-19 được xử lý như hành động rõ ý); toàn bộ tài khoản được tính lại mỗi đêm. Cơ chế: trong cùng giao dịch lưu hành động, backend ghi một yêu cầu vào `recompute_request` (Mục 3.15), đến hạn sau 3 giây với hành động rõ ý và 5 phút với lượt xem; yêu cầu mới gộp vào yêu cầu đang chờ và không làm lùi thời điểm đến hạn. Dịch vụ học máy lấy yêu cầu đã đến hạn mỗi 2 giây, tính lại, ghi đè danh sách và chỉ xóa yêu cầu khi không có yêu cầu mới hơn đến trong lúc tính; tính lỗi thì giữ yêu cầu để thử lại. **\[Giả định\]** các mốc 3 giây, 5 phút, 2 giây. *(đổi từ "batch hàng ngày" theo góp ý ngày 15/10/2026)*  
 - **BR-21**: Số lượng sản phẩm gợi ý trên trang chi tiết sản phẩm cố định là 4\. *(US-12)*  
 - **BR-22**: Nếu số sản phẩm tương tự còn hàng ít hơn 4 (US-12), lấp đầy phần còn thiếu bằng sản phẩm bán chạy nhất — cùng cơ chế dự phòng như BR-19.
 
 ### 2.6 Phân nhóm khách hàng (ML, Admin — US-19)
 
-- **BR-23**: Phân nhóm khách hàng chạy lại theo lịch định kỳ (batch, đề xuất hàng tuần), không tính lại real-time theo từng đơn hàng mới — K-Means cần chạy trên toàn bộ tập khách hàng cùng lúc. **\[Giả định\]** tần suất chính xác chốt lại khi có khối lượng giao dịch thật để đánh giá.  
+- **BR-23**: Mô hình phân nhóm (K-Means) được huấn luyện lại mỗi tuần trên toàn bộ khách hàng có ít nhất 1 đơn hoàn tất, vì K-Means cần chạy trên toàn bộ tập khách hàng cùng lúc. Khi một đơn chuyển sang Đã giao, R, F, M của khách đó được tính lại và khách được gán ngay vào nhóm có tâm gần nhất của mô hình hiện tại, không huấn luyện lại; việc gán chạy nền qua `recompute_request` (loại việc `SEGMENT_ASSIGN`) như BR-20. **\[Giả định\]** tần suất huấn luyện lại.  
 - **BR-24**: Khách hàng chưa có đơn hàng hoàn tất nào không được đưa vào phân cụm — hiển thị riêng là "Khách hàng mới / chưa đủ dữ liệu" thay vì gán cưỡng vào một cụm gây sai lệch tâm cụm. *(US-19)*
 
 ### 2.7 Quy tắc chung
@@ -355,7 +355,7 @@ Từ điển dữ liệu dưới đây suy trực tiếp từ Mục 1-2 — mỗ
 
 ### 3.4 Sản phẩm — `product`, `product_image`, `product_variant`
 
-*Nguồn: US-01, US-02, US-03, US-16, BR-05, BR-11*
+*Nguồn: US-01, US-02, US-03, US-16, BR-05, BR-11, BR-36 (phân loại 2 tầng: migration V3)*
 
 | Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
 | :---- | :---- | :---- | :---- | :---- |
@@ -364,6 +364,8 @@ Từ điển dữ liệu dưới đây suy trực tiếp từ Mục 1-2 — mỗ
 | product | brand\_id | BIGINT UNSIGNED | FK → brand.id, NULLABLE | Để mở nếu có sản phẩm chưa gắn thương hiệu cụ thể |
 | product | name | VARCHAR(255) | NOT NULL |  |
 | product | description | TEXT | NULLABLE | US-03 |
+| product | variation\_name1 | VARCHAR(50) | NULLABLE | Tên tầng phân loại 1 do admin đặt (vd Màu sắc). NULL \= sản phẩm không có phân loại (BR-05) |
+| product | variation\_name2 | VARCHAR(50) | NULLABLE | Tên tầng phân loại 2 (vd Kích cỡ). NULL \= có ít hơn 2 tầng. CHECK: có tầng 2 thì phải có tầng 1 |
 | product | deleted\_at | DATETIME | NULLABLE | Soft delete (US-16/BR-11) — NULL \= đang bán |
 | product | created\_at | DATETIME | NOT NULL |  |
 | product | updated\_at | DATETIME | NOT NULL |  |
@@ -373,13 +375,15 @@ Từ điển dữ liệu dưới đây suy trực tiếp từ Mục 1-2 — mỗ
 | product\_image | display\_order | INT UNSIGNED | NOT NULL, DEFAULT 0 | Thứ tự hiển thị ảnh |
 | product\_variant | id | BIGINT UNSIGNED | PK |  |
 | product\_variant | product\_id | BIGINT UNSIGNED | FK → product.id, NOT NULL |  |
-| product\_variant | size | VARCHAR(20) | NOT NULL | BR-05: 1 tổ hợp size×màu \= 1 SKU |
-| product\_variant | color | VARCHAR(50) | NOT NULL |  |
+| product\_variant | option1\_value | VARCHAR(100) | NULLABLE | Giá trị ở tầng phân loại 1 (vd Đen). BR-05: 1 tổ hợp giá trị \= 1 SKU |
+| product\_variant | option2\_value | VARCHAR(100) | NULLABLE | Giá trị ở tầng phân loại 2 (vd 42). CHECK: có giá trị tầng 2 thì phải có giá trị tầng 1 |
 | product\_variant | price | BIGINT UNSIGNED | NOT NULL | VNĐ, số nguyên (BR-27) — giá theo từng biến thể |
 | product\_variant | stock | INT UNSIGNED | NOT NULL, DEFAULT 0 | BR-05/BR-08 |
 | product\_variant | sku\_code | VARCHAR(50) | UNIQUE, NULLABLE | Tùy chọn, tiện quản lý kho. Soft-delete `product` → set NULL cho các variant con (BR-36) |
 | product\_variant | created\_at | DATETIME | NOT NULL |  |
 | product\_variant | updated\_at | DATETIME | NOT NULL |  |
+
+Số giá trị khác NULL của một biến thể bằng số tầng của sản phẩm (0, 1 hoặc 2); kiểm tra ở tầng service vì CHECK của MySQL không đọc được bảng khác. UNIQUE(product\_id, COALESCE(option1\_value, ''), COALESCE(option2\_value, '')) — tên `uk_product_variant_options`: mỗi tổ hợp giá trị chỉ có 1 biến thể trong một sản phẩm, so không phân biệt hoa thường và dấu theo collation mặc định ("Đen" trùng "den"); dùng COALESCE vì UNIQUE coi các NULL là khác nhau, nhờ vậy sản phẩm không có phân loại cũng chỉ có được 1 biến thể. Số tầng phân loại không đổi được sau khi tạo sản phẩm (các biến thể đã có giá trị theo số tầng cũ); đổi tên tầng thì được. Dữ liệu size × màu có trước V3 được chuyển thành 2 tầng "Màu sắc" (giá trị \= color) và "Kích cỡ" (giá trị \= size).
 
 *"Hết hàng" (US-03) \= `stock = 0`, tách biệt với `deleted_at` vì BR-11 nêu 2 tình huống khác nhau (ngừng bán HOẶC hết hàng) dẫn đến cùng hành vi (tự loại khỏi giỏ hàng) nhưng khác nguyên nhân.*
 
@@ -426,8 +430,7 @@ UNIQUE(account\_id, variant\_id) — 1 dòng/biến thể/tài khoản, cộng d
 | order\_item | order\_id | BIGINT UNSIGNED | FK → order.id, NOT NULL |  |
 | order\_item | variant\_id | BIGINT UNSIGNED | FK → product\_variant.id, NOT NULL | An toàn vì BR-11/US-16 chỉ soft-delete, không bao giờ xóa cứng |
 | order\_item | product\_name\_snapshot | VARCHAR(255) | NOT NULL | BR-15 |
-| order\_item | size\_snapshot | VARCHAR(20) | NOT NULL | BR-15 |
-| order\_item | color\_snapshot | VARCHAR(50) | NOT NULL | BR-15 |
+| order\_item | variant\_label\_snapshot | VARCHAR(255) | NULLABLE | BR-15: nhãn phân loại lúc đặt hàng, các giá trị nối bằng " – " (vd "Đen – 42"); NULL \= sản phẩm không có phân loại. Thay cho size\_snapshot, color\_snapshot từ migration V3 |
 | order\_item | unit\_price\_snapshot | BIGINT UNSIGNED | NOT NULL | BR-15, BR-27 |
 | order\_item | quantity | INT UNSIGNED | NOT NULL |  |
 | order\_item | line\_total | BIGINT UNSIGNED | NOT NULL | \= unit\_price\_snapshot × quantity |
@@ -556,13 +559,46 @@ UNIQUE(account\_id, category\_id); CHECK(price\_max IS NULL OR price\_max ≥ pr
 | rank\_position | INT UNSIGNED | NOT NULL | Thứ hạng, 1 \= phù hợp nhất. Thuộc tính `rank` trên sơ đồ lớp; cột đổi tên vì RANK là từ khóa dành riêng của MySQL 8 |
 | score | DOUBLE | NOT NULL | Độ tương đồng cosine giữa hồ sơ sở thích và sản phẩm |
 | reason | VARCHAR(255) | NOT NULL | Lý do gợi ý hiển thị cho người mua |
-| generated\_at | DATETIME | NOT NULL | Lần chạy batch tạo danh sách này |
+| generated\_at | DATETIME | NOT NULL | Thời điểm tính danh sách này |
 
-UNIQUE(account\_id, rank\_position); UNIQUE(account\_id, product\_id). Batch hằng ngày ghi đè toàn bộ danh sách của từng tài khoản, không lưu lịch sử; trang chủ chỉ đọc bảng này, không gọi dịch vụ học máy (BR-20).
+UNIQUE(account\_id, rank\_position); UNIQUE(account\_id, product\_id). Mỗi lần xử lý một yêu cầu `RECOMMENDATION` trong `recompute_request` (Mục 3.15), dịch vụ học máy ghi đè toàn bộ danh sách của tài khoản đó, không lưu lịch sử; chỉ dịch vụ học máy ghi bảng này. Trang chủ chỉ đọc bảng này, không gọi dịch vụ học máy (BR-20).
+
+### 3.14 Nhật ký sự kiện gợi ý — `product_event_log`
+
+*Nguồn: US-06, US-12, US-13, BR-20 (bổ sung 15/10/2026, migration V3). Dùng để đo tỷ lệ bấm vào gợi ý (Chương 5), không dùng để tìm tài khoản cần tính lại.*
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- |
+| id | BIGINT UNSIGNED | PK |  |
+| account\_id | BIGINT UNSIGNED | FK → account.id, NULLABLE | NULL khi người dùng chưa đăng nhập |
+| product\_id | BIGINT UNSIGNED | FK → product.id, NOT NULL | Ghi ở cấp sản phẩm |
+| event\_type | ENUM('ADD\_TO\_CART','RECOMMENDATION\_SHOWN','RECOMMENDATION\_CLICKED') | NOT NULL | Thêm vào giỏ, gợi ý được hiển thị, gợi ý được bấm |
+| placement | VARCHAR(50) | NULLABLE | Vị trí hiển thị gợi ý (vd trang chủ, trang chi tiết) |
+| source | VARCHAR(30) | NULLABLE | Nguồn gợi ý: mô hình, khảo sát hay bán chạy |
+| rank\_position | INT UNSIGNED | NULLABLE | Thứ hạng trong danh sách gợi ý. Thuộc tính `rank` trên sơ đồ lớp, đổi tên như ở `recommendation` |
+| created\_at | DATETIME | NOT NULL |  |
+
+Index (event\_type, created\_at) để tính tỷ lệ bấm theo khoảng thời gian. `placement`, `source`, `rank_position` chỉ có giá trị với sự kiện của gợi ý. Giá trị cụ thể của `placement`, `source` và chính sách lưu trữ dài hạn chốt khi làm phần gợi ý (Tuần 8–10).
+
+### 3.15 Yêu cầu tính lại — `recompute_request`
+
+*Nguồn: BR-20, BR-23 (bổ sung 15/10/2026, migration V3). Mẫu thiết kế: dùng bảng làm hàng đợi, ghi trong cùng giao dịch với dữ liệu nghiệp vụ (gần với transactional outbox).*
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- |
+| account\_id | BIGINT UNSIGNED | PK (cùng task\_type), FK → account.id |  |
+| task\_type | ENUM('RECOMMENDATION','SEGMENT\_ASSIGN') | PK (cùng account\_id) | Tính lại gợi ý (BR-20) hoặc gán nhóm khi có đơn Đã giao (BR-23) |
+| due\_at | DATETIME(3) | NOT NULL | Thời điểm đến hạn, giờ UTC: +3 giây với hành động rõ ý, +5 phút với lượt xem |
+| version | INT UNSIGNED | NOT NULL, DEFAULT 1 | Tăng mỗi lần có yêu cầu mới gộp vào |
+| attempts | INT UNSIGNED | NOT NULL, DEFAULT 0 | Số lần tính lỗi |
+| last\_error | VARCHAR(1000) | NULLABLE | Lỗi gần nhất |
+| created\_at | DATETIME(3) | NOT NULL | Lúc có yêu cầu đầu tiên đang chờ, giờ UTC (đo thời gian từ hành động đến khi gợi ý đổi) |
+
+Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu cầu đang chờ cho mỗi loại việc. Index trên due\_at cho vòng lấy việc mỗi 2 giây. Backend ghi bằng `INSERT … AS incoming ON DUPLICATE KEY UPDATE due_at = LEAST(recompute_request.due_at, incoming.due_at), version = recompute_request.version + 1`; dịch vụ học máy tính xong thì chỉ xóa dòng nếu `version` chưa đổi, tính lỗi thì tăng `attempts`, ghi `last_error` và lùi `due_at`. Mọi thời điểm của bảng này ghi bằng `UTC_TIMESTAMP(3)`, không dùng `NOW()` vì `NOW()` đổi theo múi giờ của từng kết nối.
 
 ---
 
-**Tổng cộng: 19 bảng dữ liệu**, bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 21 bảng dữ liệu**, bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 

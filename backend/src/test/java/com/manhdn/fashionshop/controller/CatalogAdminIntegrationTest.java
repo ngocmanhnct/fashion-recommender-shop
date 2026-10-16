@@ -66,7 +66,7 @@ class CatalogAdminIntegrationTest {
   @Test
   void categoryWithProductsCannotBeDeleted() throws Exception {
     long categoryId = createCategory("Túi xách");
-    createProduct(categoryId, null, "Túi tote", variant("Free size", "Đen", 250000, 5, null));
+    createProduct(categoryId, null, "Túi tote", variant("Đen", "Free size", 250000, 5, null));
 
     mockMvc
         .perform(delete("/api/admin/categories/" + categoryId).with(ADMIN))
@@ -114,22 +114,141 @@ class CatalogAdminIntegrationTest {
             post("/api/admin/products"),
             """
             {"name":" Giày búp bê ","description":"Da mềm","categoryId":%d,"brandId":%d,
+             "variationName1":" Màu sắc ","variationName2":"Kích cỡ",
              "imageUrls":["https://img/1.jpg","https://img/2.jpg"],
              "variants":[%s,%s]}
             """
                 .formatted(
                     categoryId,
                     brandId,
-                    variant("36", "Kem", 350000, 10, "BB-36-KEM"),
-                    variant("37", "Kem", 360000, 0, null)))
+                    variant("Kem", "36", 350000, 10, "BB-36-KEM"),
+                    variant(" Kem ", "37", 360000, 0, null)))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.name").value("Giày búp bê"))
+        .andExpect(jsonPath("$.variationName1").value("Màu sắc"))
+        .andExpect(jsonPath("$.variationName2").value("Kích cỡ"))
         .andExpect(jsonPath("$.category.name").value("Giày nữ"))
         .andExpect(jsonPath("$.brand.name").value("Ananas"))
         .andExpect(jsonPath("$.imageUrls[1]").value("https://img/2.jpg"))
         .andExpect(jsonPath("$.variants.length()").value(2))
+        .andExpect(jsonPath("$.variants[0].option1Value").value("Kem"))
+        .andExpect(jsonPath("$.variants[0].option2Value").value("36"))
         .andExpect(jsonPath("$.variants[0].skuCode").value("BB-36-KEM"))
+        .andExpect(jsonPath("$.variants[1].option1Value").value("Kem"))
         .andExpect(jsonPath("$.deletedAt").doesNotExist());
+  }
+
+  @Test
+  void productWithoutVariationHasExactlyOneVariant() throws Exception {
+    long categoryId = createCategory("Sách");
+    String body =
+        productJsonWithTiers(
+            categoryId, null, "Sổ tay", null, null, variant(null, null, 45000, 20, null));
+    long productId = id(send(post("/api/admin/products"), body).andExpect(status().isCreated()));
+    mockMvc
+        .perform(get("/api/admin/products/" + productId).with(ADMIN))
+        .andExpect(jsonPath("$.variationName1").doesNotExist())
+        .andExpect(jsonPath("$.variants.length()").value(1))
+        .andExpect(jsonPath("$.variants[0].option1Value").doesNotExist());
+
+    send(
+            post("/api/admin/products"),
+            productJsonWithTiers(
+                categoryId,
+                null,
+                "Bút",
+                null,
+                null,
+                variant(null, null, 5000, 1, null),
+                variant(null, null, 6000, 1, null)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail").value("Sản phẩm không có phân loại chỉ có đúng 1 biến thể"));
+    send(
+            post("/api/admin/products"),
+            productJsonWithTiers(
+                categoryId, null, "Bút", null, null, variant("Xanh", null, 5000, 1, null)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Sản phẩm không có phân loại, biến thể không có giá trị phân loại"));
+    send(
+            post("/api/admin/products/%d/variants".formatted(productId)),
+            variant(null, null, 46000, 1, null))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail").value("Sản phẩm không có phân loại chỉ có đúng 1 biến thể"));
+  }
+
+  @Test
+  void variantValuesMustMatchVariationCount() throws Exception {
+    long categoryId = createCategory("Điện thoại");
+    send(
+            post("/api/admin/products"),
+            productJsonWithTiers(
+                categoryId,
+                null,
+                "Điện thoại A",
+                "Dung lượng",
+                null,
+                variant(null, null, 1, 1, null)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail").value("Phải nhập giá trị cho tầng phân loại \"Dung lượng\""));
+    send(
+            post("/api/admin/products"),
+            productJsonWithTiers(
+                categoryId,
+                null,
+                "Điện thoại A",
+                "Dung lượng",
+                null,
+                variant("64GB", "Đen", 1, 1, null)))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.detail")
+                .value("Sản phẩm chỉ có 1 tầng phân loại, không nhập giá trị cho tầng 2"));
+    send(
+            post("/api/admin/products"),
+            productJson(categoryId, null, "Điện thoại A", variant("Đen", " ", 1, 1, null)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Phải nhập giá trị cho tầng phân loại \"Kích cỡ\""));
+    send(
+            post("/api/admin/products"),
+            productJsonWithTiers(
+                categoryId, null, "Điện thoại A", null, "Màu", variant("Đen", null, 1, 1, null)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Có tầng phân loại 2 thì phải có tầng phân loại 1"));
+    send(
+            post("/api/admin/products"),
+            productJsonWithTiers(
+                categoryId, null, "Điện thoại A", "Màu", "MÀU", variant("Đen", "Đỏ", 1, 1, null)))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Hai tầng phân loại phải có tên khác nhau"));
+
+    long productId =
+        id(
+            send(
+                    post("/api/admin/products"),
+                    productJsonWithTiers(
+                        categoryId,
+                        null,
+                        "Điện thoại A",
+                        "Dung lượng",
+                        null,
+                        variant("64GB", null, 5000000, 3, null)))
+                .andExpect(status().isCreated()));
+    send(
+            post("/api/admin/products/%d/variants".formatted(productId)),
+            variant("128GB", null, 6000000, 2, null))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.option1Value").value("128GB"))
+        .andExpect(jsonPath("$.option2Value").doesNotExist());
+    send(
+            post("/api/admin/products/%d/variants".formatted(productId)),
+            variant("128gb", null, 6000000, 2, null))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value("Sản phẩm đã có biến thể 128gb"));
   }
 
   @Test
@@ -142,8 +261,7 @@ class CatalogAdminIntegrationTest {
         .andExpect(jsonPath("$.errors.variants").value("Sản phẩm phải có ít nhất 1 biến thể"));
     send(
             post("/api/admin/products"),
-            "{\"name\":\"Balo\",\"categoryId\":%d,\"variants\":[%s]}"
-                .formatted(categoryId, variant("M", "Xám", 0, -1, null)))
+            productJson(categoryId, null, "Balo", variant("Xám", "M", 0, -1, null)))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errors['variants[0].price']").exists())
         .andExpect(jsonPath("$.errors['variants[0].stock']").exists());
@@ -153,8 +271,7 @@ class CatalogAdminIntegrationTest {
   void unknownCategoryGives404() throws Exception {
     send(
             post("/api/admin/products"),
-            "{\"name\":\"X\",\"categoryId\":999999,\"variants\":[%s]}"
-                .formatted(variant("M", "Đỏ", 1000, 1, null)))
+            productJson(999999, null, "X", variant("Đỏ", "M", 1, 1, null)))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.detail").value("Không tìm thấy danh mục"));
   }
@@ -164,18 +281,19 @@ class CatalogAdminIntegrationTest {
     long categoryId = createCategory("Phụ kiện");
     send(
             post("/api/admin/products"),
-            "{\"name\":\"Ví\",\"categoryId\":%d,\"variants\":[%s,%s]}"
-                .formatted(
-                    categoryId,
-                    variant("Free size", "Nâu", 100000, 1, null),
-                    variant("free size", "nâu", 120000, 1, null)))
-        .andExpect(status().isConflict());
+            productJson(
+                categoryId,
+                null,
+                "Ví",
+                variant("Nâu", "Free size", 100000, 1, null),
+                variant("nau", "FREE SIZE", 120000, 1, null)))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value("Trùng biến thể nau – FREE SIZE"));
 
-    createProduct(categoryId, null, "Ví A", variant("Free size", "Đen", 100000, 1, "VI-001"));
+    createProduct(categoryId, null, "Ví A", variant("Đen", "Free size", 100000, 1, "VI-001"));
     send(
             post("/api/admin/products"),
-            "{\"name\":\"Ví B\",\"categoryId\":%d,\"variants\":[%s]}"
-                .formatted(categoryId, variant("Free size", "Đen", 100000, 1, "VI-001")))
+            productJson(categoryId, null, "Ví B", variant("Đen", "Free size", 100000, 1, "VI-001")))
         .andExpect(status().isConflict())
         .andExpect(jsonPath("$.detail").value("Mã SKU VI-001 đã được dùng cho biến thể khác"));
   }
@@ -184,7 +302,7 @@ class CatalogAdminIntegrationTest {
   void softDeleteHidesProductAndReleasesSku() throws Exception {
     long categoryId = createCategory("Dép");
     long productId =
-        createProduct(categoryId, null, "Dép lê", variant("40", "Đen", 90000, 3, "DEP-40-DEN"));
+        createProduct(categoryId, null, "Dép lê", variant("Đen", "40", 90000, 3, "DEP-40-DEN"));
 
     mockMvc
         .perform(delete("/api/admin/products/" + productId).with(ADMIN))
@@ -206,7 +324,7 @@ class CatalogAdminIntegrationTest {
         .andExpect(jsonPath("$.content[0].deleted").value(true));
 
     // BR-36: mã SKU cũ dùng lại được cho sản phẩm mới
-    createProduct(categoryId, null, "Dép lê mới", variant("40", "Đen", 95000, 3, "DEP-40-DEN"));
+    createProduct(categoryId, null, "Dép lê mới", variant("Đen", "40", 95000, 3, "DEP-40-DEN"));
     // Sản phẩm đã ngừng bán không sửa được
     send(
             put("/api/admin/products/" + productId),
@@ -215,49 +333,72 @@ class CatalogAdminIntegrationTest {
   }
 
   @Test
-  void updateProductReplacesInfoAndImages() throws Exception {
+  void updateProductReplacesInfoImagesAndRenamesVariations() throws Exception {
     long categoryId = createCategory("Vali");
     long otherCategory = createCategory("Balo du lịch");
     long productId =
-        createProduct(categoryId, null, "Vali 20 inch", variant("20", "Xanh", 900000, 2, null));
+        createProduct(categoryId, null, "Vali 20 inch", variant("Xanh", "20", 900000, 2, null));
 
     send(
             put("/api/admin/products/" + productId),
             """
             {"name":"Vali kéo 20 inch","description":"Khung nhôm","categoryId":%d,
+             "variationName1":"Màu","variationName2":"Cỡ",
              "imageUrls":["https://img/v.jpg"]}
             """
                 .formatted(otherCategory))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.name").value("Vali kéo 20 inch"))
+        .andExpect(jsonPath("$.variationName1").value("Màu"))
+        .andExpect(jsonPath("$.variationName2").value("Cỡ"))
         .andExpect(jsonPath("$.category.name").value("Balo du lịch"))
         .andExpect(jsonPath("$.imageUrls.length()").value(1))
-        .andExpect(jsonPath("$.variants.length()").value(1));
+        .andExpect(jsonPath("$.variants.length()").value(1))
+        .andExpect(jsonPath("$.variants[0].option1Value").value("Xanh"));
+
+    // Bỏ tầng 2 thì biến thể đang có giá trị tầng 2 sẽ sai, nên không cho đổi số tầng
+    send(
+            put("/api/admin/products/" + productId),
+            "{\"name\":\"Vali\",\"categoryId\":%d,\"variationName1\":\"Màu\"}"
+                .formatted(categoryId))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.detail")
+                .value(
+                    "Không đổi được số tầng phân loại của sản phẩm đã tạo (đang có 2 tầng). "
+                        + "Muốn phân loại khác thì tạo sản phẩm mới"));
   }
 
   @Test
   void variantLifecycle() throws Exception {
     long categoryId = createCategory("Sandal");
     long productId =
-        createProduct(categoryId, null, "Sandal", variant("38", "Trắng", 200000, 4, null));
+        createProduct(categoryId, null, "Sandal", variant("Trắng", "38", 200000, 4, null));
 
     long variantId =
         id(
             send(
                     post("/api/admin/products/%d/variants".formatted(productId)),
-                    variant("39", "Trắng", 210000, 6, "SD-39"))
+                    variant("Trắng", "39", 210000, 6, "SD-39"))
                 .andExpect(status().isCreated()));
+    // Trùng tổ hợp không phân biệt hoa thường và dấu, giống collation của MySQL
     send(
             post("/api/admin/products/%d/variants".formatted(productId)),
-            variant("39", "TRẮNG", 210000, 6, null))
-        .andExpect(status().isConflict());
+            variant("trang", "39", 210000, 6, null))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value("Sản phẩm đã có biến thể trang – 39"));
 
     send(
             put("/api/admin/products/%d/variants/%d".formatted(productId, variantId)),
-            variant("39", "Trắng", 199000, 0, "SD-39"))
+            variant("Trắng", "39", 199000, 0, "SD-39"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.price").value(199000))
         .andExpect(jsonPath("$.stock").value(0));
+    send(
+            put("/api/admin/products/%d/variants/%d".formatted(productId, variantId)),
+            variant("Trắng", "38", 199000, 0, "SD-39"))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value("Sản phẩm đã có biến thể Trắng – 38"));
 
     mockMvc
         .perform(
@@ -286,9 +427,9 @@ class CatalogAdminIntegrationTest {
   void searchFiltersByKeywordAndCategoryWithPaging() throws Exception {
     long shoes = createCategory("Giày chạy bộ");
     long bags = createCategory("Túi đeo chéo");
-    createProduct(shoes, null, "Giày chạy bộ Alpha", variant("41", "Đỏ", 500000, 1, null));
-    createProduct(shoes, null, "Giày chạy bộ Beta", variant("42", "Xanh", 600000, 0, null));
-    createProduct(bags, null, "Túi Alpha", variant("Free size", "Đen", 300000, 2, null));
+    createProduct(shoes, null, "Giày chạy bộ Alpha", variant("Đỏ", "41", 500000, 1, null));
+    createProduct(shoes, null, "Giày chạy bộ Beta", variant("Xanh", "42", 600000, 0, null));
+    createProduct(bags, null, "Túi Alpha", variant("Đen", "Free size", 300000, 2, null));
 
     mockMvc
         .perform(
@@ -323,19 +464,48 @@ class CatalogAdminIntegrationTest {
             .andExpect(status().isCreated()));
   }
 
+  /** Tạo sản phẩm có 2 tầng phân loại "Màu sắc", "Kích cỡ". */
   private long createProduct(long categoryId, Long brandId, String name, String variantJson)
       throws Exception {
     return id(
-        send(
-                post("/api/admin/products"),
-                "{\"name\":\"%s\",\"categoryId\":%d,\"brandId\":%s,\"variants\":[%s]}"
-                    .formatted(name, categoryId, brandId, variantJson))
+        send(post("/api/admin/products"), productJson(categoryId, brandId, name, variantJson))
             .andExpect(status().isCreated()));
   }
 
-  private static String variant(String size, String color, long price, int stock, String sku) {
-    return "{\"size\":\"%s\",\"color\":\"%s\",\"price\":%d,\"stock\":%d,\"skuCode\":%s}"
-        .formatted(size, color, price, stock, sku == null ? "null" : "\"" + sku + "\"");
+  /** JSON thêm sản phẩm có 2 tầng phân loại "Màu sắc", "Kích cỡ". */
+  private static String productJson(
+      long categoryId, Long brandId, String name, String... variantJsons) {
+    return productJsonWithTiers(categoryId, brandId, name, "Màu sắc", "Kích cỡ", variantJsons);
+  }
+
+  /** JSON thêm sản phẩm với tên tầng phân loại cho trước (null = không dùng tầng đó). */
+  private static String productJsonWithTiers(
+      long categoryId,
+      Long brandId,
+      String name,
+      String variationName1,
+      String variationName2,
+      String... variantJsons) {
+    return """
+        {"name":"%s","categoryId":%d,"brandId":%s,"variationName1":%s,"variationName2":%s,
+         "variants":[%s]}
+        """
+        .formatted(
+            name,
+            categoryId,
+            brandId,
+            json(variationName1),
+            json(variationName2),
+            String.join(",", variantJsons));
+  }
+
+  private static String variant(String option1, String option2, long price, int stock, String sku) {
+    return "{\"option1Value\":%s,\"option2Value\":%s,\"price\":%d,\"stock\":%d,\"skuCode\":%s}"
+        .formatted(json(option1), json(option2), price, stock, json(sku));
+  }
+
+  private static String json(String value) {
+    return value == null ? "null" : "\"" + value + "\"";
   }
 
   private static long id(ResultActions result) throws Exception {

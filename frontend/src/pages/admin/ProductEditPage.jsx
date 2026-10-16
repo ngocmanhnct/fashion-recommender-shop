@@ -5,7 +5,11 @@ import VariantManager from '../../components/VariantManager';
 import { getBrands, getCategories } from '../../services/catalogApi';
 import { getErrorMessage, getFieldErrors } from '../../services/errorMessage';
 import { getProduct, updateProduct } from '../../services/productAdminApi';
-import { toProductInfoForm, toProductInfoPayload } from '../../services/productForm';
+import {
+  toProductInfoForm,
+  toProductInfoPayload,
+  variationNamesOf,
+} from '../../services/productForm';
 
 function ProductEditPage() {
   const { id } = useParams();
@@ -66,6 +70,7 @@ function ProductEditPage() {
   }
 
   const deleted = product.deletedAt !== null;
+  const variationNames = variationNamesOf(product);
 
   return (
     <div>
@@ -87,6 +92,7 @@ function ProductEditPage() {
           brands={brands}
           fieldErrors={fieldErrors}
           disabled={deleted}
+          fixedVariationCount={variationNames.length}
         />
         {error && <p className="alert alert-error">{error}</p>}
         {message && <p className="alert alert-success">{message}</p>}
@@ -101,6 +107,7 @@ function ProductEditPage() {
 
       <VariantManager
         productId={product.id}
+        variationNames={variationNames}
         variants={product.variants}
         readOnly={deleted}
         onChanged={loadProduct}

@@ -5,8 +5,15 @@ import VariantInputs from '../../components/VariantInputs';
 import { getBrands, getCategories } from '../../services/catalogApi';
 import { getErrorMessage, getFieldErrors } from '../../services/errorMessage';
 import { createProduct } from '../../services/productAdminApi';
-import { EMPTY_PRODUCT_INFO, toProductInfoPayload } from '../../services/productForm';
+import {
+  EMPTY_PRODUCT_INFO,
+  toProductInfoPayload,
+  variationNamesOf,
+} from '../../services/productForm';
 import { EMPTY_VARIANT, toVariantPayload } from '../../services/variantForm';
+
+// Tên tầng có thể trùng nhau trong lúc gõ, nên khóa cột theo vị trí tầng chứ không theo tên.
+const TIER_KEYS = ['tier1', 'tier2'];
 
 function ProductCreatePage() {
   const navigate = useNavigate();
@@ -27,6 +34,9 @@ function ProductCreatePage() {
       .catch((err) => setError(getErrorMessage(err)));
   }, []);
 
+  const variationNames = variationNamesOf(info);
+  const variationCount = variationNames.length;
+
   const updateVariantAt = (index, value) =>
     setVariants(variants.map((v, i) => (i === index ? value : v)));
 
@@ -38,7 +48,7 @@ function ProductCreatePage() {
     try {
       const created = await createProduct({
         ...toProductInfoPayload(info),
-        variants: variants.map(toVariantPayload),
+        variants: variants.map((v) => toVariantPayload(v, variationCount)),
       });
       navigate(`/admin/products/${created.id}`, { replace: true });
     } catch (err) {
@@ -69,12 +79,18 @@ function ProductCreatePage() {
           fieldErrors={fieldErrors}
         />
 
-        <h2>Biến thể (ít nhất 1)</h2>
+        <h2>Biến thể</h2>
+        <p className="muted small">
+          {variationCount === 0
+            ? 'Sản phẩm không có phân loại nên có đúng 1 biến thể.'
+            : 'Mỗi dòng là một tổ hợp giá trị phân loại, có giá và tồn kho riêng.'}
+        </p>
         <table className="table table-inputs">
           <thead>
             <tr>
-              <th>Size</th>
-              <th>Màu</th>
+              {variationNames.map((name, index) => (
+                <th key={TIER_KEYS[index]}>{name}</th>
+              ))}
               <th>Giá (VNĐ)</th>
               <th>Tồn kho</th>
               <th>Mã SKU (không bắt buộc)</th>
@@ -86,6 +102,7 @@ function ProductCreatePage() {
               <tr key={index}>
                 <VariantInputs
                   variant={variant}
+                  variationCount={variationCount}
                   onChange={(value) => updateVariantAt(index, value)}
                 />
                 <td className="actions">
@@ -105,6 +122,7 @@ function ProductCreatePage() {
         <button
           type="button"
           className="btn btn-ghost"
+          disabled={variationCount === 0}
           onClick={() => setVariants([...variants, EMPTY_VARIANT])}
         >
           + Thêm dòng biến thể

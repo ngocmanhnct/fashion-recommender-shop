@@ -1,26 +1,24 @@
 package com.manhdn.fashionshop.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 /**
- * Dữ liệu một biến thể (BR-05).
+ * Dữ liệu một biến thể (BR-05). Số giá trị phân loại phải khớp số tầng của sản phẩm: không có tầng
+ * thì để trống cả 2, có 1 tầng thì chỉ nhập option1Value, có 2 tầng thì nhập cả 2 (service kiểm
+ * tra, vì phụ thuộc sản phẩm).
  *
- * @param size kích cỡ, vd "40" hoặc "Free size"
- * @param color màu
+ * @param option1Value giá trị ở tầng phân loại 1, vd "Đen"
+ * @param option2Value giá trị ở tầng phân loại 2, vd "42"
  * @param price giá bán, VNĐ, số nguyên dương (BR-27)
  * @param stock tồn kho, không âm
  * @param skuCode mã SKU, tùy chọn, duy nhất toàn hệ thống
  */
 public record VariantRequest(
-    @NotBlank(message = "Size không được để trống")
-        @Size(max = 20, message = "Size tối đa 20 ký tự")
-        String size,
-    @NotBlank(message = "Màu không được để trống") @Size(max = 50, message = "Màu tối đa 50 ký tự")
-        String color,
+    @Size(max = 100, message = "Giá trị phân loại tối đa 100 ký tự") String option1Value,
+    @Size(max = 100, message = "Giá trị phân loại tối đa 100 ký tự") String option2Value,
     @NotNull(message = "Giá không được để trống") @Positive(message = "Giá phải lớn hơn 0")
         Long price,
     @NotNull(message = "Tồn kho không được để trống")
