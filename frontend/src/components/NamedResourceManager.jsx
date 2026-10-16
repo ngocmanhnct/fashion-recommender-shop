@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getErrorMessage } from '../services/errorMessage';
 
 /**
@@ -12,6 +12,7 @@ function NamedResourceManager({ title, noun, loadAll, api }) {
   const [editingName, setEditingName] = useState('');
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  const editInputRef = useRef(null);
 
   const reload = useCallback(() => {
     loadAll()
@@ -20,6 +21,11 @@ function NamedResourceManager({ title, noun, loadAll, api }) {
   }, [loadAll]);
 
   useEffect(reload, [reload]);
+
+  // Bấm "Đổi tên" thì đưa con trỏ vào ô nhập (thay cho thuộc tính autoFocus).
+  useEffect(() => {
+    if (editingId !== null) editInputRef.current?.focus();
+  }, [editingId]);
 
   const run = async (action, successMessage) => {
     setError('');
@@ -52,9 +58,9 @@ function NamedResourceManager({ title, noun, loadAll, api }) {
     }
   };
 
-  const handleDelete = (item) => {
+  const handleDelete = async (item) => {
     if (window.confirm(`Xóa ${noun} "${item.name}"?`)) {
-      run(() => api.remove(item.id), `Đã xóa ${noun} "${item.name}"`);
+      await run(() => api.remove(item.id), `Đã xóa ${noun} "${item.name}"`);
     }
   };
 
@@ -90,10 +96,10 @@ function NamedResourceManager({ title, noun, loadAll, api }) {
               <td>
                 {editingId === item.id ? (
                   <input
+                    ref={editInputRef}
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
                     maxLength={100}
-                    autoFocus
                   />
                 ) : (
                   item.name

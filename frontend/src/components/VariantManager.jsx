@@ -37,9 +37,9 @@ function VariantManager({ productId, variants, readOnly, onChanged }) {
       'Đã lưu biến thể'
     );
 
-  const handleDelete = (variant) => {
+  const handleDelete = async (variant) => {
     if (window.confirm(`Xóa biến thể ${variant.size} / ${variant.color}?`)) {
-      run(() => deleteVariant(productId, variant.id), 'Đã xóa biến thể');
+      await run(() => deleteVariant(productId, variant.id), 'Đã xóa biến thể');
     }
   };
 
