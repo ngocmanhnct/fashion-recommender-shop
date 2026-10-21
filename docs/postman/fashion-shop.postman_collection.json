@@ -1600,6 +1600,140 @@
               }
             }
           ]
+        },
+        {
+          "name": "Đơn hàng",
+          "description": "Quản lý đơn hàng (US-17). {{orderId}} lấy từ '3. Khách hàng > Đặt hàng'. Chỉ chuyển được sang trạng thái kế tiếp (PENDING → PROCESSING → SHIPPING → DELIVERED) hoặc CANCELLED khi đơn chưa Đã giao; sai thứ tự trả 409.",
+          "item": [
+            {
+              "name": "Danh sách đơn hàng (lọc, phân trang)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders?status=PENDING&page=0&size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "status",
+                      "value": "PENDING",
+                      "description": "PENDING, PROCESSING, SHIPPING, DELIVERED, CANCELLED; bỏ trống là tất cả"
+                    },
+                    {
+                      "key": "keyword",
+                      "value": "{{orderId}}",
+                      "disabled": true,
+                      "description": "Mã đơn, một phần email khách hoặc số điện thoại nhận"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Chi tiết đơn hàng",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders/{{orderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "orders",
+                    "{{orderId}}"
+                  ]
+                }
+              }
+            },
+            {
+              "name": "Chuyển trạng thái kế tiếp",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"status\": \"PROCESSING\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders/{{orderId}}/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "orders",
+                    "{{orderId}}",
+                    "status"
+                  ]
+                },
+                "description": "Gửi trạng thái kế tiếp của đơn (xem nextStatus trong chi tiết đơn). Gửi lại đúng trạng thái hiện tại thì trả 200, không đổi gì."
+              }
+            },
+            {
+              "name": "Hủy đơn thay khách",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\"status\": \"CANCELLED\"}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders/{{orderId}}/status",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "orders",
+                    "{{orderId}}",
+                    "status"
+                  ]
+                },
+                "description": "Hủy đơn chưa Đã giao (kể cả Đang giao, vd khách từ chối nhận COD) và hoàn tồn kho. Đơn Đã giao trả 409."
+              }
+            }
+          ]
         }
       ]
     }

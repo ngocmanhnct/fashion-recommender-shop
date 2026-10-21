@@ -279,15 +279,23 @@ public class OrderService {
           "Đơn hàng đã rời kho nên không thể tự hủy qua hệ thống. Hãy liên hệ cửa hàng nếu cần hỗ"
               + " trợ.");
     }
+    restoreStock(order);
+    order.cancel(LocalDateTime.now(clock));
+    requestRecompute(accountId);
+    return OrderResponse.from(order);
+  }
+
+  /**
+   * Hoàn tồn kho của mọi dòng đơn (BR-16). Khóa các biến thể theo mã tăng dần như lúc đặt hàng;
+   * người gọi phải khóa tài khoản đặt đơn trước.
+   */
+  void restoreStock(Order order) {
     List<Long> variantIds =
         order.getItems().stream().map(item -> item.getVariant().getId()).distinct().toList();
     variantRepository.findAllForUpdate(variantIds);
     for (OrderItem item : order.getItems()) {
       item.getVariant().increaseStock(item.getQuantity());
     }
-    order.cancel(LocalDateTime.now(clock));
-    requestRecompute(accountId);
-    return OrderResponse.from(order);
   }
 
   private Order findOwn(long accountId, long orderId) {

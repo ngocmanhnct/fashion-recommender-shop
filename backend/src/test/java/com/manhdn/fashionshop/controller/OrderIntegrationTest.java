@@ -372,6 +372,83 @@ class OrderIntegrationTest {
   }
 
   @Test
+  void adminMovesOrderForwardOneStepAndCanCancelUntilDelivered() throws Exception {
+    long account = account();
+    long address = address(account, "Trần Thị B", "0912345678", "Quận 1");
+    long variant = variantOf(product(100_000L, 5));
+    addToCart(account, variant, 2);
+    long orderId = placedOrderId(account, address, 230_000);
+    jdbcTemplate.update("DELETE FROM recompute_request WHERE account_id = ?", account);
+    String email =
+        jdbcTemplate.queryForObject(
+            "SELECT email FROM account WHERE id = ?", String.class, account);
+
+    performAdmin(get("/api/admin/orders?status=PENDING&keyword=" + email))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.totalElements").value(1))
+        .andExpect(jsonPath("$.content[0].id").value(orderId))
+        .andExpect(jsonPath("$.content[0].customerEmail").value(email))
+        .andExpect(jsonPath("$.content[0].totalQuantity").value(2));
+    performAdmin(get("/api/admin/orders?status=SHIPPING&keyword=" + email))
+        .andExpect(jsonPath("$.totalElements").value(0));
+    performAdmin(get("/api/admin/orders?keyword=" + orderId))
+        .andExpect(jsonPath("$.content[0].id").value(orderId));
+    performAdmin(get("/api/admin/orders?status=XYZ")).andExpect(status().isBadRequest());
+    performAdmin(get("/api/admin/orders/%d".formatted(orderId)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.order.id").value(orderId))
+        .andExpect(jsonPath("$.customerName").value("Khách thử"))
+        .andExpect(jsonPath("$.nextStatus").value("PROCESSING"))
+        .andExpect(jsonPath("$.adminCancellable").value(true));
+
+    // Không nhảy cóc, không lùi trạng thái.
+    performAdmin(changeStatus(orderId, "SHIPPING")).andExpect(status().isConflict());
+    performAdmin(changeStatus(orderId, "PROCESSING"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.order.status").value("PROCESSING"))
+        .andExpect(jsonPath("$.nextStatus").value("SHIPPING"));
+    performAdmin(changeStatus(orderId, "PENDING")).andExpect(status().isConflict());
+    performAdmin(changeStatus(orderId, "SHIPPING")).andExpect(status().isOk());
+    // Gửi lại đúng trạng thái hiện tại: không lỗi, không đổi gì.
+    performAdmin(changeStatus(orderId, "SHIPPING")).andExpect(status().isOk());
+    perform(account, post("/api/orders/%d/cancel".formatted(orderId)))
+        .andExpect(status().isConflict());
+
+    // Admin hủy được đơn Đang giao (khách từ chối nhận hàng COD), tồn kho được hoàn.
+    performAdmin(changeStatus(orderId, "CANCELLED"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.order.status").value("CANCELLED"))
+        .andExpect(jsonPath("$.nextStatus").doesNotExist())
+        .andExpect(jsonPath("$.adminCancellable").value(false));
+    assertThat(stockOf(variant)).isEqualTo(5);
+    performAdmin(changeStatus(orderId, "CANCELLED")).andExpect(status().isOk());
+    assertThat(stockOf(variant)).isEqualTo(5);
+    performAdmin(changeStatus(orderId, "PROCESSING")).andExpect(status().isConflict());
+
+    // Đã giao: yêu cầu tính lại gợi ý và gán nhóm khách hàng; sau đó không hủy được nữa.
+    addToCart(account, variant, 1);
+    long delivered = placedOrderId(account, address, 130_000);
+    jdbcTemplate.update("DELETE FROM recompute_request WHERE account_id = ?", account);
+    for (String next : List.of("PROCESSING", "SHIPPING", "DELIVERED")) {
+      performAdmin(changeStatus(delivered, next)).andExpect(status().isOk());
+    }
+    assertThat(count("SELECT COUNT(*) FROM recompute_request WHERE account_id = ?", account))
+        .isEqualTo(2);
+    performAdmin(changeStatus(delivered, "CANCELLED"))
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("$.detail").value(containsString("đã giao")));
+    assertThat(stockOf(variant)).isEqualTo(4);
+
+    performAdmin(changeStatus(Long.MAX_VALUE, "PROCESSING")).andExpect(status().isNotFound());
+    performAdmin(
+            put("/api/admin/orders/%d/status".formatted(delivered))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+        .andExpect(status().isBadRequest());
+    perform(account, get("/api/admin/orders")).andExpect(status().isForbidden());
+  }
+
+  @Test
   void ordersAndAddressesNeedCustomerToken() throws Exception {
     mockMvc.perform(get("/api/orders")).andExpect(status().isUnauthorized());
     mockMvc.perform(get("/api/addresses")).andExpect(status().isUnauthorized());
@@ -436,6 +513,18 @@ class OrderIntegrationTest {
     return ("{\"recipientName\": \"%s\", \"phone\": \"%s\", \"addressDetail\": \"%s\","
             + " \"isDefault\": %b}")
         .formatted(name, phone, detail, isDefault);
+  }
+
+  private static MockHttpServletRequestBuilder changeStatus(long orderId, String status) {
+    return put("/api/admin/orders/%d/status".formatted(orderId))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content("{\"status\": \"%s\"}".formatted(status));
+  }
+
+  private ResultActions performAdmin(MockHttpServletRequestBuilder request) throws Exception {
+    return mockMvc.perform(
+        request.with(
+            jwt().jwt(j -> j.subject("1")).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))));
   }
 
   private ResultActions perform(long accountId, MockHttpServletRequestBuilder request)

@@ -136,6 +136,12 @@ public class Order {
     this.updatedAt = now;
   }
 
+  /** Chuyển sang trạng thái kế tiếp do quản trị viên chọn (US-17); service kiểm tra hợp lệ. */
+  public void advanceTo(OrderStatus next, LocalDateTime now) {
+    this.status = next;
+    this.updatedAt = now;
+  }
+
   public Long getId() {
     return id;
   }
