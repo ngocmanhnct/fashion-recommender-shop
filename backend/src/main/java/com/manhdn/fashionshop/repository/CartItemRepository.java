@@ -13,4 +13,9 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
       "SELECT c FROM CartItem c JOIN FETCH c.variant v JOIN FETCH v.product"
           + " WHERE c.account.id = :accountId ORDER BY c.id")
   List<CartItem> findCartOf(long accountId);
+
+  /** Mã các biến thể trong giỏ hàng của tài khoản, tăng dần (thứ tự khóa khi đặt hàng). */
+  @Query(
+      "SELECT c.variant.id FROM CartItem c WHERE c.account.id = :accountId ORDER BY c.variant.id")
+  List<Long> findVariantIdsOf(long accountId);
 }

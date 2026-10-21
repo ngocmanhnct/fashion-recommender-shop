@@ -58,6 +58,22 @@
     {
       "key": "publicVariantId",
       "value": ""
+    },
+    {
+      "key": "addressId",
+      "value": ""
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "expectedTotal",
+      "value": ""
+    },
+    {
+      "key": "idempotencyKey",
+      "value": ""
     }
   ],
   "item": [
@@ -503,7 +519,7 @@
     },
     {
       "name": "3. Khách hàng (cần token tài khoản khách)",
-      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm, giỏ hàng (Tuần 6). Đặt hàng, khảo sát, đánh giá sẽ thêm sau. Mọi API giỏ hàng trả về cả giỏ: items, notices (dòng hệ thống vừa tự loại hoặc giảm số lượng, BR-11), totalQuantity, subtotal.",
+      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm, giỏ hàng, sổ địa chỉ, đặt hàng COD, đơn hàng (Tuần 6). Thanh toán online, khảo sát, đánh giá sẽ thêm sau. Đặt hàng: chạy lần lượt Thêm địa chỉ, Gộp giỏ hàng (để giỏ có sản phẩm), Xem trước đơn hàng rồi Đặt hàng. Mọi API giỏ hàng trả về cả giỏ: items, notices (dòng hệ thống vừa tự loại hoặc giảm số lượng, BR-11), totalQuantity, subtotal.",
       "item": [
         {
           "name": "Ghi lượt xem sản phẩm",
@@ -724,6 +740,379 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Gộp giỏ hàng thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Thêm địa chỉ giao hàng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "addresses"
+              ]
+            },
+            "description": "Thêm địa chỉ vào sổ địa chỉ (US-09). Địa chỉ đầu tiên tự là mặc định; isDefault true thì đặt làm mặc định. Số điện thoại 10 hoặc 11 chữ số bắt đầu bằng 0. Tối đa 10 địa chỉ (409).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientName\": \"Nguyễn Văn A\",\n  \"phone\": \"0901234567\",\n  \"addressDetail\": \"1 Võ Văn Ngân, Linh Chiểu, Thủ Đức, TP HCM\",\n  \"isDefault\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Thêm địa chỉ thành công', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('addressId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sổ địa chỉ",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/addresses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "addresses"
+              ]
+            },
+            "description": "Các địa chỉ của khách, địa chỉ mặc định đứng đầu."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy sổ địa chỉ thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sửa địa chỉ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/addresses/{{addressId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "addresses",
+                "{{addressId}}"
+              ]
+            },
+            "description": "Sửa địa chỉ; isDefault false không bỏ mặc định của địa chỉ đang là mặc định. Đơn đã đặt giữ bản sao địa chỉ nên không đổi theo (BR-29). Địa chỉ của người khác trả 404.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientName\": \"Nguyễn Văn A\",\n  \"phone\": \"0901234567\",\n  \"addressDetail\": \"484 Lê Văn Việt, Linh Chiểu, Thủ Đức, TP HCM\",\n  \"isDefault\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Sửa địa chỉ thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Xem trước đơn hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "preview"
+              ]
+            },
+            "description": "Tóm tắt trước khi đặt (US-10): giỏ hàng theo giá hiện tại (đã tự loại dòng không còn mua được, kèm notices), phí vận chuyển 30.000đ, miễn phí khi tổng tiền hàng từ 500.000đ (BR-35), tổng thanh toán. Cần giỏ hàng có sản phẩm (chạy 'Gộp giỏ hàng sau khi đăng nhập' trước). Lưu total vào biến expectedTotal và sinh idempotencyKey mới cho lần đặt hàng."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem trước thành công', () => pm.response.to.have.status(200));",
+                  "pm.collectionVariables.set('expectedTotal', pm.response.json().total);",
+                  "// Mỗi lần vào bước xác nhận là một mã định danh mới (BR-10)",
+                  "pm.collectionVariables.set('idempotencyKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đặt hàng (COD)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            },
+            "description": "Đặt toàn bộ giỏ hàng (US-10): trừ tồn kho, xóa giỏ, đơn ở trạng thái PENDING. expectedTotal là tổng đã thấy ở bước xem trước: khác tổng hiện tại (giá vừa đổi) thì 409. Thiếu hàng hoặc sản phẩm ngừng bán thì từ chối cả đơn (409, BR-09). Hiện chỉ nhận paymentMethod COD (ONLINE 400 đến khi có VNPay). Trả 201 kèm đơn.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{idempotencyKey}}\",\n  \"paymentMethod\": \"COD\",\n  \"addressId\": {{addressId}},\n  \"expectedTotal\": {{expectedTotal}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Đặt hàng thành công', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('orderId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đặt hàng lại cùng mã (không tạo đơn mới)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            },
+            "description": "Gửi lại đúng request vừa rồi (cùng idempotencyKey), như khi khách bấm lại sau khi mất mạng: trả 200 kèm đúng đơn đã tạo, không tạo đơn mới, không trừ tồn kho lần nữa (BR-10).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{idempotencyKey}}\",\n  \"paymentMethod\": \"COD\",\n  \"addressId\": {{addressId}},\n  \"expectedTotal\": {{expectedTotal}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả lại đơn đã tạo', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('orderId'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đơn hàng của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders?page=0&size=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "Danh sách đơn của khách, mới nhất trước (US-11), dạng trang: content, page, size, totalElements, totalPages. size từ 1 đến 50."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy danh sách đơn thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Chi tiết đơn hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}"
+              ]
+            },
+            "description": "Chi tiết đơn: sản phẩm và giá như lúc mua (BR-15), người nhận và địa chỉ lúc đặt (BR-29), cancellable cho biết khách còn tự hủy được không. Đơn của người khác trả 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy chi tiết đơn thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Hủy đơn hàng",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/cancel",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}",
+                "cancel"
+              ]
+            },
+            "description": "Khách tự hủy đơn khi còn PENDING hoặc PROCESSING (BR-13), tồn kho được hoàn lại (BR-16). Đơn đang giao hoặc đã giao trả 409. Hủy đơn đã hủy trả 200, không hoàn kho lần nữa."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Hủy đơn thành công', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('CANCELLED');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Xóa địa chỉ",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/addresses/{{addressId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "addresses",
+                "{{addressId}}"
+              ]
+            },
+            "description": "Xóa địa chỉ; đơn đã đặt vẫn giữ bản sao người nhận và địa chỉ. Xóa địa chỉ mặc định thì địa chỉ thêm gần nhất còn lại thành mặc định. Trả 204."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xóa địa chỉ thành công', () => pm.response.to.have.status(204));"
                 ]
               }
             }

@@ -342,6 +342,8 @@ Từ điển dữ liệu dưới đây suy trực tiếp từ Mục 1-2 — mỗ
 
 *Đây là "sổ địa chỉ" để chọn nhanh — không phải địa chỉ thật sự đã giao cho một đơn cụ thể; đơn hàng lưu bản sao riêng, xem BR-29 và bảng `order` ở 3.6.*
 
+*Quy tắc chốt Tuần 6: mỗi tài khoản lưu tối đa 10 địa chỉ; sổ có địa chỉ thì luôn có đúng 1 địa chỉ mặc định (địa chỉ đầu tiên tự là mặc định, xóa địa chỉ mặc định thì địa chỉ thêm gần nhất còn lại thành mặc định). Xóa địa chỉ đặt `order.address_id` của các đơn dùng nó về NULL; đơn vẫn hiển thị bản sao.*
+
 ### 3.3 Danh mục & thương hiệu — `category`, `brand`
 
 *Nguồn: US-01, US-02, US-16*
@@ -445,6 +447,8 @@ UNIQUE(account\_id, variant\_id) — 1 dòng/biến thể/tài khoản, cộng d
 | refund | initiated\_at | DATETIME | NOT NULL |  |
 | refund | completed\_at | DATETIME | NULLABLE |  |
 | refund | failure\_reason | VARCHAR(500) | NULLABLE | Hiển thị cho admin khi "Hoàn tiền thất bại" (US-17) |
+
+*Cách đặt hàng chốt Tuần 6: một đơn gồm toàn bộ giỏ hàng, giá lấy theo giá hiện tại. Khi xác nhận, trình duyệt gửi kèm tổng thanh toán khách đã thấy ở bước xem trước; nếu khác tổng tính lại (giá vừa đổi, giỏ vừa thay đổi) thì từ chối để khách xem lại, không tạo đơn với số tiền khách chưa thấy.*
 
 *"Sản phẩm bán chạy nhất" (BR-19, BR-22) là dữ liệu suy ra bằng truy vấn tổng hợp trên `order_item`, không phải một bảng/cột lưu sẵn — có thể cache lại khi thiết kế hiệu năng.*
 

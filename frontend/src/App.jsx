@@ -3,12 +3,15 @@ import AdminLayout from './components/AdminLayout';
 import Layout from './components/Layout';
 import RequireAdmin from './components/RequireAdmin';
 import RequireCustomer from './components/RequireCustomer';
+import AddressesPage from './pages/AddressesPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import HealthCheckPage from './pages/HealthCheckPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
+import OrderDetailPage from './pages/OrderDetailPage';
+import OrdersPage from './pages/OrdersPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductsPage from './pages/ProductsPage';
 import RegisterPage from './pages/RegisterPage';
@@ -31,6 +34,30 @@ function App() {
           element={
             <RequireCustomer>
               <CheckoutPage />
+            </RequireCustomer>
+          }
+        />
+        <Route
+          path="orders"
+          element={
+            <RequireCustomer>
+              <OrdersPage />
+            </RequireCustomer>
+          }
+        />
+        <Route
+          path="orders/:id"
+          element={
+            <RequireCustomer>
+              <OrderDetailPage />
+            </RequireCustomer>
+          }
+        />
+        <Route
+          path="addresses"
+          element={
+            <RequireCustomer>
+              <AddressesPage />
             </RequireCustomer>
           }
         />
