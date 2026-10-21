@@ -54,6 +54,10 @@
     {
       "key": "variantId",
       "value": ""
+    },
+    {
+      "key": "publicVariantId",
+      "value": ""
     }
   ],
   "item": [
@@ -404,8 +408,22 @@
             "auth": {
               "type": "noauth"
             },
-            "description": "Chi tiết kèm các biến thể (giá, tồn kho từng biến thể), khoảng giá, inStock, số đã bán, điểm đánh giá. 404 nếu sản phẩm không có hoặc đã ngừng bán; 400 nếu id không phải số. Chạy 'Danh sách sản phẩm' trước để có publicProductId."
-          }
+            "description": "Chi tiết kèm các biến thể (giá, tồn kho từng biến thể), khoảng giá, inStock, số đã bán, điểm đánh giá. 404 nếu sản phẩm không có hoặc đã ngừng bán; 400 nếu id không phải số. Chạy 'Danh sách sản phẩm' trước để có publicProductId. Lưu biến thể còn hàng đầu tiên vào publicVariantId (dùng cho các request giỏ hàng)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy chi tiết thành công', () => pm.response.to.have.status(200));",
+                  "// Lưu biến thể còn hàng đầu tiên cho các request giỏ hàng",
+                  "const variant = pm.response.json().variants.find((v) => v.stock > 0);",
+                  "if (variant) pm.collectionVariables.set('publicVariantId', variant.id);"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Gợi ý sản phẩm liên quan",
@@ -429,6 +447,53 @@
             },
             "description": "Tối đa 4 sản phẩm còn hàng, không gồm chính sản phẩm đang xem, mỗi sản phẩm kèm lý do (reason): cùng danh mục và thương hiệu, cùng danh mục, cùng thương hiệu, rồi lấp bằng sản phẩm bán chạy. Bản tạm theo quy tắc; Tuần 8 thay bằng gợi ý của dịch vụ học máy."
           }
+        },
+        {
+          "name": "Xem trước giỏ hàng (khách chưa đăng nhập)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/preview",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "preview"
+              ]
+            },
+            "description": "Giỏ hàng của khách chưa đăng nhập lưu ở trình duyệt (BR-06); request này trả về giá, tồn kho hiện tại mà không lưu gì. Dòng trùng biến thể được cộng lại; dòng ngừng bán hoặc hết hàng bị bỏ, dòng nhiều hơn tồn kho bị giảm, mỗi trường hợp có 1 mục trong notices. Tối đa 50 dòng, số lượng 1 đến 99 (400 nếu sai). Chạy 'Chi tiết sản phẩm' trước để có publicVariantId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"variantId\": {{publicVariantId}}, \"quantity\": 1 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem trước thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ],
       "auth": {
@@ -438,7 +503,7 @@
     },
     {
       "name": "3. Khách hàng (cần token tài khoản khách)",
-      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm (Tuần 6). Giỏ hàng, đặt hàng, khảo sát, đánh giá sẽ thêm sau.",
+      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm, giỏ hàng (Tuần 6). Đặt hàng, khảo sát, đánh giá sẽ thêm sau. Mọi API giỏ hàng trả về cả giỏ: items, notices (dòng hệ thống vừa tự loại hoặc giảm số lượng, BR-11), totalQuantity, subtotal.",
       "item": [
         {
           "name": "Ghi lượt xem sản phẩm",
@@ -466,6 +531,199 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Ghi lượt xem thành công', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Xem giỏ hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart"
+              ]
+            },
+            "description": "Giỏ hàng theo giá và tồn kho hiện tại. Dòng của sản phẩm đã ngừng bán hoặc biến thể hết hàng bị xóa, dòng nhiều hơn tồn kho bị giảm số lượng, kèm notices (BR-11)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem giỏ hàng thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Thêm vào giỏ hàng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "items"
+              ]
+            },
+            "description": "Thêm biến thể vào giỏ, đã có thì cộng dồn số lượng (US-06). Ghi sự kiện ADD_TO_CART và yêu cầu tính lại gợi ý sau 3 giây. 400 nếu số lượng ngoài 1 đến 99; 404 nếu biến thể không có hoặc sản phẩm đã ngừng bán; 409 nếu hết hàng, tổng số lượng vượt tồn kho hoặc 99, hay giỏ đã có 50 dòng. Chạy '2. Công khai > Chi tiết sản phẩm' trước để có publicVariantId.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"variantId\": {{publicVariantId}},\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Thêm vào giỏ thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sửa số lượng trong giỏ",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/items/{{publicVariantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "items",
+                "{{publicVariantId}}"
+              ]
+            },
+            "description": "Đổi số lượng một dòng (1 đến 99, US-07). 404 nếu biến thể không có trong giỏ; 409 nếu vượt tồn kho hiện tại.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Sửa số lượng thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Xóa khỏi giỏ hàng",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/items/{{publicVariantId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "items",
+                "{{publicVariantId}}"
+              ]
+            },
+            "description": "Xóa một dòng (US-07). Dòng không có trong giỏ thì không làm gì, vẫn trả 200 kèm giỏ hàng."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xóa khỏi giỏ thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gộp giỏ hàng sau khi đăng nhập",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/cart/merge",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "cart",
+                "merge"
+              ]
+            },
+            "description": "Frontend gọi ngay sau khi đăng nhập hoặc đăng ký, gửi giỏ hàng đang lưu ở trình duyệt (BR-07). Biến thể đã có trong giỏ thì cộng dồn nhưng không vượt tồn kho hiện tại, chưa có thì thêm mới; dòng không gộp đủ có trong notices. Tối đa 50 dòng.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    { \"variantId\": {{publicVariantId}}, \"quantity\": 1 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Gộp giỏ hàng thành công', () => pm.response.to.have.status(200));"
                 ]
               }
             }

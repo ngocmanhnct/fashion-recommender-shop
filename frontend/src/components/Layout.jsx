@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
+import { useCart } from '../hooks/useCart';
 import SearchBox from './SearchBox';
 
 /**
@@ -9,6 +10,7 @@ import SearchBox from './SearchBox';
  */
 function Layout() {
   const { user, logout } = useAuth();
+  const { mode: cartMode, count: cartCount } = useCart();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -33,6 +35,16 @@ function Layout() {
         <nav className="topbar-nav">
           <NavLink to="/products">Sản phẩm</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Quản trị</NavLink>}
+          {cartMode !== 'none' && (
+            <NavLink to="/cart" className="cart-link">
+              Giỏ hàng
+              {cartCount > 0 && (
+                <span className="cart-badge" aria-label={`${cartCount} sản phẩm`}>
+                  {cartCount > 99 ? '99+' : cartCount}
+                </span>
+              )}
+            </NavLink>
+          )}
           {user ? (
             <>
               <span className="muted topbar-greeting">Xin chào, {user.fullName}</span>

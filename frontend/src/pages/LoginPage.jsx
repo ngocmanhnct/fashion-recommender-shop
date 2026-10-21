@@ -64,7 +64,10 @@ function LoginPage() {
         </button>
       </form>
       <p className="muted">
-        Chưa có tài khoản? <Link to="/register">Đăng ký</Link>
+        Chưa có tài khoản?{' '}
+        <Link to="/register" state={location.state}>
+          Đăng ký
+        </Link>
       </p>
     </div>
   );

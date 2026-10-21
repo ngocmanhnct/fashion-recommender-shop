@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { formatNumber, formatPrice, formatPriceRange } from '../services/format';
 import { variantLabel } from '../services/variantForm';
+import AddToCart from './AddToCart';
 import {
   emptySelection,
   isValueAvailable,
@@ -77,6 +78,13 @@ function VariantPicker({ product }) {
         </button>
       )}
       <StockStatus product={product} tiers={tiers} selection={selection} variant={variant} />
+      {product.inStock && (
+        <AddToCart
+          key={variant?.id ?? 'none'}
+          variant={variant}
+          missingTiers={missingTierNames(tiers, selection)}
+        />
+      )}
     </div>
   );
 }

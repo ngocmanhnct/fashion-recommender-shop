@@ -2,6 +2,9 @@ import { Navigate, Route, Routes } from 'react-router';
 import AdminLayout from './components/AdminLayout';
 import Layout from './components/Layout';
 import RequireAdmin from './components/RequireAdmin';
+import RequireCustomer from './components/RequireCustomer';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
 import HealthCheckPage from './pages/HealthCheckPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -22,6 +25,15 @@ function App() {
         <Route index element={<HomePage />} />
         <Route path="products" element={<ProductsPage />} />
         <Route path="products/:id" element={<ProductDetailPage />} />
+        <Route path="cart" element={<CartPage />} />
+        <Route
+          path="checkout"
+          element={
+            <RequireCustomer>
+              <CheckoutPage />
+            </RequireCustomer>
+          }
+        />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="health" element={<HealthCheckPage />} />
