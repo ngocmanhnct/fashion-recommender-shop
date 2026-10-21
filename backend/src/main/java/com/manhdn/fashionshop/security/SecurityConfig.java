@@ -28,6 +28,8 @@ import org.springframework.security.web.SecurityFilterChain;
  *       JwtFilter trong sơ đồ thành phần): sai chữ ký hoặc hết hạn thì trả 401.
  *   <li>Phân quyền ở backend theo claim {@code role}: mọi API {@code /api/admin/**} chỉ cho ADMIN,
  *       gọi thẳng API mà không qua giao diện cũng bị chặn (403).
+ *   <li>API đọc sản phẩm, danh mục, thương hiệu công khai (US-01, US-02, US-03); ghi lượt xem sản
+ *       phẩm chỉ cho CUSTOMER (US-03). Token sai hoặc hết hạn vẫn bị 401 kể cả ở API công khai.
  *   <li>CSRF tắt vì không dùng cookie phiên; CORS dùng cấu hình ở WebConfig.
  * </ul>
  */
@@ -44,8 +46,16 @@ public class SecurityConfig {
             auth ->
                 auth.requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/categories", "/api/brands")
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/api/categories",
+                        "/api/brands",
+                        "/api/products",
+                        "/api/products/*",
+                        "/api/products/*/related")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/products/*/views")
+                    .hasRole("CUSTOMER")
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                     .permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**")

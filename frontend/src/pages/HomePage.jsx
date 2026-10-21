@@ -1,33 +1,61 @@
 import { Link } from 'react-router';
+import ProductSection from '../components/ProductSection';
+import { useApiData } from '../hooks/useApiData';
 import { useAuth } from '../hooks/useAuth';
+import { getCategories } from '../services/catalogApi';
+import { productsPath } from '../services/productQuery';
 
-// Trang chủ tạm: danh sách sản phẩm và gợi ý cho khách làm ở các tuần sau.
+/**
+ * Trang chủ: lời chào ngắn, lối tắt vào từng danh mục và khối "Sản phẩm bán chạy" (bán chạy =
+ * tổng số lượng đã bán của các đơn không bị hủy, BR-22).
+ */
 function HomePage() {
   const { user } = useAuth();
   return (
-    <div className="hero">
-      <h1>Fashion Shop</h1>
-      <p className="muted">Website bán hàng tích hợp học máy trong gợi ý mua hàng.</p>
-      {user ? (
+    <div>
+      <section className="home-hero">
+        <h1>Fashion Shop</h1>
+        <p className="muted">
+          Giày dép, quần áo và phụ kiện thời trang, kèm gợi ý sản phẩm phù hợp với bạn.
+        </p>
         <p>
-          Bạn đang đăng nhập với email <strong>{user.email}</strong>.
-          {user.role === 'ADMIN' && (
-            <>
-              {' '}
-              Vào <Link to="/admin">trang quản trị</Link>.
-            </>
+          <Link to="/products" className="btn btn-primary">
+            Xem tất cả sản phẩm
+          </Link>
+          {user?.role === 'ADMIN' && (
+            <Link to="/admin" className="btn btn-ghost">
+              Vào trang quản trị
+            </Link>
           )}
         </p>
-      ) : (
-        <p>
-          <Link to="/login">Đăng nhập</Link> hoặc <Link to="/register">tạo tài khoản</Link> để bắt
-          đầu.
-        </p>
-      )}
-      <p className="muted small">
+      </section>
+
+      <CategoryChips />
+      <ProductSection title="Sản phẩm bán chạy" sort="POPULAR" size={8} moreLink="/products" />
+
+      <p className="muted small home-footer">
         <Link to="/health">Kiểm tra kết nối backend</Link>
       </p>
     </div>
+  );
+}
+
+/** Lối tắt vào từng danh mục; ẩn khi chưa tải được hoặc chưa có danh mục nào. */
+function CategoryChips() {
+  const { data } = useApiData('all', getCategories);
+  if (!data || data.length === 0) return null;
+  return (
+    <nav className="category-chips" aria-label="Danh mục sản phẩm">
+      {data.map((category) => (
+        <Link
+          key={category.id}
+          to={productsPath({ categoryId: String(category.id) })}
+          className="chip"
+        >
+          {category.name}
+        </Link>
+      ))}
+    </nav>
   );
 }
 

@@ -12,7 +12,11 @@ import com.manhdn.fashionshop.entity.ProductVariant;
 import com.manhdn.fashionshop.repository.BrandRepository;
 import com.manhdn.fashionshop.repository.CategoryRepository;
 import com.manhdn.fashionshop.repository.ProductRepository;
+import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @Transactional
 class CatalogSeedServiceTest {
+
+  private static final Pattern COMBINING_MARK = Pattern.compile("[\\x{0300}-\\x{036F}]");
 
   @Autowired private CatalogSeedService catalogSeedService;
   @Autowired private ProductRepository productRepository;
@@ -103,6 +109,35 @@ class CatalogSeedServiceTest {
 
     assertThat(seed.products()).isNotEmpty();
     assertThat(catalogSeedService.importCatalog(seed)).isEqualTo(seed.products().size());
+  }
+
+  @Test
+  void shippedTikiCatalogTextIsComposedUnicode() {
+    CatalogSeed seed = catalogSeedService.read(new ClassPathResource("seed/tiki-catalog.json"));
+
+    List<String> texts = new ArrayList<>();
+    for (SeedProduct product : seed.products()) {
+      texts.addAll(
+          Arrays.asList(
+              product.category(),
+              product.brand(),
+              product.name(),
+              product.description(),
+              product.variationName1(),
+              product.variationName2()));
+      for (VariantRequest variant : product.variants()) {
+        texts.add(variant.option1Value());
+        texts.add(variant.option2Value());
+      }
+    }
+    // Chữ tách dấu (NFD) hay kèm dấu kết hợp (U+0300–U+036F) không tìm được bằng từ khóa
+    assertThat(texts)
+        .filteredOn(
+            text ->
+                text != null
+                    && (!Normalizer.isNormalized(text, Normalizer.Form.NFC)
+                        || COMBINING_MARK.matcher(text).find()))
+        .isEmpty();
   }
 
   private static SeedProduct product(

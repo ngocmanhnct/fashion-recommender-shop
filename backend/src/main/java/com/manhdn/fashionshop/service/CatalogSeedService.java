@@ -107,11 +107,14 @@ public class CatalogSeedService {
     for (SeedProduct product : seed.products()) {
       String label = "Sản phẩm mẫu \"" + product.name() + "\": ";
       checkValid(new NameRequest(product.category()), label + "danh mục ");
-      Long categoryId = categoryIds.computeIfAbsent(product.category().trim(), this::categoryId);
+      Long categoryId =
+          categoryIds.computeIfAbsent(
+              TextNormalizer.nfc(product.category().trim()), this::categoryId);
       Long brandId = null;
       if (product.brand() != null && !product.brand().isBlank()) {
         checkValid(new NameRequest(product.brand()), label + "thương hiệu ");
-        brandId = brandIds.computeIfAbsent(product.brand().trim(), this::brandId);
+        brandId =
+            brandIds.computeIfAbsent(TextNormalizer.nfc(product.brand().trim()), this::brandId);
       }
       ProductCreateRequest request =
           new ProductCreateRequest(

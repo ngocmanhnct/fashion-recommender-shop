@@ -446,6 +446,8 @@ UNIQUE(account\_id, variant\_id) — 1 dòng/biến thể/tài khoản, cộng d
 
 *"Sản phẩm bán chạy nhất" (BR-19, BR-22) là dữ liệu suy ra bằng truy vấn tổng hợp trên `order_item`, không phải một bảng/cột lưu sẵn — có thể cache lại khi thiết kế hiệu năng.*
 
+*Cách tính (chốt Tuần 6): số đã bán của một sản phẩm \= tổng `order_item.quantity` qua mọi biến thể của sản phẩm, trên các đơn có `status` khác `CANCELLED`. "Bán chạy nhất" (BR-19, BR-22) và sắp xếp "phổ biến" (US-01, phần dự phòng của US-13) đều dùng đúng số này; bằng nhau thì sản phẩm được thêm trước trong cùng danh mục đứng trước, nên khi chưa có đơn hàng danh sách xen kẽ các danh mục.*
+
 ### 3.7 Nhật ký xem sản phẩm — `product_view_log`
 
 *Nguồn: US-03, BR-19*
@@ -458,6 +460,8 @@ UNIQUE(account\_id, variant\_id) — 1 dòng/biến thể/tài khoản, cộng d
 | viewed\_at | DATETIME | NOT NULL |  |
 
 *Nên có index trên (account\_id, viewed\_at) để tính ngưỡng "≥5 sản phẩm/30 ngày" ở BR-19 hiệu quả. Chính sách lưu trữ dài hạn (bảng này sẽ phình to theo thời gian) **chưa chốt** — chờ biết mô hình ML có cần dữ liệu xem lâu hơn 30 ngày để huấn luyện hay không.*
+
+*Cách đếm ngưỡng lượt xem của BR-19 (chốt Tuần 6, backend và dịch vụ học máy dùng chung): số `product_id` khác nhau có `viewed_at` ≥ thời điểm hiện tại − 30 ngày. `viewed_at` ghi theo giờ của JVM backend như các bảng khác (khác `recompute_request`, Mục 3.15, ghi giờ UTC). Mọi lượt xem đều được ghi, kể cả xem lại cùng sản phẩm; sản phẩm đã xóa mềm vẫn được đếm. "Đơn hàng đã hoàn tất" ở BR-19 \= đơn có `status = DELIVERED`. Lượt xem làm tài khoản vừa đạt ngưỡng (sản phẩm khác nhau thứ 5, tài khoản chưa có đơn DELIVERED) ghi yêu cầu tính lại đến hạn sau 3 giây; các lượt xem khác 5 phút (BR-20).*
 
 ### 3.8 Đánh giá — `review`
 
