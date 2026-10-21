@@ -29,7 +29,8 @@ import org.springframework.security.web.SecurityFilterChain;
  *   <li>Phân quyền ở backend theo claim {@code role}: mọi API {@code /api/admin/**} chỉ cho ADMIN,
  *       gọi thẳng API mà không qua giao diện cũng bị chặn (403).
  *   <li>API đọc sản phẩm, danh mục, thương hiệu công khai (US-01, US-02, US-03); ghi lượt xem sản
- *       phẩm chỉ cho CUSTOMER (US-03). Token sai hoặc hết hạn vẫn bị 401 kể cả ở API công khai.
+ *       phẩm chỉ cho CUSTOMER (US-03). Giỏ hàng chỉ cho CUSTOMER, trừ xem trước giỏ hàng của khách
+ *       chưa đăng nhập (US-06, BR-06). Token sai hoặc hết hạn vẫn bị 401 kể cả ở API công khai.
  *   <li>CSRF tắt vì không dùng cookie phiên; CORS dùng cấu hình ở WebConfig.
  * </ul>
  */
@@ -55,6 +56,10 @@ public class SecurityConfig {
                         "/api/products/*/related")
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/products/*/views")
+                    .hasRole("CUSTOMER")
+                    .requestMatchers(HttpMethod.POST, "/api/cart/preview")
+                    .permitAll()
+                    .requestMatchers("/api/cart", "/api/cart/**")
                     .hasRole("CUSTOMER")
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                     .permitAll()

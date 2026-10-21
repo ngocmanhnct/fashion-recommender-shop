@@ -403,6 +403,8 @@ UNIQUE(account\_id, variant\_id) — 1 dòng/biến thể/tài khoản, cộng d
 
 *Giỏ hàng của khách **chưa đăng nhập** lưu phía client (BR-06) — không thuộc từ điển dữ liệu phía server này.*
 
+*Giới hạn chốt Tuần 6: mỗi dòng tối đa 99 sản phẩm, mỗi giỏ tối đa 50 dòng (biến thể khác nhau), áp dụng cho cả giỏ lưu ở trình duyệt. Khi đọc giỏ hàng, dòng của sản phẩm đã ngừng bán hoặc biến thể đã hết hàng bị xóa, dòng nhiều hơn tồn kho bị giảm số lượng, kèm thông báo cho khách (BR-11).*
+
 ### 3.6 Đơn hàng — `order`, `order_item`, `refund`
 
 *Nguồn: US-09, US-10, US-11, US-17, US-20, US-21, BR-10, BR-12–16, BR-26–33*

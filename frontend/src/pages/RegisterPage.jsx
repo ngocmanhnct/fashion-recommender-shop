@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, Navigate } from 'react-router';
+import { Link, Navigate, useLocation } from 'react-router';
 import FormField from '../components/FormField';
 import { useAuth } from '../hooks/useAuth';
 import { getErrorMessage, getFieldErrors } from '../services/errorMessage';
@@ -15,14 +15,16 @@ const EMPTY_FORM = {
 
 function RegisterPage() {
   const { user, register } = useAuth();
+  const location = useLocation();
   const [form, setForm] = useState(EMPTY_FORM);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  // Đăng ký xong là đã đăng nhập: chuyển về trang chủ.
+  // Đăng ký xong là đã đăng nhập: về trang đang muốn vào trước khi bị đưa tới đăng nhập/đăng ký
+  // (vd bước thanh toán, US-08), không có thì về trang chủ.
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={location.state?.from || '/'} replace />;
   }
 
   const update = (field) => (e) => setForm({ ...form, [field]: e.target.value });
@@ -97,7 +99,10 @@ function RegisterPage() {
         </button>
       </form>
       <p className="muted">
-        Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+        Đã có tài khoản?{' '}
+        <Link to="/login" state={location.state}>
+          Đăng nhập
+        </Link>
       </p>
     </div>
   );
