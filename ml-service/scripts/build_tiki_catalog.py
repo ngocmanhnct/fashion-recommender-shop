@@ -55,6 +55,7 @@ MAX_STOCK = 40
 NEAR_DUPLICATE = 0.6
 NO_BRAND = {"oem", "no brand", "khong su dung", ""}
 EXCLUDED_WORDS = ["combo"]
+COMBINING_MARK = re.compile("[\u0300-\u036f]")
 
 
 @dataclass(frozen=True)
@@ -415,6 +416,15 @@ def fold(text: str) -> str:
     return " ".join(plain.lower().split())
 
 
+def compose(text: str) -> str:
+    """Chữ ở dạng dựng sẵn (Unicode NFC), bỏ các dấu kết hợp còn sót (gạch chân trang trí, dấu lạc).
+
+    Backend tìm từ khóa bằng LIKE của MySQL, so từng ký tự: chữ tách dấu (NFD) hoặc chữ kèm dấu kết
+    hợp không tìm được. Chữ tiếng Việt ở dạng NFC không còn dấu kết hợp nào.
+    """
+    return COMBINING_MARK.sub("", unicodedata.normalize("NFC", text))
+
+
 def words(text: str) -> set[str]:
     """Tập từ (đã bỏ dấu) của một chuỗi, chỉ giữ chữ và số."""
     return set(re.findall(r"[a-z0-9]+", fold(text)))
@@ -426,8 +436,11 @@ def has_phrase(folded: str, phrase: str) -> bool:
 
 
 def clean_name(name: str) -> str:
-    """Bỏ nhãn quảng cáo đầu tên như "[Ảnh Thật]", "(Dép 35k)"; tên viết hoa toàn bộ thì hạ xuống."""
-    text = " ".join(name.split())
+    """Bỏ nhãn quảng cáo đầu tên như "[Ảnh Thật]", "(Dép 35k)"; tên viết hoa toàn bộ thì hạ xuống.
+
+    Chữ đưa về dạng dựng sẵn bằng compose() để tìm được bằng từ khóa.
+    """
+    text = " ".join(compose(name).split())
     text = re.sub(r"^(\s*[\[(][^\])]*[\])]\s*)+", "", text).strip()
     letters = [ch for ch in text if ch.isalpha()]
     if letters and sum(ch.isupper() for ch in letters) / len(letters) > 0.8:
@@ -459,9 +472,9 @@ def clean_description(description: str) -> str | None:
 
     Bộ dữ liệu đã bỏ xuống dòng nên câu sau dính vào câu trước ("trượtMàu sắc"): chèn ". " khi
     một từ viết thường (từ 2 chữ cái) liền với một từ viết hoa chữ đầu. Mô tả bị cắt ở khoảng 200
-    ký tự nên cắt về hết từ cuối và thêm "…".
+    ký tự nên cắt về hết từ cuối và thêm "…". Chữ đưa về dạng dựng sẵn bằng compose() như tên.
     """
-    text = " ".join(split_glued_sentences(description).split())
+    text = " ".join(split_glued_sentences(compose(description)).split())
     if not text:
         return None
     if len(description.rstrip()) >= 195 and " " in text:
@@ -470,8 +483,8 @@ def clean_description(description: str) -> str | None:
 
 
 def brand_of(raw: str) -> str | None:
-    """Tên thương hiệu, None nếu là hàng không thương hiệu."""
-    brand = " ".join(raw.split())
+    """Tên thương hiệu (chữ dựng sẵn), None nếu là hàng không thương hiệu."""
+    brand = " ".join(compose(raw).split())
     return None if fold(brand) in NO_BRAND else brand
 
 

@@ -17,10 +17,16 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.annotations.Formula;
 
 /**
  * Thông tin chung của sản phẩm và tên các tầng phân loại (tối đa 2, BR-05), bảng product (Mục 3.4),
  * hỗ trợ xóa mềm qua deleted_at.
+ *
+ * <p>Các trường {@code @Formula} (giá thấp nhất, số đã bán, điểm đánh giá, vị trí trong danh mục)
+ * chỉ đọc, không có cột trong bảng: Hibernate tính bằng truy vấn con mỗi lần nạp sản phẩm từ CSDL,
+ * dùng được trong điều kiện lọc và sắp xếp. Entity vừa tạo hoặc đã nằm sẵn trong persistence
+ * context giữ giá trị cũ (mặc định 0 hoặc null) cho đến khi được nạp lại.
  */
 @Entity
 @Table(name = "product")
@@ -65,6 +71,37 @@ public class Product {
   @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
   @OrderBy("displayOrder")
   private List<ProductImage> images = new ArrayList<>();
+
+  /** Giá thấp nhất trong các biến thể, chỉ dùng để sắp xếp theo giá. */
+  @Formula("(SELECT MIN(v.price) FROM product_variant v WHERE v.product_id = id)")
+  private Long minPrice;
+
+  /**
+   * Số đã bán: tổng số lượng ở các dòng đơn của mọi đơn hàng chưa bị hủy. Đây là định nghĩa "bán
+   * chạy" (BR-19, BR-22) và "phổ biến" (US-01) của dự án.
+   */
+  @Formula(
+      "(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_item oi"
+          + " JOIN product_variant pv ON pv.id = oi.variant_id"
+          + " JOIN orders o ON o.id = oi.order_id"
+          + " WHERE pv.product_id = id AND o.status <> 'CANCELLED')")
+  private long soldCount;
+
+  /** Điểm đánh giá trung bình làm tròn 1 chữ số thập phân; null nếu chưa có đánh giá nào. */
+  @Formula("(SELECT ROUND(AVG(r.rating), 1) FROM review r WHERE r.product_id = id)")
+  private Double ratingAverage;
+
+  /** Số đánh giá. */
+  @Formula("(SELECT COUNT(*) FROM review r WHERE r.product_id = id)")
+  private long reviewCount;
+
+  /**
+   * Vị trí của sản phẩm trong danh mục theo thứ tự thêm (0 = sản phẩm đầu tiên), chỉ để phá thế hòa
+   * khi sắp xếp "phổ biến": khi số đã bán bằng nhau, danh sách xen kẽ các danh mục và giữ thứ tự
+   * bán chạy của dữ liệu mẫu Tiki trong từng danh mục.
+   */
+  @Formula("(SELECT COUNT(*) FROM product p2 WHERE p2.category_id = category_id AND p2.id < id)")
+  private long categoryRank;
 
   /** Constructor rỗng cho JPA. */
   protected Product() {}
@@ -192,5 +229,30 @@ public class Product {
 
   public List<ProductImage> getImages() {
     return images;
+  }
+
+  /** Giá thấp nhất trong các biến thể (chỉ có giá trị khi sản phẩm được nạp từ CSDL). */
+  public Long getMinPrice() {
+    return minPrice;
+  }
+
+  /** Số đã bán trong các đơn chưa bị hủy (chỉ có giá trị khi sản phẩm được nạp từ CSDL). */
+  public long getSoldCount() {
+    return soldCount;
+  }
+
+  /** Điểm đánh giá trung bình làm tròn 1 chữ số thập phân, null nếu chưa có đánh giá. */
+  public Double getRatingAverage() {
+    return ratingAverage;
+  }
+
+  /** Số đánh giá (chỉ có giá trị khi sản phẩm được nạp từ CSDL). */
+  public long getReviewCount() {
+    return reviewCount;
+  }
+
+  /** Vị trí trong danh mục theo thứ tự thêm, 0 = đầu tiên (chỉ để sắp xếp). */
+  public long getCategoryRank() {
+    return categoryRank;
   }
 }

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Fashion Shop API (Tuần 6)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể.\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm. Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng.\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -32,6 +32,10 @@
       "value": ""
     },
     {
+      "key": "customerToken",
+      "value": ""
+    },
+    {
       "key": "categoryId",
       "value": ""
     },
@@ -41,6 +45,10 @@
     },
     {
       "key": "productId",
+      "value": ""
+    },
+    {
+      "key": "publicProductId",
       "value": ""
     },
     {
@@ -111,7 +119,7 @@
             "auth": {
               "type": "noauth"
             },
-            "description": "Lưu token của khách. Gọi API admin với token này sẽ bị 403."
+            "description": "Lưu token của khách vào biến token và customerToken (nhóm '3. Khách hàng' luôn gửi customerToken). Gọi API admin với token này sẽ bị 403."
           },
           "event": [
             {
@@ -121,7 +129,7 @@
                 "exec": [
                   "pm.test('Đăng nhập thành công', () => pm.response.to.have.status(200));",
                   "const j = pm.response.json();",
-                  "if (j.accessToken) { pm.collectionVariables.set('token', j.accessToken); console.log('Đã lưu token, role =', j.account && j.account.role); }"
+                  "if (j.accessToken) { pm.collectionVariables.set('token', j.accessToken); pm.collectionVariables.set('customerToken', j.accessToken); console.log('Đã lưu token, role =', j.account && j.account.role); }"
                 ]
               }
             }
@@ -234,6 +242,193 @@
               "type": "noauth"
             }
           }
+        },
+        {
+          "name": "Danh sách sản phẩm (lọc, sắp xếp, phân trang)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products?sort=POPULAR&page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "giày",
+                  "description": "Từ khóa, tối đa 100 ký tự. Mỗi từ phải khớp đầu một từ trong tên sản phẩm, danh mục hoặc thương hiệu, không phân biệt hoa thường và dấu",
+                  "disabled": true
+                },
+                {
+                  "key": "categoryId",
+                  "value": "{{categoryId}}",
+                  "description": "Lọc theo danh mục",
+                  "disabled": true
+                },
+                {
+                  "key": "brandId",
+                  "value": "{{brandId}}",
+                  "description": "Lọc theo thương hiệu",
+                  "disabled": true
+                },
+                {
+                  "key": "minPrice",
+                  "value": "100000",
+                  "description": "Giá thấp nhất (VNĐ, không âm): sản phẩm có ít nhất 1 biến thể trong khoảng giá",
+                  "disabled": true
+                },
+                {
+                  "key": "maxPrice",
+                  "value": "500000",
+                  "description": "Giá cao nhất (VNĐ), không nhỏ hơn minPrice",
+                  "disabled": true
+                },
+                {
+                  "key": "minRating",
+                  "value": "4",
+                  "description": "Điểm đánh giá trung bình tối thiểu, 1 đến 5. Chưa có đánh giá nào (US-15 làm sau) nên hiện luôn trả rỗng",
+                  "disabled": true
+                },
+                {
+                  "key": "sort",
+                  "value": "POPULAR",
+                  "description": "POPULAR (mặc định, bán chạy trước), NEWEST, PRICE_ASC, PRICE_DESC"
+                },
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Số trang từ 0, tối đa 10000"
+                },
+                {
+                  "key": "size",
+                  "value": "20",
+                  "description": "Số sản phẩm mỗi trang, 1 đến 48 (mặc định 20)"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Chỉ trả sản phẩm đang bán. Bật các tham số tùy chọn ở tab Params. Sắp xếp POPULAR: số đã bán (tổng số lượng trong các đơn chưa bị hủy) giảm dần; bằng nhau thì sản phẩm đầu của mỗi danh mục trước, nên khi chưa có đơn nào trang đầu xen kẽ nhiều danh mục. Lọc theo đánh giá dùng điểm trung bình đã làm tròn 1 chữ số và loại sản phẩm chưa có đánh giá: hiện chưa có đánh giá nào (US-15 làm sau) nên minRating luôn trả danh sách rỗng. Lỗi 400 nếu tham số sai (giá âm, minPrice > maxPrice, minRating ngoài 1 đến 5, sort lạ, page ngoài 0 đến 10000, size ngoài 1 đến 48). Lưu id sản phẩm đầu tiên vào biến publicProductId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy danh sách thành công', () => pm.response.to.have.status(200));",
+                  "const j = pm.response.json();",
+                  "if (j.content && j.content.length > 0) { pm.collectionVariables.set('publicProductId', j.content[0].id); console.log('Đã lưu publicProductId =', j.content[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tìm sản phẩm theo từ khóa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products?keyword=giay biti",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "giay biti"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Gõ không dấu vẫn khớp: \"giay\" khớp danh mục \"Giày ...\", \"biti\" khớp thương hiệu \"Biti's\"; mọi từ đều phải khớp (ở tên sản phẩm, danh mục hoặc thương hiệu). Từ phải khớp đầu một từ: \"áo\" không khớp \"Cao\", còn \"sneak\" khớp \"Sneaker\". Với dữ liệu mẫu Tiki trả 4 sản phẩm."
+          }
+        },
+        {
+          "name": "Gợi ý khi không tìm thấy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/suggestions?keyword=giày adidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "suggestions"
+              ],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "giày adidas"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Dùng khi tìm theo từ khóa không có kết quả (vd \"giày adidas\": dữ liệu mẫu không có thương hiệu adidas). Trả tối đa 4 sản phẩm còn hàng khớp ít nhất 1 từ, khớp nhiều từ hơn đứng trước; không sản phẩm nào khớp (hoặc từ khóa trống) thì trả sản phẩm bán chạy còn hàng."
+          }
+        },
+        {
+          "name": "Chi tiết sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{publicProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{publicProductId}}"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Chi tiết kèm các biến thể (giá, tồn kho từng biến thể), khoảng giá, inStock, số đã bán, điểm đánh giá. 404 nếu sản phẩm không có hoặc đã ngừng bán; 400 nếu id không phải số. Chạy 'Danh sách sản phẩm' trước để có publicProductId."
+          }
+        },
+        {
+          "name": "Gợi ý sản phẩm liên quan",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{publicProductId}}/related",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{publicProductId}}",
+                "related"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Tối đa 4 sản phẩm còn hàng, không gồm chính sản phẩm đang xem, mỗi sản phẩm kèm lý do (reason): cùng danh mục và thương hiệu, cùng danh mục, cùng thương hiệu, rồi lấp bằng sản phẩm bán chạy. Bản tạm theo quy tắc; Tuần 8 thay bằng gợi ý của dịch vụ học máy."
+          }
         }
       ],
       "auth": {
@@ -243,8 +438,50 @@
     },
     {
       "name": "3. Khách hàng (cần token tài khoản khách)",
-      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng: giỏ hàng, đặt hàng, khảo sát, đánh giá... Chưa có API nào (sẽ thêm từ Tuần 6).",
-      "item": []
+      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm (Tuần 6). Giỏ hàng, đặt hàng, khảo sát, đánh giá sẽ thêm sau.",
+      "item": [
+        {
+          "name": "Ghi lượt xem sản phẩm",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{publicProductId}}/views",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{publicProductId}}",
+                "views"
+              ]
+            },
+            "description": "Trả 204, không có nội dung. Ghi (tài khoản, sản phẩm, thời điểm) vào product_view_log; mọi lượt xem đều được ghi, kể cả xem lại. Backend ghi kèm một yêu cầu tính lại gợi ý vào recompute_request, đến hạn sau 5 phút; riêng lượt xem làm tài khoản vừa đủ 5 sản phẩm khác nhau trong 30 ngày (BR-19, khi chưa có đơn đã giao) thì đến hạn sau 3 giây. 404 nếu sản phẩm không có hoặc đã ngừng bán. Gửi token trong biến customerToken (do 'Đăng nhập khách hàng' lưu), publicProductId từ '2. Công khai > Danh sách sản phẩm'."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ghi lượt xem thành công', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{customerToken}}",
+            "type": "string"
+          }
+        ]
+      }
     },
     {
       "name": "4. Admin (cần token ADMIN)",

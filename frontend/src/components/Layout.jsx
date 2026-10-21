@@ -1,10 +1,22 @@
-import { Link, NavLink, Outlet, useNavigate } from 'react-router';
+import { useEffect } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../hooks/useAuth';
+import SearchBox from './SearchBox';
 
-/** Khung chung của mọi trang: thanh trên cùng (logo, menu, tài khoản) và nội dung trang. */
+/**
+ * Khung chung của mọi trang: thanh trên cùng (logo, ô tìm sản phẩm, menu, tài khoản) và nội
+ * dung trang.
+ */
 function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // BrowserRouter không tự cuộn khi chuyển trang (ScrollRestoration cần data router): sang trang
+  // khác thì cuộn lên đầu, nếu không mở sản phẩm ở cuối danh sách sẽ thấy ngay phần cuối trang.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   const handleLogout = () => {
     logout();
@@ -17,11 +29,13 @@ function Layout() {
         <Link to="/" className="brand">
           Fashion Shop
         </Link>
+        <SearchBox />
         <nav className="topbar-nav">
+          <NavLink to="/products">Sản phẩm</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Quản trị</NavLink>}
           {user ? (
             <>
-              <span className="muted">Xin chào, {user.fullName}</span>
+              <span className="muted topbar-greeting">Xin chào, {user.fullName}</span>
               <button type="button" className="btn btn-ghost" onClick={handleLogout}>
                 Đăng xuất
               </button>

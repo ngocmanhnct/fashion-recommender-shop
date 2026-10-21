@@ -50,7 +50,7 @@ public class CategoryService {
    */
   @Transactional
   public CategoryResponse create(String name) {
-    String trimmed = name.trim();
+    String trimmed = TextNormalizer.nfc(name.trim());
     if (categoryRepository.existsByName(trimmed)) {
       throw new ConflictException(DUPLICATE_NAME);
     }
@@ -73,7 +73,7 @@ public class CategoryService {
   @Transactional
   public CategoryResponse rename(Long id, String name) {
     Category category = getEntity(id);
-    String trimmed = name.trim();
+    String trimmed = TextNormalizer.nfc(name.trim());
     if (categoryRepository.existsByNameAndIdNot(trimmed, id)) {
       throw new ConflictException(DUPLICATE_NAME);
     }

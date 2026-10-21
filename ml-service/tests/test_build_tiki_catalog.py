@@ -1,5 +1,7 @@
 """Kiểm tra script dựng danh mục mẫu từ bộ Tiki trên vài dòng dữ liệu tự tạo."""
 
+import unicodedata
+
 from scripts.build_tiki_catalog import (
     CATEGORIES,
     brand_of,
@@ -53,6 +55,14 @@ def test_clean_description_splits_glued_lines_but_not_brand_names():
     assert (
         clean_description(text) == "Đế chống trơn trượt. Màu sắc trẻ trung. Hợp iPhone, dày 3.5cm"
     )
+
+
+def test_text_is_stored_in_composed_unicode():
+    decomposed = unicodedata.normalize("NFD", "Dép Đúc Liền Cao Cấp")
+    assert clean_name(decomposed) == "Dép Đúc Liền Cao Cấp"
+    assert clean_description(decomposed) == "Dép Đúc Liền Cao Cấp"
+    assert brand_of(unicodedata.normalize("NFD", "Hãng Việt")) == "Hãng Việt"
+    assert clean_name("Dép M504 G\u0333I\u0333Á\u0333 X\u0333Ư\u0333") == "Dép M504 GIÁ XƯ"
 
 
 def test_brand_of_treats_oem_as_no_brand():

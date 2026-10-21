@@ -4,17 +4,27 @@ import com.manhdn.fashionshop.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** Truy cập bảng product. */
-public interface ProductRepository extends JpaRepository<Product, Long> {
+/**
+ * Truy cập bảng product. Trang người dùng lọc bằng {@link ProductSpecifications}; gợi ý khi tìm
+ * không thấy dùng truy vấn riêng ở {@link ProductSuggestionRepository}.
+ */
+public interface ProductRepository
+    extends JpaRepository<Product, Long>,
+        JpaSpecificationExecutor<Product>,
+        ProductSuggestionRepository {
 
   /** Còn sản phẩm nào (kể cả đã xóa mềm) thuộc danh mục này không. */
   boolean existsByCategoryId(Long categoryId);
 
   /** Còn sản phẩm nào (kể cả đã xóa mềm) thuộc thương hiệu này không. */
   boolean existsByBrandId(Long brandId);
+
+  /** Sản phẩm có tồn tại và đang bán (chưa xóa mềm) không. */
+  boolean existsByIdAndDeletedAtIsNull(Long id);
 
   /**
    * Tìm sản phẩm cho trang quản trị: lọc theo từ khóa trong tên, danh mục, và có lấy cả sản phẩm đã

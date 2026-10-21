@@ -47,7 +47,7 @@ public class BrandService {
    */
   @Transactional
   public BrandResponse create(String name) {
-    String trimmed = name.trim();
+    String trimmed = TextNormalizer.nfc(name.trim());
     if (brandRepository.existsByName(trimmed)) {
       throw new ConflictException(DUPLICATE_NAME);
     }
@@ -70,7 +70,7 @@ public class BrandService {
   @Transactional
   public BrandResponse rename(Long id, String name) {
     Brand brand = getEntity(id);
-    String trimmed = name.trim();
+    String trimmed = TextNormalizer.nfc(name.trim());
     if (brandRepository.existsByNameAndIdNot(trimmed, id)) {
       throw new ConflictException(DUPLICATE_NAME);
     }

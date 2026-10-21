@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Chuyển exception thành phản hồi lỗi thống nhất theo chuẩn RFC 9457 (ProblemDetail): mọi lỗi đều
@@ -36,6 +37,16 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(InvalidRequestException.class)
   public ProblemDetail handleInvalidRequest(InvalidRequestException ex) {
     return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+  }
+
+  /**
+   * Tham số trên URL sai kiểu (vd sort không thuộc danh sách, số trang hoặc mã sản phẩm không phải
+   * số): 400.
+   */
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+    return ProblemDetail.forStatusAndDetail(
+        HttpStatus.BAD_REQUEST, "Giá trị của tham số %s không hợp lệ".formatted(ex.getName()));
   }
 
   /** Không tìm thấy dữ liệu được yêu cầu: 404. */

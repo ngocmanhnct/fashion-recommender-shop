@@ -121,8 +121,8 @@ public class ProductService {
         new Product(
             category,
             brand,
-            request.name().trim(),
-            blankToNull(request.description()),
+            TextNormalizer.nfc(request.name().trim()),
+            TextNormalizer.nfc(blankToNull(request.description())),
             names.first(),
             names.second());
     product.replaceImages(request.imageUrls() == null ? List.of() : request.imageUrls());
@@ -162,7 +162,11 @@ public class ProductService {
                   + "Muốn phân loại khác thì tạo sản phẩm mới")
               .formatted(product.variationCount()));
     }
-    product.updateInfo(category, brand, request.name().trim(), blankToNull(request.description()));
+    product.updateInfo(
+        category,
+        brand,
+        TextNormalizer.nfc(request.name().trim()),
+        TextNormalizer.nfc(blankToNull(request.description())));
     product.renameVariations(names.first(), names.second());
     product.replaceImages(request.imageUrls() == null ? List.of() : request.imageUrls());
     flush();
