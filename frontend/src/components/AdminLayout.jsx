@@ -8,6 +8,7 @@ function AdminLayout() {
         <NavLink to="/admin/products">Sản phẩm</NavLink>
         <NavLink to="/admin/categories">Danh mục</NavLink>
         <NavLink to="/admin/brands">Thương hiệu</NavLink>
+        <NavLink to="/admin/orders">Đơn hàng</NavLink>
       </aside>
       <section className="admin-content">
         <Outlet />

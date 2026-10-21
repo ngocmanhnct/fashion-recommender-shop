@@ -17,6 +17,8 @@ import ProductsPage from './pages/ProductsPage';
 import RegisterPage from './pages/RegisterPage';
 import BrandAdminPage from './pages/admin/BrandAdminPage';
 import CategoryAdminPage from './pages/admin/CategoryAdminPage';
+import OrderAdminDetailPage from './pages/admin/OrderAdminDetailPage';
+import OrderListPage from './pages/admin/OrderListPage';
 import ProductCreatePage from './pages/admin/ProductCreatePage';
 import ProductEditPage from './pages/admin/ProductEditPage';
 import ProductListPage from './pages/admin/ProductListPage';
@@ -78,6 +80,8 @@ function App() {
           <Route path="products/:id" element={<ProductEditPage />} />
           <Route path="categories" element={<CategoryAdminPage />} />
           <Route path="brands" element={<BrandAdminPage />} />
+          <Route path="orders" element={<OrderListPage />} />
+          <Route path="orders/:id" element={<OrderAdminDetailPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
