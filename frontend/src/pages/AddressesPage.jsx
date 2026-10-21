@@ -31,9 +31,13 @@ function AddressesPage() {
     }
   };
 
-  const handleDelete = (address) => {
+  const handleDelete = async (address) => {
     if (!window.confirm(`Xóa địa chỉ của ${address.recipientName}?`)) return;
-    run(() => deleteAddress(address.id));
+    await run(() => deleteAddress(address.id));
+  };
+
+  const handleSetDefault = async (address) => {
+    await run(() => updateAddress(address.id, { ...address, isDefault: true }));
   };
 
   return (
@@ -81,9 +85,7 @@ function AddressesPage() {
                     <button
                       type="button"
                       className="btn-link small"
-                      onClick={() =>
-                        run(() => updateAddress(address.id, { ...address, isDefault: true }))
-                      }
+                      onClick={() => handleSetDefault(address)}
                     >
                       Đặt làm mặc định
                     </button>
