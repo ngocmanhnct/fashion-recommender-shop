@@ -59,7 +59,13 @@ public class SecurityConfig {
                     .hasRole("CUSTOMER")
                     .requestMatchers(HttpMethod.POST, "/api/cart/preview")
                     .permitAll()
-                    .requestMatchers("/api/cart", "/api/cart/**")
+                    .requestMatchers(
+                        "/api/cart",
+                        "/api/cart/**",
+                        "/api/addresses",
+                        "/api/addresses/**",
+                        "/api/orders",
+                        "/api/orders/**")
                     .hasRole("CUSTOMER")
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                     .permitAll()

@@ -82,6 +82,22 @@ public class ProductVariant {
     this.skuCode = skuCode;
   }
 
+  /**
+   * Trừ tồn kho khi đơn hàng được xác nhận (BR-14). Service phải khóa dòng biến thể và kiểm tra đủ
+   * tồn kho trước (BR-08).
+   */
+  public void decreaseStock(int quantity) {
+    if (quantity > stock) {
+      throw new IllegalStateException("Tồn kho không đủ để trừ");
+    }
+    this.stock -= quantity;
+  }
+
+  /** Hoàn lại tồn kho khi đơn hàng bị hủy (BR-16). */
+  public void increaseStock(int quantity) {
+    this.stock += quantity;
+  }
+
   /** Giải phóng mã SKU khi sản phẩm bị xóa mềm, để mã được dùng lại (BR-36). */
   public void releaseSkuCode() {
     this.skuCode = null;

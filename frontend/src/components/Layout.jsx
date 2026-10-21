@@ -35,6 +35,7 @@ function Layout() {
         <nav className="topbar-nav">
           <NavLink to="/products">Sản phẩm</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Quản trị</NavLink>}
+          {user?.role === 'CUSTOMER' && <NavLink to="/orders">Đơn hàng</NavLink>}
           {cartMode !== 'none' && (
             <NavLink to="/cart" className="cart-link">
               Giỏ hàng
