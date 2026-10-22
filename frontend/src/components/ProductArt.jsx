@@ -228,7 +228,7 @@ function Wallet({ s, v }) {
     <g {...line} stroke={s.ink} strokeWidth="2.5">
       <rect x="18" y="36" width="84" height="56" rx="8" fill={s.main} />
       <path d={v === 1 ? 'M18 44h84v18H18Z' : 'M70 52h32v20H70Z'} fill={s.accent} />
-      <circle cx={v === 1 ? 60 : 82} cy={v === 1 ? 62 : 62} r="4" fill={s.light} />
+      <circle cx={v === 1 ? 60 : 82} cy="62" r="4" fill={s.light} />
       <path d="M26 82h30" fill="none" stroke={s.light} strokeWidth="2" />
     </g>
   );
