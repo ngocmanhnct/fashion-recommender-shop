@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Fashion Shop API (Tuần 6)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "name": "Fashion Shop API (Tuần 7)",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -465,6 +465,179 @@
           }
         },
         {
+          "name": "Khảo sát: cây câu hỏi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey"
+              ]
+            },
+            "description": "Toàn bộ cây câu hỏi khảo sát lần đầu (US-23): startQuestionCode và questions. Mỗi đáp án có nextQuestionCode (null = câu cuối); câu chọn thương hiệu (answerType BRAND) đi tiếp theo nextQuestionCode của câu hỏi. Câu MULTIPLE đi theo đáp án chọn đầu tiên.",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy cây câu hỏi thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Khảo sát: thương hiệu để chọn",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/brands",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey",
+                "brands"
+              ]
+            },
+            "description": "Thương hiệu có nhiều sản phẩm nhất trong các danh mục ứng với câu trả lời đến trước câu chọn thương hiệu (B1). Câu tiếp theo không phải câu chọn thương hiệu thì 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_FEMALE\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SPORT\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"BRAND\"] }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy thương hiệu thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Khảo sát: xem kết quả (không lưu)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/evaluate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey",
+                "evaluate"
+              ]
+            },
+            "description": "Kiểu người mua, tóm tắt và tối đa 8 sản phẩm gợi ý kèm lý do theo câu trả lời, không lưu gì (dùng cho khách chưa đăng nhập và tìm quà). Câu trả lời phải theo đúng thứ tự trên cây và trả lời hết, sai thì 400 kèm detail.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_MALE\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SCHOOL\", \"TRAVEL\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"PRICE\"] },\n    { \"questionCode\": \"S1\", \"optionCodes\": [\"200K_500K\"] },\n    { \"questionCode\": \"S2\", \"optionCodes\": [\"CHEAPER\"] }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem kết quả thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Khảo sát: tìm quà tặng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/evaluate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey",
+                "evaluate"
+              ]
+            },
+            "description": "Nhánh tìm quà (Q1 = GIFT): kiểu Người tặng quà, ưu tiên sản phẩm có thương hiệu. Kết quả này không lưu được vào sở thích (PUT /api/survey/me trả 400).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"GIFT\"] },\n    { \"questionCode\": \"G1\", \"optionCodes\": [\"FEMALE\"] },\n    { \"questionCode\": \"G2\", \"optionCodes\": [\"OUTING\"] },\n    { \"questionCode\": \"G3\", \"optionCodes\": [\"500K_1M\"] }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem kết quả tìm quà thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Xem trước giỏ hàng (khách chưa đăng nhập)",
           "request": {
             "method": "POST",
@@ -609,6 +782,111 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Ghi lượt xem thành công', () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Khảo sát của tôi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey",
+                "me"
+              ]
+            },
+            "description": "Trạng thái khảo sát của tài khoản: NONE (chưa làm), COMPLETED (kèm answers, profile) hoặc SKIPPED."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem khảo sát thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lưu khảo sát",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey",
+                "me"
+              ]
+            },
+            "description": "Lưu câu trả lời vào sở thích (user_preference) và yêu cầu tính lại gợi ý sau 3 giây. Làm lại thì thay toàn bộ sở thích cũ. Nhánh tìm quà thì 400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_MALE\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SCHOOL\", \"TRAVEL\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"PRICE\"] },\n    { \"questionCode\": \"S1\", \"optionCodes\": [\"200K_500K\"] },\n    { \"questionCode\": \"S2\", \"optionCodes\": [\"CHEAPER\"] }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lưu khảo sát thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bỏ qua khảo sát",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/survey/me/skip",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "survey",
+                "me",
+                "skip"
+              ]
+            },
+            "description": "Ghi nhận bỏ qua để không hỏi lại (BR-37). Đã làm xong thì giữ nguyên kết quả cũ."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bỏ qua thành công', () => pm.response.to.have.status(200));"
                 ]
               }
             }

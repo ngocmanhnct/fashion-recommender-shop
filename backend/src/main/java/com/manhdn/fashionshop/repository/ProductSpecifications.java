@@ -50,6 +50,7 @@ public final class ProductSpecifications {
   private static final String PRODUCT = "product";
   private static final String CATEGORY = "category";
   private static final String BRAND = "brand";
+  private static final String RATING_AVERAGE = "ratingAverage";
 
   private ProductSpecifications() {}
 
@@ -98,6 +99,17 @@ public final class ProductSpecifications {
     return (root, query, cb) -> cb.equal(root.get(CATEGORY).get(ID), categoryId);
   }
 
+  /** Thuộc một trong các danh mục cho trước (tập rỗng thì không khớp sản phẩm nào). */
+  public static Specification<Product> inCategories(Collection<Long> categoryIds) {
+    return (root, query, cb) ->
+        categoryIds.isEmpty() ? cb.disjunction() : root.get(CATEGORY).get(ID).in(categoryIds);
+  }
+
+  /** Có gắn thương hiệu. */
+  public static Specification<Product> hasBrand() {
+    return (root, query, cb) -> cb.isNotNull(root.get(BRAND));
+  }
+
   /** Không thuộc danh mục cho trước. */
   public static Specification<Product> notInCategory(Long categoryId) {
     return (root, query, cb) -> cb.notEqual(root.get(CATEGORY).get(ID), categoryId);
@@ -140,7 +152,18 @@ public final class ProductSpecifications {
    */
   public static Specification<Product> ratingAtLeast(int rating) {
     return (root, query, cb) ->
-        cb.greaterThanOrEqualTo(root.<Double>get("ratingAverage"), (double) rating);
+        cb.greaterThanOrEqualTo(root.<Double>get(RATING_AVERAGE), (double) rating);
+  }
+
+  /**
+   * Chưa có đánh giá nào, hoặc điểm trung bình (đã làm tròn 1 chữ số) từ mức cho trước trở lên.
+   * Dùng cho Người cầu toàn (khảo sát lần đầu): sản phẩm chưa ai đánh giá chưa bị coi là kém.
+   */
+  public static Specification<Product> unratedOrRatingAtLeast(double rating) {
+    return (root, query, cb) ->
+        cb.or(
+            cb.isNull(root.get(RATING_AVERAGE)),
+            cb.greaterThanOrEqualTo(root.<Double>get(RATING_AVERAGE), rating));
   }
 
   /** Còn hàng: có ít nhất 1 biến thể tồn kho lớn hơn 0. */

@@ -1309,3 +1309,105 @@ legend {
   gap: 0.75rem;
   margin-top: 1rem;
 }
+
+/* ---- Khảo sát lần đầu (US-23) ---- */
+.survey-card,
+.survey-result {
+  max-width: 640px;
+  margin: 24px auto;
+  padding: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.survey-result {
+  max-width: 960px;
+}
+
+.survey-progress {
+  height: 6px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.survey-progress span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.2s ease;
+}
+
+.survey-question {
+  margin: 4px 0 8px;
+  font-size: 1.35rem;
+}
+
+.survey-options {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.survey-option {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.survey-option:hover {
+  border-color: var(--primary);
+}
+
+.survey-option[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  font-weight: 500;
+}
+
+.survey-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.survey-invite {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 16px 20px;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+}
+
+.survey-invite h2 {
+  margin: 0 0 4px;
+}
+
+.survey-invite p {
+  margin: 0;
+}
+
+.survey-invite .survey-actions {
+  margin-top: 0;
+}
+
+.survey-profile h3 {
+  margin: 0 0 4px;
+}
