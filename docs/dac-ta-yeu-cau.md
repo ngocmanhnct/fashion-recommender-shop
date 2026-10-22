@@ -418,6 +418,9 @@ UNIQUE(account\_id, variant\_id) — 1 dòng/biến thể/tài khoản, cộng d
 | order | status | ENUM('PENDING','PROCESSING','SHIPPING','DELIVERED','CANCELLED') | NOT NULL, DEFAULT 'PENDING' | BR-12 |
 | order | payment\_method | ENUM('ONLINE','COD') | NOT NULL | US-10 |
 | order | payment\_status | ENUM('PENDING','PAID','FAILED') | NULLABLE | NULL khi COD (khái niệm không áp dụng). ONLINE: PENDING lúc tạo đơn, PAID khi cổng xác nhận, FAILED khi hết hạn/bỏ ngang (BR-34) |
+| order | payment\_txn\_ref | VARCHAR(40) | NULLABLE | Migration V4. Mã giao dịch gửi cổng thanh toán của lần tạo link gần nhất (`vnp_TxnRef` = mã đơn + thời điểm tạo link), dùng để đối chiếu callback và gọi hoàn tiền; NULL với COD |
+| order | payment\_transaction\_no | VARCHAR(50) | NULLABLE | Migration V4. Mã giao dịch phía VNPay (`vnp_TransactionNo`), ghi khi thanh toán thành công |
+| order | paid\_at | DATETIME | NULLABLE | Migration V4. Thời điểm hệ thống ghi nhận PAID |
 | order | idempotency\_key | VARCHAR(100) | UNIQUE, NOT NULL | BR-10 |
 | order | address\_id | BIGINT UNSIGNED | FK → address.id, NULLABLE | Tham chiếu tiện lợi tới sổ địa chỉ — không phải nguồn dữ liệu hiển thị chính thức, xem 3 cột snapshot bên dưới |
 | order | recipient\_name\_snapshot | VARCHAR(255) | NOT NULL | BR-29 |

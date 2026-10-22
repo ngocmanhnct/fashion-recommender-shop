@@ -218,7 +218,7 @@ class OrderIntegrationTest {
             post("/api/orders")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
-                    "{\"idempotencyKey\": \"%s\", \"paymentMethod\": \"ONLINE\", \"addressId\": %d,"
+                    "{\"idempotencyKey\": \"%s\", \"paymentMethod\": \"CARD\", \"addressId\": %d,"
                             .formatted(UUID.randomUUID(), address)
                         + " \"expectedTotal\": 130000}"))
         .andExpect(status().isBadRequest());

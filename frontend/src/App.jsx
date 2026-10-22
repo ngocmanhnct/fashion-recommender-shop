@@ -15,6 +15,7 @@ import OrdersPage from './pages/OrdersPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductsPage from './pages/ProductsPage';
 import RegisterPage from './pages/RegisterPage';
+import VnPayReturnPage from './pages/VnPayReturnPage';
 import BrandAdminPage from './pages/admin/BrandAdminPage';
 import CategoryAdminPage from './pages/admin/CategoryAdminPage';
 import OrderAdminDetailPage from './pages/admin/OrderAdminDetailPage';
@@ -63,6 +64,7 @@ function App() {
             </RequireCustomer>
           }
         />
+        <Route path="payment/vnpay-return" element={<VnPayReturnPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
         <Route path="health" element={<HealthCheckPage />} />

@@ -31,6 +31,19 @@ export function cancelOrder(id) {
   return apiClient.post(`${BASE}/${id}/cancel`).then((res) => res.data);
 }
 
+/** Đường dẫn thanh toán VNPay cho đơn ONLINE còn chờ thanh toán: { paymentUrl, expiresAt }. */
+export function createPaymentUrl(id) {
+  return apiClient.post(`${BASE}/${id}/payment-url`).then((res) => res.data);
+}
+
+/**
+ * Gửi nguyên các tham số VNPay gắn trên trang trả về (location.search) cho backend kiểm tra chữ ký
+ * và ghi nhận kết quả: { orderId, paid, message }.
+ */
+export function confirmVnPayReturn(search) {
+  return apiClient.get(`/api/payments/vnpay/return${search}`).then((res) => res.data);
+}
+
 /**
  * Mã định danh ngẫu nhiên (UUID v4) cho một lần đặt hàng. crypto.randomUUID chỉ có trên https và
  * localhost, nên trang chạy http (vd máy chủ thử) dùng crypto.getRandomValues.

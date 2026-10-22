@@ -5,6 +5,7 @@ import com.manhdn.fashionshop.dto.AdminOrderSummaryResponse;
 import com.manhdn.fashionshop.dto.OrderStatusRequest;
 import com.manhdn.fashionshop.dto.PageResponse;
 import com.manhdn.fashionshop.entity.OrderStatus;
+import com.manhdn.fashionshop.entity.RefundStatus;
 import com.manhdn.fashionshop.service.OrderAdminService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,7 @@ public class OrderAdminController {
    *
    * @param status lọc theo trạng thái, bỏ trống là mọi trạng thái
    * @param keyword mã đơn, một phần email khách hoặc số điện thoại nhận
+   * @param refundStatus lọc theo trạng thái hoàn tiền, vd FAILED: đơn cần hoàn tiền thủ công
    * @param page số trang, bắt đầu từ 0
    * @param size số đơn mỗi trang, tối đa 50
    * @return 200 kèm một trang đơn hàng; 400 nếu tham số sai
@@ -42,9 +44,10 @@ public class OrderAdminController {
   public PageResponse<AdminOrderSummaryResponse> list(
       @RequestParam(required = false) OrderStatus status,
       @RequestParam(required = false) String keyword,
+      @RequestParam(required = false) RefundStatus refundStatus,
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size) {
-    return orderAdminService.list(status, keyword, page, size);
+    return orderAdminService.list(status, keyword, refundStatus, page, size);
   }
 
   /**
@@ -69,5 +72,17 @@ public class OrderAdminController {
   public AdminOrderResponse changeStatus(
       @PathVariable long id, @Valid @RequestBody OrderStatusRequest request) {
     return orderAdminService.changeStatus(id, request.status());
+  }
+
+  /**
+   * Xác nhận đã tự hoàn tiền cho đơn Hoàn tiền thất bại (BR-28).
+   *
+   * @param id mã đơn hàng
+   * @return 200 kèm đơn sau khi cập nhật; 404 nếu đơn không có lần hoàn tiền; 409 nếu lần hoàn tiền
+   *     không ở trạng thái thất bại
+   */
+  @PutMapping("/{id}/refund/complete")
+  public AdminOrderResponse completeRefund(@PathVariable long id) {
+    return orderAdminService.completeRefundManually(id);
   }
 }

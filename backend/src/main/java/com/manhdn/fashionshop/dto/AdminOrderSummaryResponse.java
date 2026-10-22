@@ -5,6 +5,7 @@ import com.manhdn.fashionshop.entity.OrderItem;
 import com.manhdn.fashionshop.entity.OrderStatus;
 import com.manhdn.fashionshop.entity.PaymentMethod;
 import com.manhdn.fashionshop.entity.PaymentStatus;
+import com.manhdn.fashionshop.entity.RefundStatus;
 import java.time.LocalDateTime;
 
 /**
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
  * @param totalQuantity tổng số lượng sản phẩm
  * @param total tổng thanh toán
  * @param createdAt thời điểm đặt hàng
+ * @param refundStatus trạng thái hoàn tiền (BR-28), null nếu không có
  */
 public record AdminOrderSummaryResponse(
     long id,
@@ -33,7 +35,8 @@ public record AdminOrderSummaryResponse(
     String phone,
     int totalQuantity,
     long total,
-    LocalDateTime createdAt) {
+    LocalDateTime createdAt,
+    RefundStatus refundStatus) {
 
   /** Chuyển entity sang DTO. */
   public static AdminOrderSummaryResponse from(Order order) {
@@ -48,6 +51,7 @@ public record AdminOrderSummaryResponse(
         order.getPhoneSnapshot(),
         order.getItems().stream().mapToInt(OrderItem::getQuantity).sum(),
         order.getTotalAmount(),
-        order.getCreatedAt());
+        order.getCreatedAt(),
+        order.getRefund() == null ? null : order.getRefund().getStatus());
   }
 }

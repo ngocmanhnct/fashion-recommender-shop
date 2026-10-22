@@ -1,0 +1,13 @@
+# Cấu hình gitleaks: giữ toàn bộ quy tắc mặc định, thêm quy tắc riêng cho khóa của dự án.
+# gitleaks tự đọc file này ở gốc repo (cả job CI lẫn lệnh Docker trong CLAUDE.md).
+[extend]
+useDefault = true
+
+# Chuỗi bí mật VNPay (vnp_HashSecret): 32 ký tự chữ hoa và số, đứng sau tên biến môi trường
+# VNPAY_HASH_SECRET hoặc thuộc tính app.vnpay.hash-secret. Chỉ được nằm ở .env (không commit).
+[[rules]]
+id = "vnpay-hash-secret"
+description = "Chuỗi bí mật VNPay (vnp_HashSecret)"
+regex = '''(?i)(?:vnpay[._-]?hash[._-]?secret|vnp_hashsecret)\s*[:=]\s*["']?([a-z0-9]{32})\b'''
+secretGroup = 1
+keywords = ["hash_secret", "hash-secret", "hashsecret"]

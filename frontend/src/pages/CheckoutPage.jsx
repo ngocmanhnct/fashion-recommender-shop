@@ -8,6 +8,7 @@ import { createAddress, listAddresses } from '../services/addressApi';
 import { getErrorMessage } from '../services/errorMessage';
 import { formatPrice } from '../services/format';
 import { getCheckoutPreview, newIdempotencyKey, placeOrder } from '../services/orderApi';
+import { goToVnPay } from '../services/vnpayRedirect';
 
 // Phí vận chuyển (BR-35): miễn phí khi tổng tiền hàng từ mức này; backend tính lại khi đặt.
 const FREE_SHIPPING_THRESHOLD = 500_000;
@@ -29,6 +30,7 @@ function CheckoutPage() {
   const [addingAddress, setAddingAddress] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('COD');
 
   const summary = preview.data ?? preview.lastData;
   const addresses = addressBook.data ?? addressBook.lastData;
@@ -70,13 +72,18 @@ function CheckoutPage() {
     setPlaceError('');
     setPlacing(true);
     try {
+      const method = summary.onlinePaymentAvailable ? paymentMethod : 'COD';
       const order = await placeOrder({
         idempotencyKey,
-        paymentMethod: 'COD',
+        paymentMethod: method,
         addressId: selected.id,
         expectedTotal: summary.total,
       });
       refreshCart().catch(() => {});
+      if (method === 'ONLINE') {
+        await goToVnPay(order.id, navigate);
+        return;
+      }
       navigate(`/orders/${order.id}`, { replace: true, state: { placed: true } });
     } catch (err) {
       setPlaceError(getErrorMessage(err, 'Không đặt được đơn hàng'));
@@ -155,13 +162,38 @@ function CheckoutPage() {
           <section className="checkout-section">
             <h2>Phương thức thanh toán</h2>
             <label className="payment-option">
-              <input type="radio" name="payment" checked readOnly />
+              <input
+                type="radio"
+                name="payment"
+                value="COD"
+                checked={!summary.onlinePaymentAvailable || paymentMethod === 'COD'}
+                onChange={() => setPaymentMethod('COD')}
+              />
               Thanh toán khi nhận hàng (COD)
             </label>
-            <label className="payment-option muted">
-              <input type="radio" name="payment" disabled />
-              Thanh toán online qua VNPay (sắp có)
-            </label>
+            {summary.onlinePaymentAvailable ? (
+              <label className="payment-option">
+                <input
+                  type="radio"
+                  name="payment"
+                  value="ONLINE"
+                  checked={paymentMethod === 'ONLINE'}
+                  onChange={() => setPaymentMethod('ONLINE')}
+                />
+                Thanh toán online qua VNPay (thẻ ATM, QR, thẻ quốc tế)
+              </label>
+            ) : (
+              <label className="payment-option muted">
+                <input type="radio" name="payment" disabled />
+                Thanh toán online qua VNPay (cửa hàng chưa bật)
+              </label>
+            )}
+            {summary.onlinePaymentAvailable && paymentMethod === 'ONLINE' && (
+              <p className="muted small">
+                Sau khi đặt hàng, bạn được chuyển sang VNPay để thanh toán. Đơn chưa thanh toán sẽ
+                tự hủy sau 30 phút.
+              </p>
+            )}
           </section>
           <section className="checkout-section">
             <h2>Sản phẩm</h2>
@@ -215,7 +247,11 @@ function CheckoutPage() {
             disabled={placing || !selected || preview.loading}
             onClick={handlePlaceOrder}
           >
-            {placing ? 'Đang đặt hàng...' : 'Đặt hàng'}
+            {placing
+              ? 'Đang đặt hàng...'
+              : summary.onlinePaymentAvailable && paymentMethod === 'ONLINE'
+                ? 'Đặt hàng và thanh toán'
+                : 'Đặt hàng'}
           </button>
           {!selected && <p className="muted small">Hãy thêm địa chỉ giao hàng trước khi đặt.</p>}
         </aside>
