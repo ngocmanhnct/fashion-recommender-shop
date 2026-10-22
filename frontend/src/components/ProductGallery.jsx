@@ -1,13 +1,21 @@
 import { useState } from 'react';
 import ProductImage from './ProductImage';
 
-/** Ảnh lớn của sản phẩm và dãy ảnh nhỏ để đổi ảnh lớn (chỉ hiện khi có từ 2 ảnh khác nhau). */
-function ProductGallery({ imageUrls }) {
+/**
+ * Ảnh lớn của sản phẩm và dãy ảnh nhỏ để đổi ảnh lớn (chỉ hiện khi có từ 2 ảnh khác nhau). Chưa có
+ * ảnh thì hiện ảnh minh họa vẽ theo danh mục.
+ */
+function ProductGallery({ imageUrls, productId, categoryName }) {
   const urls = [...new Set(imageUrls)];
   const [current, setCurrent] = useState(0);
   return (
     <div className="product-gallery">
-      <ProductImage src={urls[current]} className="product-gallery-main" />
+      <ProductImage
+        src={urls[current]}
+        productId={productId}
+        categoryName={categoryName}
+        className="product-gallery-main"
+      />
       {urls.length > 1 && (
         <div className="product-gallery-thumbs">
           {urls.map((url, index) => (

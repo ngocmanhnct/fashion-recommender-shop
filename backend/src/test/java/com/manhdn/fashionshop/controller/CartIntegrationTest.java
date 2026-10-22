@@ -1,6 +1,7 @@
 package com.manhdn.fashionshop.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -84,6 +85,7 @@ class CartIntegrationTest {
         .andExpect(jsonPath("$.items[0].variantId").value(variant))
         .andExpect(jsonPath("$.items[0].quantity").value(3))
         .andExpect(jsonPath("$.items[0].unitPrice").value(150_000))
+        .andExpect(jsonPath("$.items[0].categoryName").value(startsWith("Danh mục giỏ hàng")))
         .andExpect(jsonPath("$.items[0].lineTotal").value(450_000))
         .andExpect(jsonPath("$.totalQuantity").value(3))
         .andExpect(jsonPath("$.subtotal").value(450_000))

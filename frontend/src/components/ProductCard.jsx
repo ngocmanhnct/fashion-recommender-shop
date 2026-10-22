@@ -13,7 +13,11 @@ function ProductCard({ product, reason }) {
   return (
     <Link to={`/products/${product.id}`} className="product-card">
       <span className="product-card-media">
-        <ProductImage src={product.thumbnailUrl} />
+        <ProductImage
+          src={product.thumbnailUrl}
+          productId={product.id}
+          categoryName={product.categoryName}
+        />
         {!product.inStock && <span className="badge badge-soldout">Hết hàng</span>}
       </span>
       <span className="product-card-body">

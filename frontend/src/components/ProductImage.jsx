@@ -1,22 +1,18 @@
+import ProductArt from './ProductArt';
+
 /**
- * Ảnh sản phẩm, hoặc khung giữ chỗ khi sản phẩm chưa có ảnh (danh mục mẫu chưa có ảnh nào).
+ * Ảnh sản phẩm, hoặc ảnh minh họa vẽ theo danh mục khi sản phẩm chưa có ảnh (danh mục mẫu chưa có
+ * ảnh nào). productId, categoryName dùng cho ảnh minh họa; thiếu productId thì hiện khung trống.
  * Ảnh chỉ để minh họa nên alt rỗng: tên sản phẩm luôn hiện ngay bên cạnh.
  */
-function ProductImage({ src, className = '' }) {
+function ProductImage({ src, productId, categoryName, className = '' }) {
   if (src) {
     return <img src={src} alt="" loading="lazy" className={`product-image ${className}`} />;
   }
-  return (
-    <span className={`product-image product-image-empty ${className}`} aria-hidden="true">
-      <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor">
-        <path
-          strokeWidth="1.5"
-          strokeLinejoin="round"
-          d="M8 3 3.5 6 5 10l2-1v12h10V9l2 1 1.5-4L16 3c-.5 1.7-2 3-4 3S8.5 4.7 8 3Z"
-        />
-      </svg>
-    </span>
-  );
+  if (productId != null) {
+    return <ProductArt productId={productId} categoryName={categoryName} className={className} />;
+  }
+  return <span className={`product-image product-image-empty ${className}`} aria-hidden="true" />;
 }
 
 export default ProductImage;
