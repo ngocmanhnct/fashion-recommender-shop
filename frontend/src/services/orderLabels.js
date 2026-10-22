@@ -26,3 +26,15 @@ export function formatDateTime(value) {
   const date = new Date(value);
   return `${DATE.format(date)} ${TIME.format(date)}`;
 }
+
+export const PAYMENT_STATUS_LABELS = {
+  PENDING: 'Chờ thanh toán',
+  PAID: 'Đã thanh toán',
+  FAILED: 'Chưa thanh toán (đã hủy)',
+};
+
+export const REFUND_STATUS_LABELS = {
+  PROCESSING: 'Đang hoàn tiền',
+  COMPLETED: 'Đã hoàn tiền',
+  FAILED: 'Hoàn tiền thất bại',
+};

@@ -12,6 +12,7 @@ import java.util.List;
  * @param shippingFee phí vận chuyển
  * @param discount số tiền giảm giá (chưa có mã giảm giá nên luôn 0)
  * @param total tổng thanh toán, gửi lại khi xác nhận để phát hiện giá vừa đổi
+ * @param onlinePaymentAvailable cửa hàng đã bật thanh toán online qua VNPay chưa
  */
 public record CheckoutPreviewResponse(
     List<CartItemResponse> items,
@@ -19,4 +20,5 @@ public record CheckoutPreviewResponse(
     long subtotal,
     long shippingFee,
     long discount,
-    long total) {}
+    long total,
+    boolean onlinePaymentAvailable) {}

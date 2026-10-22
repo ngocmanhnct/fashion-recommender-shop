@@ -510,6 +510,68 @@
               }
             }
           ]
+        },
+        {
+          "name": "VNPay chuyển khách về (return URL)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/vnpay/return?vnp_TxnRef=&vnp_SecureHash=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "vnpay",
+                "return"
+              ],
+              "query": [
+                {
+                  "key": "vnp_TxnRef",
+                  "value": "",
+                  "description": "Dán đủ các tham số vnp_* từ địa chỉ trả về"
+                },
+                {
+                  "key": "vnp_SecureHash",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Trang /payment/vnpay-return của frontend gọi API này với nguyên chuỗi tham số VNPay gửi về. Trả { orderId, paid, message }. Xử lý giống IPN và chạy được nhiều lần (lần sau trả lại kết quả cũ). Các tham số vnp_* do VNPay gửi kèm chữ ký vnp_SecureHash (HMAC-SHA512 bằng VNPAY_HASH_SECRET), nên không tự gọi tay được: lấy nguyên chuỗi tham số trên thanh địa chỉ sau khi thanh toán ở sandbox rồi dán vào đây. Sai chữ ký thì không đổi gì."
+          }
+        },
+        {
+          "name": "VNPay báo kết quả (IPN)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/payments/vnpay/ipn?vnp_TxnRef=&vnp_SecureHash=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "payments",
+                "vnpay",
+                "ipn"
+              ],
+              "query": [
+                {
+                  "key": "vnp_TxnRef",
+                  "value": "",
+                  "description": "Dán đủ các tham số vnp_* VNPay gửi"
+                },
+                {
+                  "key": "vnp_SecureHash",
+                  "value": ""
+                }
+              ]
+            },
+            "description": "Máy chủ VNPay gọi sang (server tới server) để báo kết quả, trả { RspCode, Message }: 00 ghi nhận, 01 không có đơn, 02 đã xác nhận trước đó, 04 sai số tiền, 97 sai chữ ký. VNPay chỉ gọi được khi backend có địa chỉ công khai, chạy trên máy thì chỉ có return URL. Đơn đã hủy mà tiền vẫn về thì tạo yêu cầu hoàn tiền (BR-28). Các tham số vnp_* do VNPay gửi kèm chữ ký vnp_SecureHash (HMAC-SHA512 bằng VNPAY_HASH_SECRET), nên không tự gọi tay được: lấy nguyên chuỗi tham số trên thanh địa chỉ sau khi thanh toán ở sandbox rồi dán vào đây. Sai chữ ký thì không đổi gì."
+          }
         }
       ],
       "auth": {
@@ -915,7 +977,7 @@
                 "orders"
               ]
             },
-            "description": "Đặt toàn bộ giỏ hàng (US-10): trừ tồn kho, xóa giỏ, đơn ở trạng thái PENDING. expectedTotal là tổng đã thấy ở bước xem trước: khác tổng hiện tại (giá vừa đổi) thì 409. Thiếu hàng hoặc sản phẩm ngừng bán thì từ chối cả đơn (409, BR-09). Hiện chỉ nhận paymentMethod COD (ONLINE 400 đến khi có VNPay). Trả 201 kèm đơn.",
+            "description": "Đặt toàn bộ giỏ hàng (US-10): trừ tồn kho, xóa giỏ, đơn ở trạng thái PENDING. expectedTotal là tổng đã thấy ở bước xem trước: khác tổng hiện tại (giá vừa đổi) thì 409. Thiếu hàng hoặc sản phẩm ngừng bán thì từ chối cả đơn (409, BR-09). paymentMethod: COD hoặc ONLINE (VNPay; backend chưa có VNPAY_TMN_CODE/VNPAY_HASH_SECRET thì 400). Đơn ONLINE chờ thanh toán, quá 30 phút chưa trả thì tự hủy (BR-34). Trả 201 kèm đơn.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"idempotencyKey\": \"{{idempotencyKey}}\",\n  \"paymentMethod\": \"COD\",\n  \"addressId\": {{addressId}},\n  \"expectedTotal\": {{expectedTotal}}\n}",
@@ -1049,6 +1111,40 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Lấy chi tiết đơn thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Tạo link thanh toán VNPay",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/{{orderId}}/payment-url",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "{{orderId}}",
+                "payment-url"
+              ]
+            },
+            "description": "Chỉ cho đơn paymentMethod ONLINE đang chờ thanh toán (US-10). Trả { paymentUrl, expiresAt }: mở paymentUrl trên trình duyệt để thanh toán ở sandbox VNPay. Link hết hạn sau 15 phút hoặc khi đơn hết hạn 30 phút, gọi lại để lấy link mới. Đơn COD, đã thanh toán, đã hủy hoặc quá hạn trả 409."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Có link VNPay', () => {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().paymentUrl).to.include('vnp_SecureHash');",
+                  "});"
                 ]
               }
             }
@@ -1633,6 +1729,12 @@
                       "description": "Mã đơn, một phần email khách hoặc số điện thoại nhận"
                     },
                     {
+                      "key": "refundStatus",
+                      "value": "FAILED",
+                      "disabled": true,
+                      "description": "PROCESSING, COMPLETED, FAILED: lọc đơn theo trạng thái hoàn tiền"
+                    },
+                    {
                       "key": "page",
                       "value": "0"
                     },
@@ -1731,6 +1833,61 @@
                   ]
                 },
                 "description": "Hủy đơn chưa Đã giao (kể cả Đang giao, vd khách từ chối nhận COD) và hoàn tồn kho. Đơn Đã giao trả 409."
+              }
+            },
+            {
+              "name": "Lọc đơn hoàn tiền thất bại",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders?refundStatus=FAILED&page=0&size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "refundStatus",
+                      "value": "FAILED"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20"
+                    }
+                  ]
+                },
+                "description": "Đơn đã thanh toán VNPay rồi bị hủy, hoàn tiền tự động thất bại 3 lần (BR-28): Quản trị viên chuyển khoản tay rồi xác nhận."
+              }
+            },
+            {
+              "name": "Xác nhận hoàn tiền thủ công",
+              "request": {
+                "method": "PUT",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/orders/{{orderId}}/refund/complete",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "orders",
+                    "{{orderId}}",
+                    "refund",
+                    "complete"
+                  ]
+                },
+                "description": "Chỉ cho đơn có hoàn tiền FAILED: ghi nhận Quản trị viên đã tự hoàn tiền, trạng thái hoàn tiền thành COMPLETED. Đơn không có hoàn tiền thất bại trả 409. Trả chi tiết đơn như GET /api/admin/orders/{id}."
               }
             }
           ]

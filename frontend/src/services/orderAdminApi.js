@@ -4,10 +4,16 @@ import apiClient from './apiClient';
 const BASE = '/api/admin/orders';
 
 /** Một trang đơn hàng, mới nhất trước; status rỗng là mọi trạng thái. */
-export function searchOrders({ status, keyword, page = 0, size = 20 }) {
+export function searchOrders({ status, keyword, refundStatus, page = 0, size = 20 }) {
   return apiClient
     .get(BASE, {
-      params: { status: status || undefined, keyword: keyword || undefined, page, size },
+      params: {
+        status: status || undefined,
+        keyword: keyword || undefined,
+        refundStatus: refundStatus || undefined,
+        page,
+        size,
+      },
     })
     .then((res) => res.data);
 }
@@ -20,4 +26,9 @@ export function getAdminOrder(id) {
 /** Chuyển đơn sang trạng thái kế tiếp hoặc CANCELLED. */
 export function changeOrderStatus(id, status) {
   return apiClient.put(`${BASE}/${id}/status`, { status }).then((res) => res.data);
+}
+
+/** Ghi nhận đã hoàn tiền thủ công cho đơn có hoàn tiền tự động thất bại (BR-28). */
+export function completeRefundManually(id) {
+  return apiClient.put(`${BASE}/${id}/refund/complete`).then((res) => res.data);
 }

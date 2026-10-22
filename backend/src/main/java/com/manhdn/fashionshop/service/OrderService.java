@@ -1,5 +1,6 @@
 package com.manhdn.fashionshop.service;
 
+import com.manhdn.fashionshop.client.VnPayClient;
 import com.manhdn.fashionshop.dto.CartResponse;
 import com.manhdn.fashionshop.dto.CheckoutPreviewResponse;
 import com.manhdn.fashionshop.dto.OrderResponse;
@@ -70,6 +71,8 @@ public class OrderService {
   private final ProductVariantRepository variantRepository;
   private final OrderRepository orderRepository;
   private final RecomputeRequestService recomputeRequestService;
+  private final RefundService refundService;
+  private final VnPayClient vnPayClient;
   private final Clock clock;
 
   /** Nhận các thành phần cần thiết qua constructor. */
@@ -82,6 +85,8 @@ public class OrderService {
       ProductVariantRepository variantRepository,
       OrderRepository orderRepository,
       RecomputeRequestService recomputeRequestService,
+      RefundService refundService,
+      VnPayClient vnPayClient,
       Clock clock) {
     this.transactionRetry = transactionRetry;
     this.cartService = cartService;
@@ -91,6 +96,8 @@ public class OrderService {
     this.variantRepository = variantRepository;
     this.orderRepository = orderRepository;
     this.recomputeRequestService = recomputeRequestService;
+    this.refundService = refundService;
+    this.vnPayClient = vnPayClient;
     this.clock = clock;
   }
 
@@ -117,7 +124,13 @@ public class OrderService {
     long subtotal = cart.subtotal();
     long shippingFee = cart.items().isEmpty() ? 0 : shippingFeeFor(subtotal);
     return new CheckoutPreviewResponse(
-        cart.items(), cart.notices(), subtotal, shippingFee, 0, subtotal + shippingFee);
+        cart.items(),
+        cart.notices(),
+        subtotal,
+        shippingFee,
+        0,
+        subtotal + shippingFee,
+        vnPayClient.configured());
   }
 
   /**
@@ -194,8 +207,8 @@ public class OrderService {
       }
       return new PlaceOrderResult(OrderResponse.from(previous.get()), false);
     }
-    if (request.paymentMethod() != PaymentMethod.COD) {
-      throw new InvalidRequestException("Hiện chỉ hỗ trợ thanh toán khi nhận hàng (COD)");
+    if (request.paymentMethod() == PaymentMethod.ONLINE && !vnPayClient.configured()) {
+      throw new InvalidRequestException("Cửa hàng chưa bật thanh toán online qua VNPay");
     }
     final Address address =
         addressRepository
@@ -233,7 +246,7 @@ public class OrderService {
     }
 
     LocalDateTime now = LocalDateTime.now(clock);
-    Order order = Order.cod(account, key, address, shippingFee, now);
+    Order order = Order.create(account, key, address, request.paymentMethod(), shippingFee, now);
     for (CartItem line : lines) {
       ProductVariant variant = line.getVariant();
       order.addItem(new OrderItem(variant, line.getQuantity()));
@@ -280,7 +293,7 @@ public class OrderService {
               + " trợ.");
     }
     restoreStock(order);
-    order.cancel(LocalDateTime.now(clock));
+    cancelWithPayment(order, LocalDateTime.now(clock));
     requestRecompute(accountId);
     return OrderResponse.from(order);
   }
@@ -296,6 +309,18 @@ public class OrderService {
     for (OrderItem item : order.getItems()) {
       item.getVariant().increaseStock(item.getQuantity());
     }
+  }
+
+  /**
+   * Chuyển đơn sang Đã hủy kèm phần thanh toán: đơn ONLINE chưa trả tiền thì thanh toán chuyển
+   * FAILED, đơn đã trả tiền thì khởi tạo hoàn tiền (BR-28). Người gọi đã hoàn tồn kho.
+   */
+  void cancelWithPayment(Order order, LocalDateTime now) {
+    if (order.awaitingPayment()) {
+      order.markPaymentFailed();
+    }
+    order.cancel(now);
+    refundService.startIfPaid(order);
   }
 
   private Order findOwn(long accountId, long orderId) {

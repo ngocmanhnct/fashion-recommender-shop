@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import OrderContent from '../../components/OrderContent';
+import PaymentInfo from '../../components/PaymentInfo';
 import { useApiData } from '../../hooks/useApiData';
 import { getErrorMessage } from '../../services/errorMessage';
-import { changeOrderStatus, getAdminOrder } from '../../services/orderAdminApi';
+import {
+  changeOrderStatus,
+  completeRefundManually,
+  getAdminOrder,
+} from '../../services/orderAdminApi';
 import {
   formatDateTime,
   ORDER_STATUS_LABELS,
@@ -62,6 +67,20 @@ function AdminOrderDetail({ id }) {
     }
   };
 
+  const handleCompleteRefund = async () => {
+    const question = `Xác nhận đã hoàn tiền thủ công cho đơn #${order.id} (đã chuyển khoản cho khách)?`;
+    if (!window.confirm(question)) return;
+    setActionError('');
+    setSaving(true);
+    try {
+      setUpdated(await completeRefundManually(order.id));
+    } catch (err) {
+      setActionError(getErrorMessage(err, 'Không cập nhật được hoàn tiền'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="narrow-page">
       <p className="small">
@@ -86,6 +105,19 @@ function AdminOrderDetail({ id }) {
       </section>
 
       <OrderContent order={order} productHref={(item) => `/admin/products/${item.productId}`} />
+
+      <PaymentInfo order={order} admin>
+        {order.refund?.status === 'FAILED' && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={saving}
+            onClick={handleCompleteRefund}
+          >
+            Xác nhận đã hoàn tiền thủ công
+          </button>
+        )}
+      </PaymentInfo>
 
       {actionError && (
         <p className="alert alert-error" role="alert">
@@ -112,6 +144,9 @@ function AdminOrderDetail({ id }) {
           >
             Hủy đơn
           </button>
+        )}
+        {!detail.nextStatus && detail.adminCancellable && order.paymentStatus === 'PENDING' && (
+          <p className="muted small">Đơn đang chờ khách thanh toán VNPay, chưa xử lý được.</p>
         )}
         {!detail.nextStatus && !detail.adminCancellable && (
           <p className="muted small">Đơn đã kết thúc, không đổi trạng thái được nữa.</p>

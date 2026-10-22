@@ -12,8 +12,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,6 +30,9 @@ import org.hibernate.annotations.BatchSize;
 @Entity
 @Table(name = "orders")
 public class Order {
+
+  /** Thời gian chờ khách thanh toán online trước khi đơn tự hủy (BR-34). */
+  public static final Duration PAYMENT_TIMEOUT = Duration.ofMinutes(30);
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,6 +52,17 @@ public class Order {
 
   @Enumerated(EnumType.STRING)
   private PaymentStatus paymentStatus;
+
+  /** Mã tham chiếu của lần thanh toán VNPay thành công (vnp_TxnRef), null nếu chưa thanh toán. */
+  private String paymentTxnRef;
+
+  /** Mã giao dịch phía VNPay (vnp_TransactionNo) của lần thanh toán thành công. */
+  private String paymentTransactionNo;
+
+  private LocalDateTime paidAt;
+
+  @OneToOne(mappedBy = "order", fetch = FetchType.LAZY)
+  private Refund refund;
 
   @Column(nullable = false, updatable = false)
   private String idempotencyKey;
@@ -94,20 +110,23 @@ public class Order {
    * @param account tài khoản đặt hàng
    * @param idempotencyKey mã định danh lần bấm xác nhận (BR-10)
    * @param address địa chỉ được chọn, chép thành bản sao (BR-29)
+   * @param paymentMethod phương thức thanh toán; ONLINE thì trạng thái thanh toán bắt đầu là
+   *     PENDING, COD thì không có trạng thái thanh toán
    * @param shippingFee phí vận chuyển (BR-35)
    * @param createdAt thời điểm đặt hàng
    */
-  public static Order cod(
+  public static Order create(
       Account account,
       String idempotencyKey,
       Address address,
+      PaymentMethod paymentMethod,
       long shippingFee,
       LocalDateTime createdAt) {
     Order order = new Order();
     order.account = account;
     order.status = OrderStatus.PENDING;
-    order.paymentMethod = PaymentMethod.COD;
-    order.paymentStatus = null;
+    order.paymentMethod = paymentMethod;
+    order.paymentStatus = paymentMethod == PaymentMethod.ONLINE ? PaymentStatus.PENDING : null;
     order.idempotencyKey = idempotencyKey;
     order.addressId = address.getId();
     order.recipientNameSnapshot = address.getRecipientName();
@@ -128,6 +147,32 @@ public class Order {
     items.add(item);
     subtotalAmount += item.getLineTotal();
     totalAmount = subtotalAmount + shippingFee - discountAmount;
+  }
+
+  /** Ghi nhận thanh toán VNPay thành công (US-10). */
+  public void markPaid(String txnRef, String transactionNo, LocalDateTime now) {
+    this.paymentStatus = PaymentStatus.PAID;
+    this.paymentTxnRef = txnRef;
+    this.paymentTransactionNo = transactionNo;
+    this.paidAt = now;
+    this.updatedAt = now;
+  }
+
+  /** Đơn ONLINE bị hủy khi chưa thanh toán: không còn chờ thanh toán nữa (BR-34). */
+  public void markPaymentFailed() {
+    this.paymentStatus = PaymentStatus.FAILED;
+  }
+
+  /** Đơn ONLINE còn chờ khách thanh toán: chưa hủy và chưa nhận được xác nhận từ VNPay. */
+  public boolean awaitingPayment() {
+    return paymentMethod == PaymentMethod.ONLINE
+        && paymentStatus == PaymentStatus.PENDING
+        && status != OrderStatus.CANCELLED;
+  }
+
+  /** Đơn đủ điều kiện để cửa hàng xử lý tiếp: COD, hoặc ONLINE đã thanh toán (US-17). */
+  public boolean paymentSettledForProcessing() {
+    return paymentMethod == PaymentMethod.COD || paymentStatus == PaymentStatus.PAID;
   }
 
   /** Chuyển sang Đã hủy. Việc hoàn tồn kho (BR-16) do service làm cùng giao dịch. */
@@ -164,6 +209,33 @@ public class Order {
 
   public String getIdempotencyKey() {
     return idempotencyKey;
+  }
+
+  public String getPaymentTxnRef() {
+    return paymentTxnRef;
+  }
+
+  public String getPaymentTransactionNo() {
+    return paymentTransactionNo;
+  }
+
+  public LocalDateTime getPaidAt() {
+    return paidAt;
+  }
+
+  /** Gắn lần hoàn tiền vừa tạo, để đọc lại được trong cùng giao dịch. */
+  void attachRefund(Refund refund) {
+    this.refund = refund;
+  }
+
+  /** Lần hoàn tiền của đơn (BR-28), null nếu không có. */
+  public Refund getRefund() {
+    return refund;
+  }
+
+  /** Thời hạn khách phải thanh toán xong đơn ONLINE, quá hạn thì đơn tự hủy (BR-34). */
+  public LocalDateTime paymentDeadline() {
+    return createdAt.plus(PAYMENT_TIMEOUT);
   }
 
   public Long getAddressId() {

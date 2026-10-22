@@ -4,16 +4,34 @@ import { useApiData } from '../../hooks/useApiData';
 import { getErrorMessage } from '../../services/errorMessage';
 import { formatPrice } from '../../services/format';
 import { searchOrders } from '../../services/orderAdminApi';
-import { formatDateTime, ORDER_STATUS_LABELS } from '../../services/orderLabels';
+import {
+  formatDateTime,
+  ORDER_STATUS_LABELS,
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_LABELS,
+  REFUND_STATUS_LABELS,
+} from '../../services/orderLabels';
 
 const STATUS_TABS = ['', 'PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED', 'CANCELLED'];
+
+// Tab riêng cho đơn hoàn tiền tự động thất bại (BR-28), cần Quản trị viên xử lý thủ công.
+const REFUND_FAILED_TAB = 'REFUND_FAILED';
 
 /** Đọc bộ lọc từ URL (?status=&keyword=&page=, page đếm từ 1) để F5 vẫn giữ bộ lọc. */
 function readFilters(searchParams) {
   const status = searchParams.get('status') ?? '';
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
+  if (status === REFUND_FAILED_TAB) {
+    return {
+      status: '',
+      refundStatus: 'FAILED',
+      keyword: searchParams.get('keyword') ?? '',
+      page: 0,
+    };
+  }
   return {
     status: STATUS_TABS.includes(status) ? status : '',
+    refundStatus: '',
     keyword: searchParams.get('keyword') ?? '',
     page: Number.isInteger(pageParam) && pageParam > 0 ? pageParam - 1 : 0,
   };
@@ -31,7 +49,8 @@ function OrderListPage() {
   const update = (next) => {
     const merged = { ...filters, ...next };
     const params = {};
-    if (merged.status) params.status = merged.status;
+    if (merged.refundStatus === 'FAILED') params.status = REFUND_FAILED_TAB;
+    else if (merged.status) params.status = merged.status;
     if (merged.keyword) params.keyword = merged.keyword;
     if (merged.page > 0) params.page = String(merged.page + 1);
     setSearchParams(params);
@@ -57,11 +76,20 @@ function OrderListPage() {
             role="tab"
             aria-selected={filters.status === status}
             className={filters.status === status ? 'btn btn-primary' : 'btn btn-ghost'}
-            onClick={() => update({ status, page: 0 })}
+            onClick={() => update({ status, refundStatus: '', page: 0 })}
           >
             {status ? ORDER_STATUS_LABELS[status] : 'Tất cả'}
           </button>
         ))}
+        <button
+          type="button"
+          role="tab"
+          aria-selected={filters.refundStatus === 'FAILED'}
+          className={filters.refundStatus === 'FAILED' ? 'btn btn-danger' : 'btn btn-ghost'}
+          onClick={() => update({ status: '', refundStatus: 'FAILED', page: 0 })}
+        >
+          Hoàn tiền thất bại
+        </button>
       </div>
 
       <form className="inline-form" onSubmit={handleSearch}>
@@ -98,6 +126,7 @@ function OrderListPage() {
                 <th>Người nhận</th>
                 <th>Số lượng</th>
                 <th>Tổng tiền</th>
+                <th>Thanh toán</th>
                 <th>Trạng thái</th>
               </tr>
             </thead>
@@ -119,6 +148,15 @@ function OrderListPage() {
                   <td>{o.totalQuantity}</td>
                   <td>{formatPrice(o.total)}</td>
                   <td>
+                    {PAYMENT_METHOD_LABELS[o.paymentMethod]}
+                    {o.paymentStatus && (
+                      <div className="muted small">{PAYMENT_STATUS_LABELS[o.paymentStatus]}</div>
+                    )}
+                    {o.refundStatus && (
+                      <div className="muted small">{REFUND_STATUS_LABELS[o.refundStatus]}</div>
+                    )}
+                  </td>
+                  <td>
                     <span className={`status status-${o.status.toLowerCase()}`}>
                       {ORDER_STATUS_LABELS[o.status]}
                     </span>
@@ -127,7 +165,7 @@ function OrderListPage() {
               ))}
               {result.content.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="muted">
+                  <td colSpan={8} className="muted">
                     Không có đơn hàng nào.
                   </td>
                 </tr>

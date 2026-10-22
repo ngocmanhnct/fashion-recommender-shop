@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import OrderContent from '../components/OrderContent';
+import PaymentInfo from '../components/PaymentInfo';
 import { useApiData } from '../hooks/useApiData';
 import { getErrorMessage } from '../services/errorMessage';
 import { cancelOrder, getOrder } from '../services/orderApi';
+import { goToVnPay } from '../services/vnpayRedirect';
 import {
   formatDateTime,
   ORDER_STATUS_LABELS,
@@ -29,6 +31,8 @@ function OrderDetail({ id }) {
   const [updated, setUpdated] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState('');
+  const [paying, setPaying] = useState(false);
+  const navigate = useNavigate();
   const order = updated ?? data;
 
   if (loading) return <p className="muted">Đang tải đơn hàng...</p>;
@@ -43,6 +47,12 @@ function OrderDetail({ id }) {
       </div>
     );
   }
+
+  const handlePay = async () => {
+    setPaying(true);
+    await goToVnPay(order.id, navigate);
+    setPaying(false);
+  };
 
   const handleCancel = async () => {
     if (!window.confirm(`Hủy đơn #${order.id}?`)) return;
@@ -76,6 +86,19 @@ function OrderDetail({ id }) {
       <p className="muted small">
         Đặt lúc {formatDateTime(order.createdAt)} · {PAYMENT_METHOD_LABELS[order.paymentMethod]}
       </p>
+
+      <PaymentInfo order={order}>
+        {location.state?.paymentError && !paying && (
+          <p className="alert alert-error small" role="alert">
+            {location.state.paymentError}
+          </p>
+        )}
+        {order.paymentDeadline && (
+          <button type="button" className="btn btn-primary" disabled={paying} onClick={handlePay}>
+            {paying ? 'Đang mở VNPay...' : 'Thanh toán qua VNPay'}
+          </button>
+        )}
+      </PaymentInfo>
 
       <OrderContent order={order} productHref={(item) => `/products/${item.productId}`} />
 

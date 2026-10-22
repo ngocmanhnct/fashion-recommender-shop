@@ -6,6 +6,7 @@ import com.manhdn.fashionshop.dto.PageResponse;
 import com.manhdn.fashionshop.entity.Order;
 import com.manhdn.fashionshop.entity.OrderStatus;
 import com.manhdn.fashionshop.entity.RecomputeTask;
+import com.manhdn.fashionshop.entity.RefundStatus;
 import com.manhdn.fashionshop.exception.ConflictException;
 import com.manhdn.fashionshop.exception.InvalidRequestException;
 import com.manhdn.fashionshop.repository.AccountRepository;
@@ -30,6 +31,7 @@ public class OrderAdminService {
   private final OrderRepository orderRepository;
   private final AccountRepository accountRepository;
   private final OrderService orderService;
+  private final RefundService refundService;
   private final RecomputeRequestService recomputeRequestService;
   private final TransactionRetry transactionRetry;
   private final Clock clock;
@@ -39,12 +41,14 @@ public class OrderAdminService {
       OrderRepository orderRepository,
       AccountRepository accountRepository,
       OrderService orderService,
+      RefundService refundService,
       RecomputeRequestService recomputeRequestService,
       TransactionRetry transactionRetry,
       Clock clock) {
     this.orderRepository = orderRepository;
     this.accountRepository = accountRepository;
     this.orderService = orderService;
+    this.refundService = refundService;
     this.recomputeRequestService = recomputeRequestService;
     this.transactionRetry = transactionRetry;
     this.clock = clock;
@@ -55,13 +59,14 @@ public class OrderAdminService {
    *
    * @param status chỉ lấy đơn ở trạng thái này, null là mọi trạng thái
    * @param keyword mã đơn, một phần email khách hoặc số điện thoại nhận; trống là không lọc
+   * @param refundStatus chỉ lấy đơn có lần hoàn tiền ở trạng thái này, null là không lọc
    * @param page số trang, bắt đầu từ 0
    * @param size số đơn mỗi trang, từ 1 đến {@link OrderService#MAX_PAGE_SIZE}
    * @return một trang đơn hàng
    */
   @Transactional(readOnly = true)
   public PageResponse<AdminOrderSummaryResponse> list(
-      OrderStatus status, String keyword, int page, int size) {
+      OrderStatus status, String keyword, RefundStatus refundStatus, int page, int size) {
     if (page < 0 || size < 1 || size > OrderService.MAX_PAGE_SIZE) {
       throw new InvalidRequestException(
           "Trang bắt đầu từ 0, mỗi trang từ 1 đến %d đơn".formatted(OrderService.MAX_PAGE_SIZE));
@@ -72,7 +77,7 @@ public class OrderAdminService {
     }
     return PageResponse.from(
         orderRepository.searchForAdmin(
-            status, cleaned.isEmpty() ? null : cleaned, PageRequest.of(page, size)),
+            status, cleaned.isEmpty() ? null : cleaned, refundStatus, PageRequest.of(page, size)),
         AdminOrderSummaryResponse::from);
   }
 
@@ -121,8 +126,11 @@ public class OrderAdminService {
         throw new ConflictException("Đơn đã giao xong, không hủy được nữa");
       }
       orderService.restoreStock(order);
-      order.cancel(now);
+      orderService.cancelWithPayment(order, now);
     } else if (target == current.next()) {
+      if (!order.paymentSettledForProcessing()) {
+        throw new ConflictException("Đơn thanh toán online chưa được thanh toán, chưa xử lý được");
+      }
       order.advanceTo(target, now);
     } else {
       throw new ConflictException(
@@ -139,6 +147,21 @@ public class OrderAdminService {
           accountId, RecomputeTask.SEGMENT_ASSIGN, RecomputeRequestService.STRONG_ACTION_DELAY);
     }
     return AdminOrderResponse.from(order);
+  }
+
+  /**
+   * Xác nhận đã tự hoàn tiền cho đơn Hoàn tiền thất bại (BR-28, US-17), sau khi quản trị viên xử lý
+   * qua cổng thanh toán hoặc liên hệ khách.
+   *
+   * @param orderId mã đơn hàng
+   * @return đơn sau khi cập nhật
+   * @throws NoSuchElementException nếu đơn không có lần hoàn tiền nào
+   * @throws ConflictException nếu lần hoàn tiền không ở trạng thái thất bại
+   */
+  @Transactional
+  public AdminOrderResponse completeRefundManually(long orderId) {
+    refundService.completeManually(orderId);
+    return AdminOrderResponse.from(find(orderId));
   }
 
   private Order find(long orderId) {

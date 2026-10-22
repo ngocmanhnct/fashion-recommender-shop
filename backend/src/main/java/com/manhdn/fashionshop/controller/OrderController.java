@@ -4,9 +4,12 @@ import com.manhdn.fashionshop.dto.CheckoutPreviewResponse;
 import com.manhdn.fashionshop.dto.OrderResponse;
 import com.manhdn.fashionshop.dto.OrderSummaryResponse;
 import com.manhdn.fashionshop.dto.PageResponse;
+import com.manhdn.fashionshop.dto.PaymentUrlResponse;
 import com.manhdn.fashionshop.dto.PlaceOrderRequest;
 import com.manhdn.fashionshop.service.OrderService;
 import com.manhdn.fashionshop.service.OrderService.PlaceOrderResult;
+import com.manhdn.fashionshop.service.PaymentService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,10 +32,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController {
 
   private final OrderService orderService;
+  private final PaymentService paymentService;
 
   /** Nhận service qua constructor. */
-  public OrderController(OrderService orderService) {
+  public OrderController(OrderService orderService, PaymentService paymentService) {
     this.orderService = orderService;
+    this.paymentService = paymentService;
   }
 
   /**
@@ -101,6 +106,28 @@ public class OrderController {
   @PostMapping("/{id}/cancel")
   public OrderResponse cancel(@PathVariable long id, @AuthenticationPrincipal Jwt jwt) {
     return orderService.cancel(accountId(jwt), id);
+  }
+
+  /**
+   * Tạo đường dẫn thanh toán VNPay cho đơn thanh toán online còn chờ thanh toán (lần đầu hoặc thanh
+   * toán lại).
+   *
+   * @param id mã đơn hàng
+   * @param jwt token của Khách hàng
+   * @param request request HTTP, để lấy địa chỉ IP của khách gửi cho VNPay
+   * @return 200 kèm đường dẫn; 404 nếu không có đơn; 409 nếu đơn không còn chờ thanh toán; 400 nếu
+   *     cửa hàng chưa bật VNPay
+   */
+  @PostMapping("/{id}/payment-url")
+  public PaymentUrlResponse paymentUrl(
+      @PathVariable long id, @AuthenticationPrincipal Jwt jwt, HttpServletRequest request) {
+    return paymentService.createPaymentUrl(accountId(jwt), id, clientIp(request));
+  }
+
+  /** Địa chỉ IPv4 của khách; địa chỉ loopback IPv6 đổi thành 127.0.0.1 cho VNPay. */
+  private static String clientIp(HttpServletRequest request) {
+    String ip = request.getRemoteAddr();
+    return ip == null || ip.contains(":") ? "127.0.0.1" : ip;
   }
 
   private static long accountId(Jwt jwt) {

@@ -25,6 +25,9 @@ import java.util.List;
  * @param cancellable khách còn tự hủy được không (BR-13)
  * @param createdAt thời điểm đặt hàng
  * @param updatedAt thời điểm đổi trạng thái gần nhất
+ * @param paymentDeadline hạn thanh toán online (BR-34), null nếu đơn không còn chờ thanh toán
+ * @param paidAt thời điểm thanh toán online thành công, null nếu chưa
+ * @param refund trạng thái hoàn tiền (BR-28), null nếu không có
  */
 public record OrderResponse(
     long id,
@@ -41,7 +44,10 @@ public record OrderResponse(
     long total,
     boolean cancellable,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt) {
+    LocalDateTime updatedAt,
+    LocalDateTime paymentDeadline,
+    LocalDateTime paidAt,
+    RefundResponse refund) {
 
   /** Chuyển entity sang DTO. */
   public static OrderResponse from(Order order) {
@@ -60,6 +66,9 @@ public record OrderResponse(
         order.getTotalAmount(),
         order.getStatus().customerCancellable(),
         order.getCreatedAt(),
-        order.getUpdatedAt());
+        order.getUpdatedAt(),
+        order.awaitingPayment() ? order.paymentDeadline() : null,
+        order.getPaidAt(),
+        RefundResponse.from(order.getRefund()));
   }
 }

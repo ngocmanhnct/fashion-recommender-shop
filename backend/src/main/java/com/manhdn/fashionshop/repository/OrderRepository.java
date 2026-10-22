@@ -2,6 +2,9 @@ package com.manhdn.fashionshop.repository;
 
 import com.manhdn.fashionshop.entity.Order;
 import com.manhdn.fashionshop.entity.OrderStatus;
+import com.manhdn.fashionshop.entity.RefundStatus;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +15,11 @@ import org.springframework.data.repository.query.Param;
 
 /** Truy cập bảng orders. */
 public interface OrderRepository extends JpaRepository<Order, Long> {
+
+  /** Điều kiện lọc theo trạng thái hoàn tiền của trang quản trị; tham số null là không lọc. */
+  String REFUND_FILTER =
+      " and (:refundStatus is null or exists (select r.id from Refund r"
+          + " where r.order = o and r.status = :refundStatus))";
 
   /** Đơn đã tạo bằng mã định danh lần bấm xác nhận này (BR-10). */
   Optional<Order> findByIdempotencyKey(String idempotencyKey);
@@ -24,7 +32,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
   /**
    * Đơn hàng cho trang quản trị (US-17), mới nhất trước. status null là mọi trạng thái; keyword
-   * null là không lọc, ngược lại khớp đúng mã đơn hoặc một phần email khách, số điện thoại nhận.
+   * null là không lọc, ngược lại khớp đúng mã đơn hoặc một phần email khách, số điện thoại nhận;
+   * refundStatus null là không lọc theo hoàn tiền (vd FAILED: đơn cần hoàn tiền thủ công, BR-28).
    */
   @Query(
       value =
@@ -33,15 +42,29 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
               + " and (:keyword is null or cast(o.id as String) = :keyword"
               + " or a.email like concat('%', :keyword, '%')"
               + " or o.phoneSnapshot like concat('%', :keyword, '%'))"
+              + REFUND_FILTER
               + " order by o.createdAt desc, o.id desc",
       countQuery =
           "select count(o) from Order o join o.account a"
               + " where (:status is null or o.status = :status)"
               + " and (:keyword is null or cast(o.id as String) = :keyword"
               + " or a.email like concat('%', :keyword, '%')"
-              + " or o.phoneSnapshot like concat('%', :keyword, '%'))")
+              + " or o.phoneSnapshot like concat('%', :keyword, '%'))"
+              + REFUND_FILTER)
   Page<Order> searchForAdmin(
-      @Param("status") OrderStatus status, @Param("keyword") String keyword, Pageable pageable);
+      @Param("status") OrderStatus status,
+      @Param("keyword") String keyword,
+      @Param("refundStatus") RefundStatus refundStatus,
+      Pageable pageable);
+
+  /** Mã các đơn ONLINE còn chờ thanh toán, tạo trước mốc này (BR-34). */
+  @Query(
+      "select o.id from Order o"
+          + " where o.paymentMethod = com.manhdn.fashionshop.entity.PaymentMethod.ONLINE"
+          + " and o.paymentStatus = com.manhdn.fashionshop.entity.PaymentStatus.PENDING"
+          + " and o.status <> com.manhdn.fashionshop.entity.OrderStatus.CANCELLED"
+          + " and o.createdAt < :cutoff order by o.id")
+  List<Long> findIdsAwaitingPaymentBefore(@Param("cutoff") LocalDateTime cutoff);
 
   /** Mã tài khoản đặt đơn, để khóa tài khoản trước khi khóa đơn và biến thể. */
   @Query("select o.account.id from Order o where o.id = :id")

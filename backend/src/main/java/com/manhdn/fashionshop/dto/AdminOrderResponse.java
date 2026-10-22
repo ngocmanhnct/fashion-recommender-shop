@@ -10,7 +10,8 @@ import com.manhdn.fashionshop.entity.OrderStatus;
  * @param customerId mã tài khoản đặt hàng
  * @param customerName họ tên tài khoản đặt hàng
  * @param customerEmail email tài khoản đặt hàng
- * @param nextStatus trạng thái kế tiếp quản trị viên chuyển được, null nếu không còn
+ * @param nextStatus trạng thái kế tiếp quản trị viên chuyển được, null nếu không còn hoặc đơn thanh
+ *     toán online chưa được thanh toán
  * @param adminCancellable quản trị viên còn hủy được đơn không
  */
 public record AdminOrderResponse(
@@ -28,7 +29,7 @@ public record AdminOrderResponse(
         order.getAccount().getId(),
         order.getAccount().getFullName(),
         order.getAccount().getEmail(),
-        order.getStatus().next(),
+        order.paymentSettledForProcessing() ? order.getStatus().next() : null,
         order.getStatus().adminCancellable());
   }
 }

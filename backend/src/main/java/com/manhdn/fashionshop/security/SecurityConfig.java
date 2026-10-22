@@ -60,6 +60,9 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.POST, "/api/cart/preview")
                     .permitAll()
                     .requestMatchers(
+                        HttpMethod.GET, "/api/payments/vnpay/return", "/api/payments/vnpay/ipn")
+                    .permitAll()
+                    .requestMatchers(
                         "/api/cart",
                         "/api/cart/**",
                         "/api/addresses",
