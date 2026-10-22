@@ -4,6 +4,8 @@ import com.manhdn.fashionshop.dto.VnPayReturnResponse;
 import com.manhdn.fashionshop.service.PaymentService;
 import com.manhdn.fashionshop.service.PaymentService.CallbackResult;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,6 +18,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/payments/vnpay")
 public class PaymentController {
+
+  private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
 
   private final PaymentService paymentService;
 
@@ -62,6 +66,9 @@ public class PaymentController {
   @GetMapping("/ipn")
   public Map<String, String> handleIpn(@RequestParam Map<String, String> params) {
     CallbackResult result = paymentService.handleCallback(params);
+    // Ghi log để biết VNPay đã gọi IPN thật (trang trả về cũng ghi nhận được kết quả nên không
+    // nhìn trạng thái đơn mà phân biệt được).
+    log.info("Nhận IPN VNPay: đơn {}, kết quả {}", result.orderId(), result.outcome());
     return switch (result.outcome()) {
       case PAID, PAID_AFTER_CANCEL, PAYMENT_FAILED ->
           Map.of("RspCode", "00", "Message", "Confirm Success");
