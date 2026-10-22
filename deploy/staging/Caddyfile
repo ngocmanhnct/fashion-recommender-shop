@@ -1,0 +1,20 @@
+# Cổng vào của staging. Caddy tự xin và gia hạn chứng chỉ HTTPS (Let's Encrypt) cho tên miền
+# trong STAGING_DOMAIN, http:// tự chuyển sang https://.
+{$STAGING_DOMAIN} {
+	encode zstd gzip
+
+	# API nghiệp vụ, kể cả VNPay gọi /api/payments/vnpay/ipn.
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# Chỉ mở health của Actuator (trang /health của frontend và job deploy kiểm tra).
+	handle /actuator/health {
+		reverse_proxy backend:8080
+	}
+
+	# Còn lại là trang React.
+	handle {
+		reverse_proxy frontend:80
+	}
+}

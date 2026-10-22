@@ -132,6 +132,25 @@
 					<java><googleJavaFormat/><removeUnusedImports/></java>
 				</configuration>
 			</plugin>
+			<!-- Do do phu test (JaCoCo): prepare-agent gan agent vao JVM chay test (qua bien argLine),
+			     report ghi target/site/jacoco/ (index.html de xem, jacoco.xml cho SonarQube) o pha verify.
+			     Plugin ben thu ba nen phai ghi version. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.15</version>
+				<executions>
+					<execution>
+						<id>prepare-agent</id>
+						<goals><goal>prepare-agent</goal></goals>
+					</execution>
+					<execution>
+						<id>report</id>
+						<phase>verify</phase>
+						<goals><goal>report</goal></goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
