@@ -24,7 +24,12 @@ extend-select = ["I"]
 pythonpath = ["."]
 testpaths = ["tests"]
 # Đo độ phủ test mỗi lần chạy pytest: in bảng ra terminal, ghi coverage.xml cho SonarQube.
-addopts = "--cov=app --cov=scripts --cov-report=term-missing --cov-report=xml"
+addopts = "--cov --cov-report=term-missing --cov-report=xml"
 
 [tool.coverage.run]
 branch = true
+# Đo cả ml-service/ (app/, scripts/) như 1 thư mục nguồn, để coverage.xml ghi đường dẫn đầy đủ
+# (app/main.py). Khai riêng app và scripts thì file chỉ còn tên (__init__.py), SonarQube không
+# phân biệt được file nào và bỏ cả báo cáo.
+source = ["."]
+omit = ["tests/*"]
