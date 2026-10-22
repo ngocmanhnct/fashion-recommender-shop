@@ -343,6 +343,76 @@ CREATE TABLE `review` (
   CONSTRAINT `fk_review_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `survey_option`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `survey_option` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `question_id` bigint unsigned NOT NULL,
+  `code` varchar(20) NOT NULL,
+  `label` varchar(200) NOT NULL,
+  `display_order` int NOT NULL,
+  `next_question_id` bigint unsigned DEFAULT NULL,
+  `purpose` enum('SELF','GIFT') DEFAULT NULL,
+  `gender` enum('MALE','FEMALE') DEFAULT NULL,
+  `style` enum('SAVER','BRAND','QUALITY','TREND') DEFAULT NULL,
+  `price_min` bigint unsigned DEFAULT NULL,
+  `price_max` bigint unsigned DEFAULT NULL,
+  `price_flexible` tinyint(1) DEFAULT NULL,
+  `brand_loyalty` enum('STRONG','OPEN') DEFAULT NULL,
+  `min_rating` decimal(2,1) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_survey_option_question_code` (`question_id`,`code`),
+  KEY `fk_survey_option_next` (`next_question_id`),
+  CONSTRAINT `fk_survey_option_next` FOREIGN KEY (`next_question_id`) REFERENCES `survey_question` (`id`),
+  CONSTRAINT `fk_survey_option_question` FOREIGN KEY (`question_id`) REFERENCES `survey_question` (`id`),
+  CONSTRAINT `ck_survey_option_price` CHECK (((`price_max` is null) or (`price_min` is null) or (`price_max` >= `price_min`)))
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `survey_option_category`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `survey_option_category` (
+  `option_id` bigint unsigned NOT NULL,
+  `category_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`option_id`,`category_name`),
+  CONSTRAINT `fk_survey_option_category_option` FOREIGN KEY (`option_id`) REFERENCES `survey_option` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `survey_question`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `survey_question` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(10) NOT NULL,
+  `content` varchar(255) NOT NULL,
+  `hint` varchar(255) DEFAULT NULL,
+  `answer_type` enum('SINGLE','MULTIPLE','BRAND') NOT NULL,
+  `max_choices` int NOT NULL DEFAULT '1',
+  `next_question_id` bigint unsigned DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_survey_question_code` (`code`),
+  KEY `fk_survey_question_next` (`next_question_id`),
+  CONSTRAINT `fk_survey_question_next` FOREIGN KEY (`next_question_id`) REFERENCES `survey_question` (`id`),
+  CONSTRAINT `ck_survey_question_max_choices` CHECK ((`max_choices` >= 1))
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `survey_result`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `survey_result` (
+  `account_id` bigint unsigned NOT NULL,
+  `status` enum('COMPLETED','SKIPPED') NOT NULL,
+  `style` enum('SAVER','BRAND','QUALITY','TREND') DEFAULT NULL,
+  `brand_loyalty` enum('STRONG','OPEN') DEFAULT NULL,
+  `min_rating` decimal(2,1) DEFAULT NULL,
+  `answers` json DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  PRIMARY KEY (`account_id`),
+  CONSTRAINT `fk_survey_result_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `user_preference`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
