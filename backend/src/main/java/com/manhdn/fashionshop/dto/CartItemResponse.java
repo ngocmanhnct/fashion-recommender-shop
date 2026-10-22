@@ -9,6 +9,7 @@ package com.manhdn.fashionshop.dto;
  * @param productName tên sản phẩm
  * @param variantLabel nhãn phân loại, vd "Đen – 42"; null nếu sản phẩm không có phân loại
  * @param thumbnailUrl ảnh đầu tiên của sản phẩm, có thể null
+ * @param categoryName tên danh mục, để vẽ ảnh minh họa khi sản phẩm chưa có ảnh
  * @param unitPrice đơn giá hiện tại, VNĐ
  * @param quantity số lượng trong giỏ
  * @param stock tồn kho hiện tại của biến thể (chỉ để tham khảo, BR-08)
@@ -20,6 +21,7 @@ public record CartItemResponse(
     String productName,
     String variantLabel,
     String thumbnailUrl,
+    String categoryName,
     long unitPrice,
     int quantity,
     int stock,

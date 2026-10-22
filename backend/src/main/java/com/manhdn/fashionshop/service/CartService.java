@@ -429,6 +429,7 @@ public class CartService {
         product.getName(),
         variant.label(),
         product.getImages().isEmpty() ? null : product.getImages().get(0).getImageUrl(),
+        product.getCategory().getName(),
         price,
         quantity,
         variant.getStock(),

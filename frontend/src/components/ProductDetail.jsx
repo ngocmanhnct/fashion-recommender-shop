@@ -61,7 +61,11 @@ function ProductDetail({ id }) {
       </nav>
 
       <div className="product-detail">
-        <ProductGallery imageUrls={product.imageUrls} />
+        <ProductGallery
+          imageUrls={product.imageUrls}
+          productId={product.id}
+          categoryName={product.category?.name}
+        />
         <div className="product-info">
           <h1>{product.name}</h1>
           {product.brand && (

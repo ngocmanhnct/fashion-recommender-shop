@@ -134,7 +134,11 @@ function CartLine({ item }) {
   return (
     <li className="cart-line">
       <Link to={`/products/${item.productId}`} className="cart-line-image">
-        <ProductImage src={item.thumbnailUrl} />
+        <ProductImage
+          src={item.thumbnailUrl}
+          productId={item.productId}
+          categoryName={item.categoryName}
+        />
       </Link>
       <div className="cart-line-info">
         <Link to={`/products/${item.productId}`}>{item.productName}</Link>
