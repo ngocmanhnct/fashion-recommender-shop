@@ -1,0 +1,82 @@
+name: Báo lỗi
+description: Ghi một lỗi tìm thấy khi chạy, test, review hoặc do CI/SonarQube bắt được
+title: "[Lỗi] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: mo-ta
+    attributes:
+      label: Mô tả lỗi
+      description: Lỗi gì, ở đâu (trang, API, job CI)
+    validations:
+      required: true
+  - type: textarea
+    id: cac-buoc
+    attributes:
+      label: Các bước tái hiện
+      placeholder: |
+        1. Đăng nhập tài khoản khách
+        2. Vào /cart, bấm ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: mong-doi
+    attributes:
+      label: Kết quả mong đợi
+    validations:
+      required: true
+  - type: textarea
+    id: thuc-te
+    attributes:
+      label: Kết quả thực tế
+      description: Kèm thông báo lỗi, log hoặc ảnh chụp (không dán mật khẩu, token, khóa)
+    validations:
+      required: true
+  - type: dropdown
+    id: muc-do
+    attributes:
+      label: Mức độ
+      options:
+        - Critical (hỏng chức năng chính, mất dữ liệu, lỗ hổng bảo mật)
+        - Major (chức năng sai nhưng có cách khác)
+        - Minor (sai nhỏ, giao diện)
+        - Trivial (chính tả, hiển thị)
+    validations:
+      required: true
+  - type: dropdown
+    id: thanh-phan
+    attributes:
+      label: Thành phần
+      multiple: true
+      options:
+        - backend
+        - frontend
+        - ml-service
+        - CSDL / Flyway
+        - CI / deploy
+        - tài liệu
+    validations:
+      required: true
+  - type: dropdown
+    id: moi-truong
+    attributes:
+      label: Môi trường
+      options:
+        - Máy dev
+        - Docker Compose trên máy
+        - Staging
+        - CI (GitHub Actions)
+    validations:
+      required: true
+  - type: dropdown
+    id: nguon
+    attributes:
+      label: Ai phát hiện
+      options:
+        - Tự test
+        - CI / SonarQube / gitleaks
+        - Code do AI viết sai (ghi vào Mục B báo cáo tuần)
+        - Người dùng thử / giảng viên
+    validations:
+      required: true
