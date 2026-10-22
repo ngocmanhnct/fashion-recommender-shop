@@ -15,6 +15,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -75,11 +76,11 @@ public class RefundService {
             .map(Refund::getId)
             .toList();
     for (Long id : ids) {
-      RefundRequest request = transactionTemplate.execute(status -> requestFor(id));
-      if (request == null) {
+      Optional<RefundRequest> request = transactionTemplate.execute(status -> requestFor(id));
+      if (request.isEmpty()) {
         continue;
       }
-      RefundResult result = vnPayClient.refund(request);
+      RefundResult result = vnPayClient.refund(request.get());
       transactionTemplate.executeWithoutResult(status -> record(id, result));
     }
     return ids.size();
@@ -103,21 +104,22 @@ public class RefundService {
     refund.completeManually(LocalDateTime.now(clock));
   }
 
-  private RefundRequest requestFor(long refundId) {
+  private Optional<RefundRequest> requestFor(long refundId) {
     Refund refund = refundRepository.findById(refundId).orElse(null);
     if (refund == null || refund.getStatus() != RefundStatus.PROCESSING) {
-      return null;
+      return Optional.empty();
     }
     Order order = refund.getOrder();
     String txnRef = order.getPaymentTxnRef();
-    return new RefundRequest(
-        txnRef,
-        order.getPaymentTransactionNo(),
-        PaymentService.createDateOf(txnRef),
-        refund.getAmount(),
-        "Hoan tien don hang " + order.getId(),
-        "127.0.0.1",
-        ZonedDateTime.now(clock.withZone(VIETNAM)));
+    return Optional.of(
+        new RefundRequest(
+            txnRef,
+            order.getPaymentTransactionNo(),
+            PaymentService.createDateOf(txnRef),
+            refund.getAmount(),
+            "Hoan tien don hang " + order.getId(),
+            "127.0.0.1",
+            ZonedDateTime.now(clock.withZone(VIETNAM))));
   }
 
   private void record(long refundId, RefundResult result) {
