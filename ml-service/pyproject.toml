@@ -10,6 +10,7 @@ dependencies = [
 dev = [
     "httpx2>=2.13.1",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "ruff>=0.16.9",
 ]
 
@@ -22,3 +23,8 @@ extend-select = ["I"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+# Đo độ phủ test mỗi lần chạy pytest: in bảng ra terminal, ghi coverage.xml cho SonarQube.
+addopts = "--cov=app --cov=scripts --cov-report=term-missing --cov-report=xml"
+
+[tool.coverage.run]
+branch = true

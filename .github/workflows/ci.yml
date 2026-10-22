@@ -70,8 +70,24 @@ jobs:
 
       # verify = biên dịch + chạy test + Checkstyle (pom.xml gắn checkstyle:check vào pha verify,
       # và hạ ngưỡng xuống warning để vi phạm Google Java Style làm build thất bại thật).
+      # Tuần 7: verify cũng đo độ phủ test bằng JaCoCo (pom.xml), ghi target/site/jacoco/.
       - name: Build, test, Checkstyle
         run: sh ./mvnw -B -ntp verify
+
+      # Tổng độ phủ (dòng, nhánh) hiện ở trang tóm tắt của lần chạy, làm minh chứng theo tuần.
+      - name: Ghi độ phủ test vào trang tóm tắt
+        run: >-
+          awk -F, 'NR>1 {li+=$8; lc+=$9; bi+=$6; bc+=$7}
+          END {printf "### Backend: độ phủ dòng %.1f%%, nhánh %.1f%%\n", 100*lc/(li+lc), 100*bc/(bi+bc)}'
+          target/site/jacoco/jacoco.csv >> "$GITHUB_STEP_SUMMARY"
+
+      # Job SonarQube Cloud tải file này về để hiện độ phủ, khỏi chạy lại test (cần MySQL).
+      - name: Lưu báo cáo độ phủ cho SonarQube
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-coverage
+          path: backend/target/site/jacoco/jacoco.xml
+          retention-days: 7
 
   frontend:
     name: Frontend (React + Vite)
@@ -135,8 +151,21 @@ jobs:
       - name: Kiểm tra quy tắc (Ruff)
         run: uv run ruff check .
 
+      # pyproject.toml bật pytest-cov: in độ phủ và ghi coverage.xml.
       - name: Test (pytest)
         run: uv run pytest
+
+      - name: Ghi độ phủ test vào trang tóm tắt
+        run: |
+          echo "### ML service: độ phủ test" >> "$GITHUB_STEP_SUMMARY"
+          uv run coverage report --format=markdown >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Lưu báo cáo độ phủ cho SonarQube
+        uses: actions/upload-artifact@v7
+        with:
+          name: ml-service-coverage
+          path: ml-service/coverage.xml
+          retention-days: 7
 
   docker:
     name: Docker images
@@ -162,6 +191,8 @@ jobs:
     # Gói Free chỉ phân tích nhánh main và PR vào main. Bấm "Run workflow" trên nhánh khác
     # thì bỏ qua job này, nếu không nó đỏ vì gói Free không phân tích nhánh phụ.
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    # Chờ 2 job test xong để lấy báo cáo độ phủ. Test đỏ thì job này bị bỏ qua (skipped).
+    needs: [backend, ml-service]
     steps:
       - uses: actions/checkout@v7
         with:
@@ -183,6 +214,19 @@ jobs:
         run: |
           sh ./mvnw -B -ntp test-compile dependency:copy-dependencies -DincludeScope=compile -DoutputDirectory=target/sonar-libs/main
           sh ./mvnw -B -ntp dependency:copy-dependencies -DincludeScope=test -DoutputDirectory=target/sonar-libs/test
+
+      # Báo cáo độ phủ của 2 job test, đặt đúng đường dẫn mà sonar-project.properties trỏ tới.
+      - name: Tải báo cáo độ phủ backend
+        uses: actions/download-artifact@v8
+        with:
+          name: backend-coverage
+          path: backend/target/site/jacoco
+
+      - name: Tải báo cáo độ phủ ml-service
+        uses: actions/download-artifact@v8
+        with:
+          name: ml-service-coverage
+          path: ml-service
 
       # Khóa project và thư mục cần phân tích nằm ở sonar-project.properties (gốc repo).
       # SONAR_TOKEN là secret của repo (Settings -> Secrets and variables -> Actions),
@@ -233,3 +277,89 @@ jobs:
         run: |
           n=$(jq length "$RUNNER_TEMP/gitleaks-report.json" 2>/dev/null || echo "?")
           echo "### gitleaks ${GITLEAKS_VERSION}: ${n} secret bị phát hiện" >> "$GITHUB_STEP_SUMMARY"
+
+  # Tuần 7: tự deploy lên staging (máy ảo Azure) sau mỗi commit vào main đã qua hết kiểm tra.
+  # Mỗi lần chạy là 1 deployment trong mục Environments > staging của repo (lịch sử deploy).
+  # Cấu hình chạy trên máy ảo ở deploy/staging/. Biến và secret của environment "staging"
+  # (Settings -> Environments): STAGING_DOMAIN, STAGING_HOST (biến); STAGING_SSH_KEY,
+  # STAGING_SSH_KNOWN_HOSTS (secret). Secret của ứng dụng chỉ nằm trong .env trên máy ảo.
+  deploy:
+    name: Deploy staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [backend, frontend, ml-service, docker, gitleaks]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    environment:
+      name: staging
+      url: https://${{ vars.STAGING_DOMAIN }}
+    # 2 lần merge sát nhau thì lần sau chờ lần trước deploy xong, không hủy giữa chừng.
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      packages: write # đẩy image lên GitHub Container Registry
+    env:
+      REGISTRY: ghcr.io/ngocmanhnct/fashion-recommender-shop
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Đăng nhập GitHub Container Registry
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      # Frontend đóng cứng địa chỉ backend lúc build: staging gọi API qua cùng tên miền (Caddy
+      # chuyển /api/* sang backend).
+      - name: Build và đẩy 3 image (gắn tag mã commit và latest)
+        run: |
+          docker build -t "$REGISTRY/backend:$IMAGE_TAG" -t "$REGISTRY/backend:latest" backend
+          docker build -t "$REGISTRY/ml-service:$IMAGE_TAG" -t "$REGISTRY/ml-service:latest" ml-service
+          docker build --build-arg "VITE_API_BASE_URL=https://${{ vars.STAGING_DOMAIN }}" \
+            -t "$REGISTRY/frontend:$IMAGE_TAG" -t "$REGISTRY/frontend:latest" frontend
+          for s in backend ml-service frontend; do
+            docker push "$REGISTRY/$s:$IMAGE_TAG"
+            docker push "$REGISTRY/$s:latest"
+          done
+
+      # Khóa SSH riêng cho CI (không phải khóa của Mạnh), chỉ dùng được cho máy ảo staging.
+      # known_hosts ghim sẵn khóa của máy ảo để không nhận nhầm máy khác.
+      - name: Chuẩn bị SSH
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/staging
+          chmod 600 ~/.ssh/staging
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # Chép cấu hình mới, đăng nhập registry bằng token tạm của lần chạy này (hết hạn khi job
+      # xong), kéo image đúng mã commit rồi khởi động lại những container có thay đổi.
+      - name: Cập nhật máy ảo
+        env:
+          HOST: azureuser@${{ vars.STAGING_HOST }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          scp -i ~/.ssh/staging deploy/staging/docker-compose.yml deploy/staging/Caddyfile "$HOST:fashionshop/"
+          echo "$TOKEN" | ssh -i ~/.ssh/staging "$HOST" docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          status=0
+          ssh -i ~/.ssh/staging "$HOST" "cd fashionshop && export IMAGE_TAG=$IMAGE_TAG \
+            && docker compose pull -q && docker compose up -d --remove-orphans" || status=$?
+          ssh -i ~/.ssh/staging "$HOST" "docker logout ghcr.io; docker image prune -af"
+          exit $status
+
+      # Chờ backend khởi động xong (lần đầu nạp danh mục mẫu mất vài phút).
+      - name: Kiểm tra staging chạy được
+        run: |
+          for _ in $(seq 1 40); do
+            if curl -fsS "https://${{ vars.STAGING_DOMAIN }}/actuator/health" | grep -q '"UP"'; then
+              echo "### Đã deploy ${IMAGE_TAG::7} lên https://${{ vars.STAGING_DOMAIN }}" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Staging không trả UP sau 400 giây" && exit 1

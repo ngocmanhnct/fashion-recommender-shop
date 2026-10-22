@@ -1,0 +1,105 @@
+# Môi trường staging (Tuần 7): chạy trên máy ảo Azure, CI tự cập nhật sau mỗi lần merge vào main.
+# Khác docker-compose.yml ở gốc repo (chạy trên máy dev):
+# - Không build: kéo image CI đã build sẵn từ GitHub Container Registry (IMAGE_TAG = mã commit).
+# - Thêm Caddy làm cổng vào duy nhất (80/443): tự xin chứng chỉ HTTPS, chuyển /api/* và
+#   /actuator/health sang backend, còn lại sang frontend. MySQL, backend, ml-service không mở
+#   cổng ra internet.
+# File .env cùng thư mục chỉ nằm trên máy ảo (tạo tay, không commit), mẫu ở .env.example.
+name: fashionshop
+
+services:
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    environment:
+      STAGING_DOMAIN: ${STAGING_DOMAIN:?Thiếu STAGING_DOMAIN trong .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - backend
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: fashionshop
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Thiếu MYSQL_ROOT_PASSWORD trong .env}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  ml-service:
+    image: ghcr.io/ngocmanhnct/fashion-recommender-shop/ml-service:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "8000"
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 1g
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    image: ghcr.io/ngocmanhnct/fashion-recommender-shop/backend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      ML_SERVICE_URL: http://ml-service:8000
+      CORS_ALLOWED_ORIGINS: https://${STAGING_DOMAIN}
+      JWT_SECRET: ${JWT_SECRET:?Thiếu JWT_SECRET trong .env}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
+      VNPAY_RETURN_URL: https://${STAGING_DOMAIN}/payment/vnpay-return
+      # Đứng sau Caddy: lấy IP thật của khách từ X-Forwarded-For (VNPay cần vnp_IpAddr).
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      # /actuator/health mở ra internet: chỉ trả UP/DOWN, không lộ chi tiết CSDL, ổ đĩa.
+      MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: never
+      # Máy ảo 4 GB RAM dùng chung với MySQL, ml-service: giới hạn heap của JVM.
+      JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    depends_on:
+      mysql:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      # Lần chạy đầu nạp 1.050 sản phẩm mẫu, trên máy ảo 2 vCPU lâu hơn máy dev.
+      start_period: 180s
+
+  frontend:
+    image: ghcr.io/ngocmanhnct/fashion-recommender-shop/frontend:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    expose:
+      - "80"
+
+volumes:
+  mysql_data:
+  caddy_data:
+  caddy_config:
