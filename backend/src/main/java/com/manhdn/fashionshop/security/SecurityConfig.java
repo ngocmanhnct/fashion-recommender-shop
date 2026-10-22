@@ -59,6 +59,10 @@ public class SecurityConfig {
                     .hasRole("CUSTOMER")
                     .requestMatchers(HttpMethod.POST, "/api/cart/preview")
                     .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/survey")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/survey/brands", "/api/survey/evaluate")
+                    .permitAll()
                     .requestMatchers(
                         HttpMethod.GET, "/api/payments/vnpay/return", "/api/payments/vnpay/ipn")
                     .permitAll()
@@ -68,7 +72,9 @@ public class SecurityConfig {
                         "/api/addresses",
                         "/api/addresses/**",
                         "/api/orders",
-                        "/api/orders/**")
+                        "/api/orders/**",
+                        "/api/survey/me",
+                        "/api/survey/me/**")
                     .hasRole("CUSTOMER")
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                     .permitAll()

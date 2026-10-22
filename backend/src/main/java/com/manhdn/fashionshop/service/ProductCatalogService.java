@@ -72,7 +72,7 @@ public class ProductCatalogService {
   private static final String MIN_PRICE = "minPrice";
 
   /** Thứ tự "phổ biến": bán chạy trước, hòa thì theo vị trí trong danh mục, rồi theo id. */
-  private static final Sort POPULAR_ORDER =
+  static final Sort POPULAR_ORDER =
       Sort.by(Order.desc("soldCount"), Order.asc("categoryRank"), Order.asc(ID));
 
   private final ProductRepository productRepository;

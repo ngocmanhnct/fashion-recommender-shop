@@ -1,13 +1,15 @@
 import { Link } from 'react-router';
 import ProductSection from '../components/ProductSection';
+import SurveyHome from '../components/SurveyHome';
 import { useApiData } from '../hooks/useApiData';
 import { useAuth } from '../hooks/useAuth';
 import { getCategories } from '../services/catalogApi';
 import { productsPath } from '../services/productQuery';
 
 /**
- * Trang chủ: lời chào ngắn, lối tắt vào từng danh mục và khối "Sản phẩm bán chạy" (bán chạy =
- * tổng số lượng đã bán của các đơn không bị hủy, BR-22).
+ * Trang chủ: lời chào ngắn, lời mời làm khảo sát hoặc khối "Gợi ý cho bạn" (US-23), lối tắt vào
+ * từng danh mục và khối "Sản phẩm bán chạy" (bán chạy = tổng số lượng đã bán của các đơn không bị
+ * hủy, BR-22).
  */
 function HomePage() {
   const { user } = useAuth();
@@ -30,6 +32,7 @@ function HomePage() {
         </p>
       </section>
 
+      <SurveyHome />
       <CategoryChips />
       <ProductSection title="Sản phẩm bán chạy" sort="POPULAR" size={8} moreLink="/products" />
 

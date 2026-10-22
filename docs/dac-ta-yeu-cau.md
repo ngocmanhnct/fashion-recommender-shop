@@ -551,7 +551,7 @@ UNIQUE(account\_id, product\_id).
 | :---- | :---- | :---- | :---- |
 | id | BIGINT UNSIGNED | PK |  |
 | account\_id | BIGINT UNSIGNED | FK → account.id, NOT NULL | Khách chưa đăng nhập lưu sở thích ở trình duyệt; đăng ký/đăng nhập thì chuyển vào đây nếu tài khoản chưa có |
-| category\_id | BIGINT UNSIGNED | FK → category.id, NOT NULL | Một dòng cho mỗi danh mục quan tâm (chọn 1 đến 3) |
+| category\_id | BIGINT UNSIGNED | FK → category.id, NOT NULL | Một dòng cho mỗi danh mục quan tâm. Khách chọn 1 đến 3 **dịp sử dụng**, mỗi dịp ứng với nhiều danh mục (Mục 3.16), nên một tài khoản có thể có nhiều hơn 3 dòng *(đổi 22/10/2026, trước là chọn thẳng 1 đến 3 danh mục)* |
 | brand\_id | BIGINT UNSIGNED | FK → brand.id, NULLABLE | Thương hiệu yêu thích, tùy chọn |
 | price\_min | BIGINT UNSIGNED | NOT NULL, DEFAULT 0 | Cận dưới tầm giá, VNĐ |
 | price\_max | BIGINT UNSIGNED | NULLABLE | Cận trên tầm giá, NULL \= không giới hạn trên |
@@ -609,9 +609,60 @@ Index (event\_type, created\_at) để tính tỷ lệ bấm theo khoảng thờ
 
 Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu cầu đang chờ cho mỗi loại việc. Index trên due\_at cho vòng lấy việc mỗi 2 giây. Backend ghi bằng `INSERT … AS incoming ON DUPLICATE KEY UPDATE due_at = LEAST(recompute_request.due_at, incoming.due_at), version = recompute_request.version + 1`; dịch vụ học máy tính xong thì chỉ xóa dòng nếu `version` chưa đổi, tính lỗi thì tăng `attempts`, ghi `last_error` và lùi `due_at`. Mọi thời điểm của bảng này ghi bằng `UTC_TIMESTAMP(3)`, không dùng `NOW()` vì `NOW()` đổi theo múi giờ của từng kết nối.
 
+
+### 3.16 Cây khảo sát và kết quả — `survey_question`, `survey_option`, `survey_option_category`, `survey_result`
+
+*Nguồn: US-23, BR-37, BR-38 (bổ sung 22/10/2026, migration V5). Câu hỏi rẽ nhánh theo câu trả lời trước, dựa trên thang kiểu người mua Sproles & Kendall (rút gọn). Cây câu hỏi là dữ liệu nạp sẵn trong migration, chưa có trang quản trị để sửa.*
+
+`survey_question` — câu hỏi:
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- |
+| id | BIGINT UNSIGNED | PK |  |
+| code | VARCHAR(10) | UNIQUE, NOT NULL | Mã câu, vd Q1; câu đầu tiên là Q1 |
+| content | VARCHAR(255) | NOT NULL | Nội dung câu hỏi |
+| hint | VARCHAR(255) | NULLABLE | Gợi ý cách trả lời |
+| answer\_type | ENUM('SINGLE','MULTIPLE','BRAND') | NOT NULL | Chọn 1, chọn nhiều, hoặc chọn 1 thương hiệu trong các danh mục đã chọn |
+| max\_choices | INT | NOT NULL, DEFAULT 1, CHECK ≥ 1 | Số đáp án tối đa của câu MULTIPLE |
+| next\_question\_id | BIGINT UNSIGNED | FK → survey\_question.id, NULLABLE | Câu tiếp theo của câu BRAND (câu khác đi theo đáp án) |
+
+`survey_option` — đáp án và ý nghĩa của đáp án:
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- |
+| id | BIGINT UNSIGNED | PK |  |
+| question\_id | BIGINT UNSIGNED | FK → survey\_question.id, NOT NULL |  |
+| code | VARCHAR(20) | NOT NULL, UNIQUE cùng question\_id |  |
+| label | VARCHAR(200) | NOT NULL | Chữ hiện cho khách |
+| display\_order | INT | NOT NULL | Thứ tự hiện |
+| next\_question\_id | BIGINT UNSIGNED | FK → survey\_question.id, NULLABLE | Câu tiếp theo; NULL \= hết khảo sát. Câu MULTIPLE đi theo đáp án chọn đầu tiên |
+| purpose | ENUM('SELF','GIFT') | NULLABLE | Mua cho mình hay tìm quà |
+| gender | ENUM('MALE','FEMALE') | NULLABLE | Bỏ danh mục của giới tính còn lại |
+| style | ENUM('SAVER','BRAND','QUALITY','TREND') | NULLABLE | Kiểu người mua: tiết kiệm, thương hiệu, cầu toàn, theo xu hướng |
+| price\_min, price\_max | BIGINT UNSIGNED | NULLABLE, CHECK price\_max ≥ price\_min | Tầm giá, VNĐ; price\_max NULL \= không giới hạn |
+| price\_flexible | BOOLEAN | NULLABLE | Chấp nhận giá cao hơn 30% |
+| brand\_loyalty | ENUM('STRONG','OPEN') | NULLABLE | Trung thành hay sẵn sàng thử thương hiệu khác |
+| min\_rating | DECIMAL(2,1) | NULLABLE | Điểm đánh giá tối thiểu |
+
+`survey_option_category` — danh mục ứng với mỗi dịp sử dụng: khóa chính (option\_id, category\_name), option\_id FK → survey\_option.id, category\_name VARCHAR(100). Nối theo **tên** danh mục vì danh mục mẫu được nạp sau migration; đổi tên danh mục thì sửa cả bảng này.
+
+`survey_result` — kết quả khảo sát của tài khoản:
+
+| Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- |
+| account\_id | BIGINT UNSIGNED | PK, FK → account.id | Mỗi tài khoản 1 dòng |
+| status | ENUM('COMPLETED','SKIPPED') | NOT NULL | Bỏ qua thì không hỏi lại (BR-37); đã làm xong mà bấm bỏ qua thì giữ kết quả cũ |
+| style | ENUM('SAVER','BRAND','QUALITY','TREND') | NULLABLE | Kiểu người mua rút ra từ câu trả lời |
+| brand\_loyalty | ENUM('STRONG','OPEN') | NULLABLE |  |
+| min\_rating | DECIMAL(2,1) | NULLABLE |  |
+| answers | JSON | NULLABLE | Câu trả lời theo đúng thứ tự trên cây, để hiện lại và tính lại |
+| created\_at, updated\_at | DATETIME | NOT NULL |  |
+
+Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result` hay `user_preference` (BR-38: sở thích là của người mua, không phải của người nhận quà). Lưu khảo sát ghi một yêu cầu tính lại RECOMMENDATION (Mục 3.15).
+
 ---
 
-**Tổng cộng: 21 bảng dữ liệu**, bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 25 bảng dữ liệu** (21 bảng ban đầu và 4 bảng khảo sát ở Mục 3.16), bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 
