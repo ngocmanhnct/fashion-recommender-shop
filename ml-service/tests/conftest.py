@@ -36,6 +36,9 @@ def _admin_connection(settings: Settings) -> pymysql.Connection:
         user=settings.db_user,
         password=settings.db_password,
         charset="utf8mb4",
+        # Tự commit từng câu: các INSERT dữ liệu nạp sẵn ở cuối migration (vd cây khảo sát của V5)
+        # không có câu DDL nào sau chúng để commit hộ, đóng kết nối là mất.
+        autocommit=True,
         client_flag=pymysql.constants.CLIENT.MULTI_STATEMENTS,
         connect_timeout=5,
     )
