@@ -5,7 +5,10 @@ requires-python = ">=3.13"
 dependencies = [
     "bcrypt>=5.0.0",
     "fastapi[standard]>=0.142.1",
+    "numpy>=2.5.4",
     "pymysql[rsa]>=1.2.3",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
     "sqlalchemy>=2.1.6",
 ]
 

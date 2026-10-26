@@ -1,6 +1,6 @@
 # ml-service
 
-Service FastAPI cho 2 tính năng ML của đề tài: gợi ý sản phẩm (content-based filtering) và phân nhóm khách hàng (RFM + K-Means). Chỉ được Spring Boot gọi nội bộ, không gọi thẳng từ trình duyệt. Từ Tuần 8 đọc/ghi MySQL: tiến trình lấy việc (`app/recompute/`) xử lý bảng `recompute_request` mỗi 2 giây.
+Service FastAPI cho 2 tính năng ML của đề tài: gợi ý sản phẩm (hybrid: lọc theo nội dung, hay mua cùng, khảo sát, bán chạy) và phân nhóm khách hàng (RFM + K-Means). Chỉ được Spring Boot gọi nội bộ, không gọi thẳng từ trình duyệt. Từ Tuần 8 đọc/ghi MySQL: tiến trình lấy việc (`app/recompute/`) xử lý bảng `recompute_request` mỗi 2 giây.
 
 ## Chạy trên máy (cần uv: https://docs.astral.sh/uv/)
 
@@ -44,7 +44,7 @@ uv run python -m app.simulation --help       # số khách (--customers), seed (
 - Mọi tài khoản mô phỏng có email `@mophong.test`: xóa, sinh lại chỉ đụng các tài khoản này, không đụng tài khoản thật hay danh mục. Chạy trong 1 giao dịch, lỗi giữa chừng thì CSDL giữ nguyên.
 - Cùng seed và cùng danh mục thì ra cùng dữ liệu (thời gian tính lùi từ lúc chạy). Không trừ tồn kho.
 - 6 tài khoản demo, mỗi tài khoản cho thấy 1 trường hợp gợi ý/phân nhóm: `demo.vip`, `demo.tietkiem`, `demo.ngungmua`, `demo.chixem`, `demo.khaosat`, `demo.moi` (`@mophong.test`). Mật khẩu là biến môi trường `SIM_DEMO_PASSWORD` (ít nhất 8 ký tự), không ghi vào code hay git; không đặt thì tài khoản demo không đăng nhập được. Khách thường `kh0001@mophong.test`... không đăng nhập được.
-- Sau khi ghi, mỗi khách có 1 yêu cầu tính lại gợi ý (và phân nhóm nếu có đơn đã giao) trong `recompute_request`; loại việc chưa có hàm xử lý thì nằm chờ.
+- Sau khi ghi, mỗi khách có 1 yêu cầu tính lại gợi ý (và phân nhóm nếu có đơn đã giao) trong `recompute_request`; ml-service đang chạy sẽ tính gợi ý cho cả 300 khách trong khoảng 40 giây, yêu cầu phân nhóm nằm chờ đến Tuần 9.
 - Trên staging: `docker compose exec -e SIM_DEMO_PASSWORD=... ml-service uv run --no-sync python -m app.simulation`.
 
 Notebook EDA: `notebooks/eda_du_lieu_mo_phong.ipynb` (đã lưu kết quả chạy). Chạy lại sau khi sinh dữ liệu:
@@ -53,4 +53,21 @@ Notebook EDA: `notebooks/eda_du_lieu_mo_phong.ipynb` (đã lưu kết quả ch�
 uv sync --group eda
 uv run --group eda jupyter execute --inplace notebooks/eda_du_lieu_mo_phong.ipynb
 uv run ruff format notebooks
+```
+
+## Gợi ý sản phẩm (Tuần 8)
+
+Package `app/recommendation/`. Mô hình dựng trong bộ nhớ từ MySQL (khoảng 0,3 giây với 1.050 sản phẩm), dựng lại khi sản phẩm, tồn kho, đơn hàng hay đánh giá đổi (kiểm tra mỗi 5 giây).
+
+- **Vector sản phẩm** (`features.py`): TF-IDF tên + mô tả (từ đơn và cặp 2 từ), one-hot danh mục, thương hiệu, 5 khoảng giá; trọng số khối 0,45 / 0,30 / 0,15 / 0,10. Độ tương đồng cosine = tích vô hướng.
+- **Hay mua cùng** (`copurchase.py`): cosine giữa 2 sản phẩm theo tập khách đã mua (đơn khác CANCELLED), co các cặp ít khách chung.
+- **Trang chủ** (`model.py`, nguồn theo BR-38): đủ dữ liệu hành vi (BR-19) thì trộn 0,7 × cosine với hồ sơ P(u) (đã mua 5, trong giỏ 3, yêu thích 2, đã xem 1, khảo sát 0,5) + 0,2 × hay mua cùng + 0,1 × bán chạy + 0,15 × điểm cộng theo kiểu người mua; chỉ có khảo sát thì cosine với vector khảo sát + 0,2 × bán chạy + 0,15 × điểm cộng, sản phẩm trong khoảng giá khách chọn đứng trước; không có gì thì không có danh sách (trang chủ hiện bán chạy). Không gợi ý sản phẩm đã mua, đang trong giỏ, hết hàng; trừ điểm sản phẩm trùng danh mục để danh sách đa dạng. Mỗi khách lưu 20 sản phẩm kèm lý do vào bảng `recommendation`.
+- **Tính lại** (`store.py`): hàm xử lý yêu cầu RECOMMENDATION của tiến trình lấy việc (khoảng 20 ms mỗi khách). Lúc khởi động và 02:00 giờ Việt Nam mỗi đêm, ghi yêu cầu cho mọi khách có danh sách, có đơn Đã giao, có lượt xem 30 ngày hoặc đã làm khảo sát (BR-20).
+- **API cho backend** (khoảng 5 ms): `GET /recommendations/related/{productId}?limit=4` (sản phẩm liên quan, US-12), `POST /recommendations/survey` (gợi ý theo khảo sát, US-23; body `categoryIds`, `brandId`, `priceMin`, `priceMax`, `style`, `minRating`, `excludeProductIds`, `limit`). Xem `/docs`.
+
+Đánh giá ngoại tuyến (giấu đơn cuối của mỗi khách rồi đo tỷ lệ trúng, precision, recall, NDCG ở 10 sản phẩm đầu; khởi động lạnh: đoán đơn đầu tiên chỉ từ khảo sát):
+
+```powershell
+uv run python -m app.recommendation.evaluate          # vài giây
+uv run python -m app.recommendation.evaluate --grid   # thử thêm 192 bộ trọng số (khoảng 2 phút)
 ```

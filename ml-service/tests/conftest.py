@@ -104,6 +104,7 @@ def clean_db(db_engine: Engine) -> Iterator[Engine]:
     def wipe() -> None:
         with db_engine.begin() as conn:
             conn.execute(text("DELETE FROM recompute_request"))
+            conn.execute(text("DELETE FROM recommendation"))
             conn.execute(text("DELETE FROM account"))
 
     wipe()
