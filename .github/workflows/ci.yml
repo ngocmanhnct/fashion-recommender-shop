@@ -126,6 +126,25 @@ jobs:
     defaults:
       run:
         working-directory: ml-service
+    # Tuần 8: test hàng đợi recompute_request cần MySQL thật. Test tự tạo CSDL fashionshop_mltest
+    # và chạy các file migration Flyway của backend (backend/src/main/resources/db/migration).
+    # ML_TEST_REQUIRE_DB=1: thiếu MySQL thì test báo lỗi, không lặng lẽ bỏ qua như trên máy dev.
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: ci_only_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping -h 127.0.0.1 -uroot -pci_only_password"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      DB_HOST: 127.0.0.1
+      MYSQL_ROOT_PASSWORD: ci_only_password
+      ML_TEST_REQUIRE_DB: "1"
     steps:
       - uses: actions/checkout@v7
         with:
