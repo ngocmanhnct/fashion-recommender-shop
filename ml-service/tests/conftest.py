@@ -41,9 +41,18 @@ def _admin_connection(settings: Settings) -> pymysql.Connection:
     )
 
 
+def _for_test_db(sql: str) -> str:
+    """Đổi `ALTER DATABASE fashionshop` (V1) sang CSDL test.
+
+    Flyway của backend luôn chạy trên CSDL tên fashionshop nên V1 ghi thẳng tên đó. Chạy nguyên
+    văn ở đây thì sửa CSDL dev trên máy, còn ở CI (không có CSDL fashionshop) thì báo lỗi 3503.
+    """
+    return re.sub(r"ALTER DATABASE\s+fashionshop\b", f"ALTER DATABASE {TEST_DB}", sql)
+
+
 def _run_script(cursor: pymysql.cursors.Cursor, sql: str) -> None:
     """Chạy cả file SQL; đọc hết kết quả để lỗi ở câu lệnh sau cũng được báo."""
-    cursor.execute(sql)
+    cursor.execute(_for_test_db(sql))
     while cursor.nextset():
         pass
 
