@@ -74,7 +74,8 @@ public class SecurityConfig {
                         "/api/orders",
                         "/api/orders/**",
                         "/api/survey/me",
-                        "/api/survey/me/**")
+                        "/api/survey/me/**",
+                        "/api/recommendations/me")
                     .hasRole("CUSTOMER")
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                     .permitAll()
