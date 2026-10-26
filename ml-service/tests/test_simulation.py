@@ -371,7 +371,7 @@ def test_demo_password_is_a_spring_bcrypt_hash(sim_db):
     with sim_db.connect() as conn:
         hashes = dict(conn.execute(text("SELECT email, password_hash FROM account")).all())
     demo = hashes["demo.vip@mophong.test"]
-    assert demo.startswith("$2b$10$")
+    assert demo.startswith("$2b$12$")
     assert bcrypt.checkpw(DEMO_PASSWORD.encode(), demo.encode())
     # Khách thường không đăng nhập được bằng mật khẩu demo.
     assert not bcrypt.checkpw(DEMO_PASSWORD.encode(), hashes["kh0001@mophong.test"].encode())

@@ -35,7 +35,7 @@ RESET_STATEMENTS = (
 )
 RESET_TABLES = tuple(stmt.split()[2] for stmt in RESET_STATEMENTS)
 
-BCRYPT_ROUNDS = 10  # như BCryptPasswordEncoder mặc định của backend
+BCRYPT_ROUNDS = 12  # Spring BCrypt đọc được mọi cost; 12 là mức tối thiểu SonarQube chấp nhận
 
 
 def reset(conn: Connection) -> int:

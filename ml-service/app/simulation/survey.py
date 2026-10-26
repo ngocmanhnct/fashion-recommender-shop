@@ -4,6 +4,7 @@ Cây câu hỏi đọc từ CSDL; cách gộp thông tin từ đáp án và lọ
 SurveyService của backend, nên trang /survey của khách mô phỏng hiện đúng hồ sơ đã lưu.
 """
 
+import math
 import random
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -260,7 +261,10 @@ def _choose_single(options: list[Option], customer, budget: int, rng: random.Ran
         ),
         (
             lambda o: o.min_rating is not None,
-            lambda o: o.min_rating == (4.5 if customer.style == "QUALITY" else 4.0),
+            lambda o: (
+                o.min_rating is not None
+                and math.isclose(o.min_rating, 4.5 if customer.style == "QUALITY" else 4.0)
+            ),
         ),
     )
     for applies, matches in rules:
