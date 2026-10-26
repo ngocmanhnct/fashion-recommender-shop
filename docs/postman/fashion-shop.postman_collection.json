@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Fashion Shop API (Tuần 7)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "name": "Fashion Shop API (Tuần 8)",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -18,6 +18,10 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:8080"
+    },
+    {
+      "key": "mlBaseUrl",
+      "value": "http://localhost:8000"
     },
     {
       "key": "adminEmail",
@@ -2169,6 +2173,53 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "5. ML service (nội bộ, chỉ khi chạy ml-service trên máy)",
+      "description": "API nội bộ của ml-service (FastAPI). Trình duyệt và frontend không bao giờ gọi các API này; trong Docker ml-service không mở cổng ra máy host, nên chỉ thử được khi chạy `uv run fastapi dev app/main.py` trong ml-service/ (biến mlBaseUrl = http://localhost:8000). Trong Docker thì gọi qua backend: `docker compose exec backend curl -s http://ml-service:8000/recompute/status`.",
+      "item": [
+        {
+          "name": "Kiểm tra sức khỏe ml-service",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mlBaseUrl}}/health",
+              "host": [
+                "{{mlBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Luôn trả {\"status\": \"UP\"} khi service chạy; cố ý không kiểm tra CSDL."
+          }
+        },
+        {
+          "name": "Trạng thái hàng đợi tính lại",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mlBaseUrl}}/recompute/status",
+              "host": [
+                "{{mlBaseUrl}}"
+              ],
+              "path": [
+                "recompute",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Tiến trình lấy việc (BR-20): có đang chạy, có giữ khóa lấy việc không, các loại việc đã có hàm xử lý, lần lấy việc gần nhất, số yêu cầu đã xử lý/lỗi, lỗi gần nhất; pending = số yêu cầu đang chờ theo loại việc (total) và số đã đến hạn (due)."
+          }
         }
       ]
     }
