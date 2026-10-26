@@ -1,10 +1,11 @@
 import time
+from datetime import datetime
 
 import pytest
 from sqlalchemy import text
 
 from app.recompute.queue import RECOMMENDATION, SEGMENT_ASSIGN
-from app.recompute.worker import RecomputeWorker
+from app.recompute.worker import VIETNAM, RecomputeWorker
 from tests.db_helpers import create_account, request_recompute
 
 
@@ -126,6 +127,19 @@ def test_only_one_worker_holds_the_lock(clean_db, make_worker):
     assert second.last_error is None
 
 
+def test_lock_is_per_database(clean_db, make_worker):
+    # Khóa của MySQL tính trên cả máy chủ: ml-service của CSDL khác không được chặn worker này.
+    other = clean_db.connect()
+    other.execute(text("SELECT GET_LOCK('recompute_worker:fashionshop', 0)"))
+    worker = make_worker(clean_db, {})
+    try:
+        worker.tick()
+        assert worker.holds_lock
+        assert worker.lock_name == f"recompute_worker:{clean_db.url.database}"
+    finally:
+        other.close()
+
+
 def test_survives_missing_table_and_reports_it(empty_db_engine, make_worker):
     worker = make_worker(empty_db_engine, {RECOMMENDATION: lambda conn, req: None})
     assert worker.tick() == 0
@@ -155,3 +169,59 @@ def test_background_thread_picks_up_new_requests(clean_db, make_worker):
     assert status["taskTypes"] == [RECOMMENDATION]
     assert status["processed"] == 1 and status["lastPollAt"].endswith("Z")
     assert worker.status()["running"] is False and not worker.holds_lock
+
+
+# ---- việc mỗi đêm ----
+
+
+def vn(day, hour, minute=0):
+    return datetime(2026, 10, day, hour, minute, tzinfo=VIETNAM)
+
+
+def test_maintenance_runs_at_start_then_after_each_2am(clean_db, make_worker):
+    calls = []
+    now = [vn(26, 10)]
+    worker = make_worker(
+        clean_db, {}, maintenance=lambda conn: calls.append(now[0]), clock=lambda: now[0]
+    )
+    assert worker.maintenance_due(now[0])
+    assert worker.tick() == 0
+    assert calls == [vn(26, 10)]
+    assert worker.status()["lastMaintenanceAt"] == "2026-10-26T10:00:00+07:00"
+
+    for moment, expected in (
+        (vn(26, 23), False),
+        (vn(27, 1, 59), False),
+        (vn(27, 2), True),
+    ):
+        assert worker.maintenance_due(moment) is expected
+    now[0] = vn(27, 2, 1)
+    assert worker.run_maintenance_if_due()
+    assert not worker.run_maintenance_if_due()
+    assert len(calls) == 2
+
+
+def test_maintenance_error_waits_for_next_night(clean_db, make_worker, caplog):
+    def broken(conn):
+        raise RuntimeError("hỏng")
+
+    worker = make_worker(clean_db, {}, maintenance=broken, clock=lambda: vn(26, 10))
+    assert worker.run_maintenance_if_due() is False
+    assert "Lỗi khi chạy việc định kỳ" in caplog.text
+    assert not worker.maintenance_due(vn(26, 11))
+
+
+def test_maintenance_database_error_is_retried(clean_db, make_worker):
+    def broken(conn):
+        conn.execute(text("SELECT * FROM bang_khong_co"))
+
+    worker = make_worker(clean_db, {}, maintenance=broken, clock=lambda: vn(26, 10))
+    assert worker.tick() == 0
+    assert worker.last_error is not None
+    assert worker.last_maintenance_at is None
+
+
+def test_no_maintenance_by_default(clean_db, make_worker):
+    worker = make_worker(clean_db, {})
+    assert not worker.maintenance_due(vn(26, 10))
+    assert worker.run_maintenance_if_due() is False

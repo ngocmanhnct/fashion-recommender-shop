@@ -1,8 +1,9 @@
 """Tiến trình lấy việc: mỗi 2 giây đọc các yêu cầu đến hạn trong `recompute_request` và xử lý.
 
 Quy tắc (trinh-bay/cap-nhat-goi-y-va-phan-nhom.md, mục 6):
-- Chỉ 1 tiến trình lấy việc cho mỗi CSDL, giữ khóa `GET_LOCK('recompute_worker', 0)` trên một kết
-  nối riêng. Chạy thử ml-service trên máy trong khi Docker cũng chạy thì bản sau chỉ đứng chờ.
+- Chỉ 1 tiến trình lấy việc cho mỗi CSDL, giữ khóa `GET_LOCK('recompute_worker:<tên CSDL>', 0)`
+  trên một kết nối riêng (khóa của MySQL tính trên cả máy chủ, nên tên khóa kèm tên CSDL). Chạy
+  thử ml-service trên máy trong khi Docker cũng chạy thì bản sau chỉ đứng chờ.
 - Mỗi lượt đọc là một giao dịch mới (MySQL mặc định REPEATABLE READ, giữ giao dịch cũ sẽ đọc
   lại dữ liệu cũ).
 - Xử lý xong thì ghi kết quả và xóa yêu cầu trong cùng 1 giao dịch, chỉ xóa khi `version` chưa
@@ -15,7 +16,8 @@ import logging
 import threading
 import time
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta, timezone
+from datetime import time as day_time
 
 from sqlalchemy import Connection, Engine, text
 from sqlalchemy.exc import SQLAlchemyError
@@ -33,6 +35,14 @@ LOCK_NAME = "recompute_worker"
 
 Handler = Callable[[Connection, RecomputeRequest], None]
 """Hàm xử lý 1 loại việc: tính và ghi kết quả qua `conn` (đang trong giao dịch của worker)."""
+
+Maintenance = Callable[[Connection], None]
+"""Việc chạy khi bắt đầu lấy việc và mỗi đêm (vd yêu cầu tính lại gợi ý cho mọi khách)."""
+
+VIETNAM = timezone(timedelta(hours=7))
+"""Giờ Việt Nam (không đổi giờ theo mùa), để lịch chạy đêm không phụ thuộc múi giờ của máy."""
+
+NIGHTLY_AT = day_time(2, 0)
 
 
 def _utcnow() -> datetime:
@@ -61,9 +71,12 @@ class RecomputeWorker:
         batch_size: int = 50,
         lock_retry_seconds: float = 30.0,
         error_log_interval_seconds: float = 60.0,
+        maintenance: Maintenance | None = None,
+        clock: Callable[[], datetime] = lambda: datetime.now(VIETNAM),
     ) -> None:
-        """Nhận engine, các hàm xử lý theo loại việc và nhịp lấy việc."""
+        """Nhận engine, các hàm xử lý theo loại việc, nhịp lấy việc và việc chạy mỗi đêm."""
         self.engine = engine
+        self.lock_name = f"{LOCK_NAME}:{engine.url.database or ''}"
         self.handlers = dict(handlers)
         self.poll_interval_seconds = poll_interval_seconds
         self.batch_size = batch_size
@@ -78,6 +91,9 @@ class RecomputeWorker:
         self.last_error: str | None = None
         self.processed = 0
         self.failed = 0
+        self.maintenance = maintenance
+        self.clock = clock
+        self.last_maintenance_at: datetime | None = None
 
     # ---- vòng đời ----
 
@@ -116,6 +132,7 @@ class RecomputeWorker:
         try:
             if not self._ensure_lock():
                 return 0
+            self.run_maintenance_if_due()
             count = self.poll_once()
             self.last_error = None
             return count
@@ -132,10 +149,10 @@ class RecomputeWorker:
         return self._lock_conn is not None
 
     def _ensure_lock(self) -> bool:
-        """Giữ khóa `recompute_worker`; kiểm tra lại mỗi lượt vì kết nối có thể đã mất."""
+        """Giữ khóa lấy việc của CSDL; kiểm tra lại mỗi lượt vì kết nối có thể đã mất."""
         if self._lock_conn is not None:
             held = self._lock_conn.execute(
-                text("SELECT IS_USED_LOCK(:name) = CONNECTION_ID()"), {"name": LOCK_NAME}
+                text("SELECT IS_USED_LOCK(:name) = CONNECTION_ID()"), {"name": self.lock_name}
             ).scalar()
             self._lock_conn.commit()
             if held == 1:
@@ -146,14 +163,14 @@ class RecomputeWorker:
             return False
         conn = self.engine.connect()
         try:
-            got = conn.execute(text("SELECT GET_LOCK(:name, 0)"), {"name": LOCK_NAME}).scalar()
+            got = conn.execute(text("SELECT GET_LOCK(:name, 0)"), {"name": self.lock_name}).scalar()
             conn.commit()
         except SQLAlchemyError:
             conn.invalidate()
             raise
         if got == 1:
             self._lock_conn = conn
-            logger.info("Đã giữ khóa lấy việc '%s'", LOCK_NAME)
+            logger.info("Đã giữ khóa lấy việc '%s'", self.lock_name)
             return True
         conn.invalidate()
         self._next_lock_attempt = time.monotonic() + self.lock_retry_seconds
@@ -167,10 +184,45 @@ class RecomputeWorker:
             return
         if release:
             try:
-                conn.execute(text("SELECT RELEASE_LOCK(:name)"), {"name": LOCK_NAME})
+                conn.execute(text("SELECT RELEASE_LOCK(:name)"), {"name": self.lock_name})
             except SQLAlchemyError:
                 pass  # kết nối đã hỏng thì MySQL cũng đã nhả khóa
         conn.invalidate()
+
+    # ---- việc mỗi đêm ----
+
+    def maintenance_due(self, now: datetime) -> bool:
+        """Đến lượt chạy: chưa chạy lần nào từ lúc khởi động, hoặc đã qua mốc 02:00 gần nhất."""
+        if self.maintenance is None:
+            return False
+        if self.last_maintenance_at is None:
+            return True
+        latest = datetime.combine(now.date(), NIGHTLY_AT, tzinfo=now.tzinfo)
+        if now < latest:
+            latest -= timedelta(days=1)
+        return self.last_maintenance_at < latest
+
+    def run_maintenance_if_due(self) -> bool:
+        """Chạy việc mỗi đêm nếu đến lượt (giao dịch riêng). Trả về True nếu đã chạy.
+
+        Lỗi CSDL thì để lượt sau thử lại; lỗi khác thì ghi log và chờ đến đêm sau, để không lặp
+        lỗi mỗi 2 giây.
+        """
+        now = self.clock()
+        if not self.maintenance_due(now):
+            return False
+        try:
+            with self.engine.begin() as conn:
+                self.maintenance(conn)
+        except Exception as exc:
+            if isinstance(exc, SQLAlchemyError):
+                raise
+            logger.exception("Lỗi khi chạy việc định kỳ, chờ lượt sau")
+            self.last_maintenance_at = now
+            return False
+        self.last_maintenance_at = now
+        logger.info("Đã chạy việc định kỳ lúc %s", now.isoformat(timespec="seconds"))
+        return True
 
     # ---- lấy việc ----
 
@@ -239,4 +291,9 @@ class RecomputeWorker:
             "processed": self.processed,
             "failed": self.failed,
             "lastError": self.last_error,
+            "lastMaintenanceAt": (
+                self.last_maintenance_at.isoformat(timespec="seconds")
+                if self.last_maintenance_at
+                else None
+            ),
         }

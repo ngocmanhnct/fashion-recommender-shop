@@ -33,4 +33,4 @@ def test_recompute_status_counts_pending_requests(clean_db, monkeypatch):
     with TestClient(app) as client:
         status = client.get("/recompute/status").json()
     assert status["pending"] == {RECOMMENDATION: {"total": 1, "due": 1}}
-    assert status["taskTypes"] == []
+    assert status["taskTypes"] == [RECOMMENDATION]

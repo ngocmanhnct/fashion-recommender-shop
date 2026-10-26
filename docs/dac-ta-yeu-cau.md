@@ -570,7 +570,7 @@ UNIQUE(account\_id, category\_id); CHECK(price\_max IS NULL OR price\_max ≥ pr
 | account\_id | BIGINT UNSIGNED | FK → account.id, NOT NULL |  |
 | product\_id | BIGINT UNSIGNED | FK → product.id, NOT NULL |  |
 | rank\_position | INT UNSIGNED | NOT NULL | Thứ hạng, 1 \= phù hợp nhất. Thuộc tính `rank` trên sơ đồ lớp; cột đổi tên vì RANK là từ khóa dành riêng của MySQL 8 |
-| score | DOUBLE | NOT NULL | Độ tương đồng cosine giữa hồ sơ sở thích và sản phẩm |
+| score | DOUBLE | NOT NULL | Điểm gợi ý: tổng có trọng số của độ tương đồng cosine giữa hồ sơ sở thích và sản phẩm, độ "hay được mua cùng", độ bán chạy và điểm cộng theo kiểu người mua (khảo sát) |
 | reason | VARCHAR(255) | NOT NULL | Lý do gợi ý hiển thị cho người mua |
 | generated\_at | DATETIME | NOT NULL | Thời điểm tính danh sách này |
 

@@ -1,4 +1,4 @@
-"""Module gợi ý sản phẩm (US-12, US-13) — content-based filtering, chỉ đọc dữ liệu.
+"""Module gợi ý sản phẩm (US-12, US-13, US-23): lọc theo nội dung, hay mua cùng, khảo sát, bán chạy.
 
-Làm thật từ Tuần 10.
+Chỉ đọc dữ liệu, trừ bảng `recommendation` (danh sách tính sẵn cho trang chủ, BR-20).
 """
