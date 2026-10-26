@@ -9,6 +9,9 @@ import static com.manhdn.fashionshop.repository.ProductSpecifications.inStock;
 import static com.manhdn.fashionshop.repository.ProductSpecifications.ofBrand;
 import static com.manhdn.fashionshop.repository.ProductSpecifications.unratedOrRatingAtLeast;
 
+import com.manhdn.fashionshop.client.MlServiceClient;
+import com.manhdn.fashionshop.client.MlServiceClient.MlSuggestion;
+import com.manhdn.fashionshop.client.MlServiceClient.SurveyRequest;
 import com.manhdn.fashionshop.dto.BrandResponse;
 import com.manhdn.fashionshop.dto.CategoryResponse;
 import com.manhdn.fashionshop.dto.MySurveyResponse;
@@ -56,6 +59,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -77,8 +81,9 @@ import tools.jackson.databind.json.JsonMapper;
  * giá. Kết quả nhánh mua cho bản thân được lưu (user_preference, survey_result) và yêu cầu tính lại
  * gợi ý (BR-20); kết quả nhánh tìm quà chỉ dùng để gợi ý ngay, không lưu (BR-42).
  *
- * <p>Sản phẩm gợi ý ngay sau khảo sát xếp theo quy tắc của từng phong cách; bước xếp hạng lại bằng
- * dịch vụ học máy (công thức 1.4) làm ở Tuần 8.
+ * <p>Sản phẩm gợi ý ngay sau khảo sát do dịch vụ học máy xếp hạng (công thức 1.4: độ tương đồng với
+ * hồ sơ khảo sát, cộng điểm bán chạy và điểm theo phong cách), thiếu thì lấp bằng sản phẩm bán chạy
+ * trong danh mục quan tâm. Không gọi được dịch vụ học máy thì xếp theo quy tắc của từng phong cách.
  */
 @Service
 public class SurveyService {
@@ -102,6 +107,9 @@ public class SurveyService {
   static final String REASON_CATEGORY_BEST_SELLER = "Bán chạy trong danh mục bạn quan tâm";
   static final String REASON_BEST_SELLER = "Sản phẩm bán chạy";
 
+  /** Lý do chung dịch vụ học máy trả khi không có điểm cộng theo phong cách. */
+  static final String ML_REASON_FITS_SURVEY = "Hợp với sở thích bạn chọn trong khảo sát";
+
   private static final String MALE_SUFFIX = " nam";
   private static final String FEMALE_SUFFIX = " nữ";
   private static final Sort PRICE_ASC_ORDER = Sort.by(Order.asc("minPrice"), Order.asc("id"));
@@ -119,6 +127,7 @@ public class SurveyService {
   private final CategoryRepository categoryRepository;
   private final BrandRepository brandRepository;
   private final ProductRepository productRepository;
+  private final MlServiceClient mlServiceClient;
   private final AccountRepository accountRepository;
   private final RecomputeRequestService recomputeRequestService;
   private final TransactionRetry transactionRetry;
@@ -133,6 +142,7 @@ public class SurveyService {
       CategoryRepository categoryRepository,
       BrandRepository brandRepository,
       ProductRepository productRepository,
+      MlServiceClient mlServiceClient,
       AccountRepository accountRepository,
       RecomputeRequestService recomputeRequestService,
       TransactionRetry transactionRetry,
@@ -144,6 +154,7 @@ public class SurveyService {
     this.categoryRepository = categoryRepository;
     this.brandRepository = brandRepository;
     this.productRepository = productRepository;
+    this.mlServiceClient = mlServiceClient;
     this.accountRepository = accountRepository;
     this.recomputeRequestService = recomputeRequestService;
     this.transactionRetry = transactionRetry;
@@ -426,17 +437,46 @@ public class SurveyService {
   }
 
   // ---------------------------------------------------------------------------------------------
-  // Gợi ý theo phong cách (tạm thời theo quy tắc, đến khi có xếp hạng của dịch vụ học máy)
+  // Gợi ý theo hồ sơ khảo sát: dịch vụ học máy xếp hạng, không gọi được thì theo quy tắc
   // ---------------------------------------------------------------------------------------------
 
   private List<RelatedProductResponse> recommend(Profile profile) {
     List<Long> categoryIds = profile.categories.stream().map(Category::getId).toList();
     Specification<Product> inInterest = forSale().and(inStock()).and(inCategories(categoryIds));
+    Picks picks = new Picks();
+    Optional<List<MlSuggestion>> suggestions =
+        categoryIds.isEmpty() ? Optional.empty() : mlServiceClient.forSurvey(toRequest(profile));
+    if (suggestions.isPresent()) {
+      picks.addSuggestions(suggestions.get(), profile.purpose == SurveyPurpose.GIFT);
+    } else {
+      addRulePicks(picks, profile, inInterest);
+    }
+    picks.add(inInterest, ProductCatalogService.POPULAR_ORDER, REASON_CATEGORY_BEST_SELLER);
+    picks.add(forSale().and(inStock()), ProductCatalogService.POPULAR_ORDER, REASON_BEST_SELLER);
+    return picks.result;
+  }
+
+  /** Hồ sơ gửi dịch vụ học máy; tìm quà không cộng điểm theo phong cách của người mua. */
+  private static SurveyRequest toRequest(Profile profile) {
+    String style = profile.style == ShoppingStyle.GIFT ? null : profile.style.name();
+    return new SurveyRequest(
+        profile.categories.stream().map(Category::getId).toList(),
+        profile.brand == null ? null : profile.brand.getId(),
+        profile.priceMin,
+        profile.priceMax,
+        style,
+        profile.minRating == null ? null : profile.minRating.doubleValue(),
+        List.of(),
+        RECOMMENDATION_LIMIT);
+  }
+
+  /** Các tầng theo quy tắc của từng phong cách, dùng khi không gọi được dịch vụ học máy. */
+  private static void addRulePicks(
+      Picks picks, Profile profile, Specification<Product> inInterest) {
     Specification<Product> matching =
         inInterest.and(
             hasVariantPriceBetween(
                 profile.priceMin > 0 ? profile.priceMin : null, profile.priceMax));
-    Picks picks = new Picks();
     switch (profile.style) {
       case SAVER -> picks.add(matching, PRICE_ASC_ORDER, REASON_PRICE);
       case BRAND -> {
@@ -459,9 +499,6 @@ public class SurveyService {
         picks.add(matching, ProductCatalogService.POPULAR_ORDER, REASON_GIFT_FITS);
       }
     }
-    picks.add(inInterest, ProductCatalogService.POPULAR_ORDER, REASON_CATEGORY_BEST_SELLER);
-    picks.add(forSale().and(inStock()), ProductCatalogService.POPULAR_ORDER, REASON_BEST_SELLER);
-    return picks.result;
   }
 
   /** Lý do cho Người cầu toàn: điểm đánh giá nếu có, chưa có thì nói là bán chạy. */
@@ -476,6 +513,24 @@ public class SurveyService {
   private final class Picks {
     private final List<RelatedProductResponse> result = new ArrayList<>();
     private final Set<Long> chosen = new HashSet<>();
+
+    /**
+     * Thêm sản phẩm dịch vụ học máy gợi ý (còn bán, còn hàng) theo đúng thứ tự. Với quà tặng, lý do
+     * chung "hợp với sở thích bạn chọn" đổi thành "hợp với người nhận".
+     */
+    void addSuggestions(List<MlSuggestion> suggestions, boolean gift) {
+      Map<Long, ProductCardResponse> cards =
+          AvailableProducts.byId(
+              productRepository, suggestions.stream().map(MlSuggestion::productId).toList());
+      for (MlSuggestion s : suggestions) {
+        ProductCardResponse card = cards.get(s.productId());
+        if (card != null && result.size() < RECOMMENDATION_LIMIT && chosen.add(card.id())) {
+          String reason =
+              gift && ML_REASON_FITS_SURVEY.equals(s.reason()) ? REASON_GIFT_FITS : s.reason();
+          result.add(new RelatedProductResponse(card, reason));
+        }
+      }
+    }
 
     /** Thêm sản phẩm thỏa điều kiện theo thứ tự cho trước; lý do null = lý do theo đánh giá. */
     void add(Specification<Product> filter, Sort order, String reason) {

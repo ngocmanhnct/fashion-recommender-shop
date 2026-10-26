@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Fashion Shop API (Tuần 8)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -465,7 +465,7 @@
             "auth": {
               "type": "noauth"
             },
-            "description": "Tối đa 4 sản phẩm còn hàng, không gồm chính sản phẩm đang xem, mỗi sản phẩm kèm lý do (reason): cùng danh mục và thương hiệu, cùng danh mục, cùng thương hiệu, rồi lấp bằng sản phẩm bán chạy. Bản tạm theo quy tắc; Tuần 8 thay bằng gợi ý của dịch vụ học máy."
+            "description": "Tối đa 4 sản phẩm còn hàng, không gồm chính sản phẩm đang xem, mỗi sản phẩm kèm lý do (reason). Backend lấy từ ml-service (giống về nội dung, hay được mua cùng), thiếu thì lấp bằng sản phẩm bán chạy (BR-22). ml-service tắt hoặc trả lời quá 500ms thì backend tự dùng quy tắc: cùng danh mục và thương hiệu, cùng danh mục, cùng thương hiệu, rồi bán chạy."
           }
         },
         {
@@ -891,6 +891,36 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Bỏ qua thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gợi ý cho bạn (trang chủ)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/recommendations/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "recommendations",
+                "me"
+              ]
+            },
+            "description": "Khối \"Gợi ý cho bạn\" ở trang chủ (US-13): tối đa 8 sản phẩm còn hàng kèm lý do, theo danh sách ml-service đã tính sẵn (bảng recommendation, BR-20). source = BEHAVIOR (đủ dữ liệu hành vi theo BR-19), SURVEY (chưa đủ, theo khảo sát) hoặc POPULAR (chưa có danh sách, trả sản phẩm bán chạy). Danh sách được tính lại vài giây sau khi xem, thêm vào giỏ, đặt hàng hay lưu khảo sát, nên gọi lại sau khoảng 5 giây sẽ thấy thay đổi. Không token 401, token admin 403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem gợi ý thành công', () => pm.response.to.have.status(200));"
                 ]
               }
             }
@@ -2178,7 +2208,7 @@
     },
     {
       "name": "5. ML service (nội bộ, chỉ khi chạy ml-service trên máy)",
-      "description": "API nội bộ của ml-service (FastAPI). Trình duyệt và frontend không bao giờ gọi các API này; trong Docker ml-service không mở cổng ra máy host, nên chỉ thử được khi chạy `uv run fastapi dev app/main.py` trong ml-service/ (biến mlBaseUrl = http://localhost:8000). Trong Docker thì gọi qua backend: `docker compose exec backend curl -s http://ml-service:8000/recompute/status`.",
+      "description": "API nội bộ của ml-service (FastAPI). Trình duyệt và frontend không bao giờ gọi các API này; trong Docker ml-service không mở cổng ra máy host, nên chỉ thử được khi chạy `uv run fastapi dev app/main.py` trong ml-service/ (biến mlBaseUrl = http://localhost:8000). Trong Docker thì gọi qua backend: `docker compose exec backend curl -s http://ml-service:8000/recompute/status`. Các API gợi ý ở đây là thứ backend gọi bên trong (sản phẩm liên quan, khảo sát); khách xem qua API của backend ở nhóm 2 và 3.",
       "item": [
         {
           "name": "Kiểm tra sức khỏe ml-service",
@@ -2220,6 +2250,87 @@
             },
             "description": "Tiến trình lấy việc (BR-20): có đang chạy, có giữ khóa lấy việc không, các loại việc đã có hàm xử lý, lần lấy việc gần nhất, số yêu cầu đã xử lý/lỗi, lỗi gần nhất; pending = số yêu cầu đang chờ theo loại việc (total) và số đã đến hạn (due)."
           }
+        },
+        {
+          "name": "Sản phẩm liên quan (ml-service)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{mlBaseUrl}}/recommendations/related/{{publicProductId}}?limit=4",
+              "host": [
+                "{{mlBaseUrl}}"
+              ],
+              "path": [
+                "recommendations",
+                "related",
+                "{{publicProductId}}"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "4",
+                  "description": "1 đến 20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Sản phẩm liên quan theo độ tương đồng cosine của vector sản phẩm (TF-IDF tên + mô tả, danh mục, thương hiệu, khoảng giá) cộng điểm hay mua cùng: [{productId, score, reason, source}]. Không có sản phẩm này 404; CSDL chưa có sản phẩm 503."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Có danh sách liên quan', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gợi ý theo khảo sát (ml-service)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryIds\": [\n    1,\n    2\n  ],\n  \"brandId\": null,\n  \"priceMin\": 200000,\n  \"priceMax\": 650000,\n  \"style\": \"SAVER\",\n  \"minRating\": null,\n  \"excludeProductIds\": [],\n  \"limit\": 8\n}"
+            },
+            "url": {
+              "raw": "{{mlBaseUrl}}/recommendations/survey",
+              "host": [
+                "{{mlBaseUrl}}"
+              ],
+              "path": [
+                "recommendations",
+                "survey"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Công thức (1.4): cosine với vector khảo sát + điểm bán chạy + điểm theo phong cách (style: SAVER, BRAND, QUALITY, TREND hoặc null). categoryIds là mã danh mục thật trong CSDL (xem '2. Công khai > Danh sách danh mục'). priceMax < priceMin thì 422. Backend gọi API này ở /api/survey/evaluate."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Có gợi ý theo khảo sát', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

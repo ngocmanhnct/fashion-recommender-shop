@@ -11,6 +11,8 @@ import static com.manhdn.fashionshop.repository.ProductSpecifications.notOfBrand
 import static com.manhdn.fashionshop.repository.ProductSpecifications.ofBrand;
 import static com.manhdn.fashionshop.repository.ProductSpecifications.ratingAtLeast;
 
+import com.manhdn.fashionshop.client.MlServiceClient;
+import com.manhdn.fashionshop.client.MlServiceClient.MlSuggestion;
 import com.manhdn.fashionshop.dto.PageResponse;
 import com.manhdn.fashionshop.dto.ProductCardResponse;
 import com.manhdn.fashionshop.dto.ProductDetailResponse;
@@ -25,7 +27,9 @@ import com.manhdn.fashionshop.repository.ProductSpecifications;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -36,7 +40,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Nghiệp vụ xem sản phẩm của trang người dùng, không cần đăng nhập (US-01, US-02, US-03, US-12;
- * BR-21, BR-22). Chỉ đọc; chỉ trả sản phẩm đang bán (chưa xóa mềm).
+ * BR-21, BR-22). Chỉ đọc; chỉ trả sản phẩm đang bán (chưa xóa mềm). Sản phẩm liên quan lấy từ dịch
+ * vụ học máy, không gọi được thì theo quy tắc.
  *
  * <p>"Bán chạy" và "phổ biến" cùng một nghĩa: tổng số lượng đã bán trong các đơn chưa bị hủy
  * ({@link Product#getSoldCount}). Khi số đã bán bằng nhau (vd chưa có đơn nào), sản phẩm đứng đầu
@@ -76,10 +81,13 @@ public class ProductCatalogService {
       Sort.by(Order.desc("soldCount"), Order.asc("categoryRank"), Order.asc(ID));
 
   private final ProductRepository productRepository;
+  private final MlServiceClient mlServiceClient;
 
-  /** Nhận repository qua constructor. */
-  public ProductCatalogService(ProductRepository productRepository) {
+  /** Nhận repository và client của dịch vụ học máy qua constructor. */
+  public ProductCatalogService(
+      ProductRepository productRepository, MlServiceClient mlServiceClient) {
     this.productRepository = productRepository;
+    this.mlServiceClient = mlServiceClient;
   }
 
   /**
@@ -136,13 +144,14 @@ public class ProductCatalogService {
 
   /**
    * Gợi ý sản phẩm liên quan trên trang chi tiết (US-12): tối đa 4 sản phẩm (BR-21) đang bán, còn
-   * hàng, không gồm chính sản phẩm đang xem, mỗi sản phẩm kèm 1 lý do. Lấy lần lượt theo các tầng
-   * cho đến khi đủ 4, mỗi tầng xếp theo thứ tự "phổ biến": (1) cùng danh mục và cùng thương hiệu,
-   * (2) cùng danh mục, thương hiệu khác hoặc không có, (3) cùng thương hiệu, danh mục khác, (4) sản
-   * phẩm bán chạy (BR-22). Sản phẩm không có thương hiệu thì bỏ tầng 1 và 3.
+   * hàng, không gồm chính sản phẩm đang xem, mỗi sản phẩm kèm 1 lý do.
    *
-   * <p>Đây là bản tạm theo quy tắc. Từ Tuần 8, các tầng 1 đến 3 được thay bằng content-based
-   * filtering của dịch vụ học máy; tầng 4 (BR-22) giữ nguyên.
+   * <p>Lấy từ dịch vụ học máy (giống về nội dung theo cosine trên vector thuộc tính, cộng điểm sản
+   * phẩm hay được mua cùng), thiếu thì lấp bằng sản phẩm bán chạy (BR-22). Không gọi được dịch vụ
+   * học máy thì lấy theo quy tắc, lần lượt theo các tầng cho đến khi đủ 4, mỗi tầng xếp theo thứ tự
+   * "phổ biến": (1) cùng danh mục và cùng thương hiệu, (2) cùng danh mục, thương hiệu khác hoặc
+   * không có, (3) cùng thương hiệu, danh mục khác, (4) sản phẩm bán chạy. Sản phẩm không có thương
+   * hiệu thì bỏ tầng 1 và 3.
    *
    * @param id mã sản phẩm đang xem
    * @return tối đa 4 sản phẩm kèm lý do
@@ -150,10 +159,37 @@ public class ProductCatalogService {
    */
   public List<RelatedProductResponse> related(Long id) {
     Product product = getForSale(id);
-    Long categoryId = product.getCategory().getId();
-    Brand brand = product.getBrand();
     List<RelatedProductResponse> result = new ArrayList<>();
     Set<Long> chosen = new HashSet<>(Set.of(product.getId()));
+    Optional<List<MlSuggestion>> suggestions = mlServiceClient.related(id, RELATED_LIMIT);
+    if (suggestions.isPresent()) {
+      addSuggestions(result, chosen, suggestions.get());
+    } else {
+      addRuleTiers(result, chosen, product);
+    }
+    addTier(result, chosen, Specification.unrestricted(), BEST_SELLER);
+    return result;
+  }
+
+  /** Thêm sản phẩm dịch vụ học máy gợi ý (còn bán, còn hàng) theo đúng thứ tự, kèm lý do. */
+  private void addSuggestions(
+      List<RelatedProductResponse> result, Set<Long> chosen, List<MlSuggestion> suggestions) {
+    Map<Long, ProductCardResponse> cards =
+        AvailableProducts.byId(
+            productRepository, suggestions.stream().map(MlSuggestion::productId).toList());
+    for (MlSuggestion s : suggestions) {
+      ProductCardResponse card = cards.get(s.productId());
+      if (card != null && result.size() < RELATED_LIMIT && chosen.add(card.id())) {
+        result.add(new RelatedProductResponse(card, s.reason()));
+      }
+    }
+  }
+
+  /** Các tầng theo quy tắc (1) đến (3), dùng khi không gọi được dịch vụ học máy. */
+  private void addRuleTiers(
+      List<RelatedProductResponse> result, Set<Long> chosen, Product product) {
+    Long categoryId = product.getCategory().getId();
+    Brand brand = product.getBrand();
     if (brand != null) {
       addTier(
           result,
@@ -165,8 +201,6 @@ public class ProductCatalogService {
     } else {
       addTier(result, chosen, inCategory(categoryId), SAME_CATEGORY);
     }
-    addTier(result, chosen, Specification.unrestricted(), BEST_SELLER);
-    return result;
   }
 
   /** Thêm sản phẩm của một tầng gợi ý liên quan cho đến khi đủ {@link #RELATED_LIMIT}. */
