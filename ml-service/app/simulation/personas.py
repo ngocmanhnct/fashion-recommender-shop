@@ -1,5 +1,6 @@
 """Các kiểu khách mô phỏng (persona), tài khoản demo và dữ liệu tên, địa chỉ để sinh khách."""
 
+import hashlib
 import random
 from dataclasses import dataclass
 
@@ -219,8 +220,11 @@ def assign_personas(count: int, seed: int) -> list[str]:
     for i in remainders[: count - sum(quotas)]:
         quotas[i] += 1
     labels = [code for code, quota in zip(codes, quotas, strict=True) for _ in range(quota)]
-    random.Random(f"{seed}-personas").shuffle(labels)
-    return labels
+    # Xáo trộn tất định: xếp theo mã băm của (seed, vị trí).
+    order = sorted(
+        range(count), key=lambda i: hashlib.sha256(f"{seed}-personas-{i}".encode()).digest()
+    )
+    return [labels[i] for i in order]
 
 
 def customer_email(index: int) -> str:

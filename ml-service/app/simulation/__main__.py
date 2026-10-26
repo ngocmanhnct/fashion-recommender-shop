@@ -75,39 +75,45 @@ def run(engine: Engine, args: argparse.Namespace, now: datetime | None = None) -
         return writer.write(conn, customers, demo_password)
 
 
+def print_summary(args: argparse.Namespace, counts: Counter) -> None:
+    """In số dòng đã ghi, số khách theo kiểu và danh sách tài khoản demo."""
+    print("Đã ghi:", ", ".join(f"{table} {n}" for table, n in sorted(counts.items())))
+    personas = Counter(assign_personas(args.customers, args.seed))
+    print("Kiểu khách:", ", ".join(f"{code} {personas[code]}" for code in PERSONAS))
+    if args.no_demo:
+        return
+    status = (
+        "mật khẩu SIM_DEMO_PASSWORD"
+        if os.environ.get("SIM_DEMO_PASSWORD")
+        else "chưa đặt SIM_DEMO_PASSWORD nên không đăng nhập được"
+    )
+    print(f"Tài khoản demo ({status}):")
+    for demo in DEMO_ACCOUNTS:
+        print(f"  {demo.email:28} {demo.note}")
+
+
 def main(argv: list[str] | None = None, engine: Engine | None = None) -> int:
-    """Điểm vào dòng lệnh."""
+    """Điểm vào dòng lệnh. Mã thoát: 0 thành công, 1 lỗi CSDL, 2 dữ liệu vào không hợp lệ."""
     args = parse_args(argv)
     settings = Settings.from_env()
     own_engine = engine is None
     engine = engine or create_db_engine(settings)
     print(f"CSDL: {settings.db_name} trên {settings.db_host}:{settings.db_port}")
+    exit_code = 0
     try:
         counts = run(engine, args)
+        if not args.reset_only:
+            print_summary(args, counts)
     except ValueError as exc:
         print(f"Lỗi: {exc}", file=sys.stderr)
-        return 2
+        exit_code = 2
     except SQLAlchemyError as exc:
         print(f"Lỗi CSDL (không ghi gì): {str(exc.orig or exc).splitlines()[0]}", file=sys.stderr)
-        return 1
+        exit_code = 1
     finally:
         if own_engine:
             engine.dispose()
-    if args.reset_only:
-        return 0
-    print("Đã ghi:", ", ".join(f"{table} {n}" for table, n in sorted(counts.items())))
-    personas = Counter(assign_personas(args.customers, args.seed))
-    print("Kiểu khách:", ", ".join(f"{code} {personas[code]}" for code in PERSONAS))
-    if not args.no_demo:
-        status = (
-            "mật khẩu SIM_DEMO_PASSWORD"
-            if os.environ.get("SIM_DEMO_PASSWORD")
-            else ("chưa đặt SIM_DEMO_PASSWORD nên không đăng nhập được")
-        )
-        print(f"Tài khoản demo ({status}):")
-        for demo in DEMO_ACCOUNTS:
-            print(f"  {demo.email:28} {demo.note}")
-    return 0
+    return exit_code
 
 
 if __name__ == "__main__":

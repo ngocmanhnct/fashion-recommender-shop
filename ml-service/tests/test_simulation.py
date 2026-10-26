@@ -118,8 +118,9 @@ def test_generation_is_deterministic(catalog):
         result = Generator(catalog, OCCASIONS, NOW, seed=seed).generate(20)
         return [(c.email, c.persona, len(c.orders), len(c.views)) for c in result]
 
-    assert snapshot(3) == snapshot(3)
-    assert snapshot(3) != snapshot(4)
+    first, again, other = snapshot(3), snapshot(3), snapshot(4)
+    assert first == again
+    assert first != other
 
 
 def test_empty_catalog_is_rejected():
