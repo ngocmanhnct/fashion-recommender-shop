@@ -15,8 +15,9 @@ from app.recommendation import api as recommendation_api
 from app.recommendation.cache import ModelCache
 from app.recommendation.data import VIEW_WINDOW_DAYS
 from app.recommendation.store import enqueue_all, local_now, make_handler
-from app.recompute.queue import RECOMMENDATION, pending_counts
+from app.recompute.queue import RECOMMENDATION, SEGMENT_ASSIGN, pending_counts
 from app.recompute.worker import Handler, RecomputeWorker
+from app.segmentation import store as segmentation_store
 
 # uvicorn chỉ cấu hình log của chính nó; dòng này cho log của app (vd tiến trình lấy việc) hiện ra.
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
@@ -24,17 +25,28 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 def task_handlers(cache: ModelCache) -> dict[str, Handler]:
     """Hàm xử lý theo loại việc của recompute_request. Loại việc chưa có hàm xử lý thì yêu cầu
-    nằm chờ trong CSDL, không mất: SEGMENT_ASSIGN thêm ở Tuần 9."""
-    return {RECOMMENDATION: make_handler(cache)}
+    nằm chờ trong CSDL, không mất."""
+    return {
+        RECOMMENDATION: make_handler(cache),
+        SEGMENT_ASSIGN: segmentation_store.make_handler(local_now),
+    }
 
 
 def nightly_job(cache: ModelCache) -> Callable[[Connection], None]:
-    """Việc mỗi đêm và khi khởi động: dựng lại mô hình, yêu cầu tính lại gợi ý cho mọi khách."""
+    """Việc mỗi đêm và khi khởi động: huấn luyện lại phân nhóm nếu đã đủ 1 tuần (BR-23), dựng
+    lại mô hình gợi ý, yêu cầu tính lại gợi ý cho mọi khách."""
+    logger = logging.getLogger(__name__)
 
     def run(conn: Connection) -> None:
+        try:
+            # Điểm lưu riêng: phân nhóm lỗi thì chỉ phần này quay lại, gợi ý vẫn chạy tiếp.
+            with conn.begin_nested():
+                segmentation_store.retrain_if_due(conn, local_now())
+        except Exception:
+            logger.exception("Huấn luyện lại phân nhóm khách hàng bị lỗi")
         cache.invalidate()
         count = enqueue_all(conn, local_now() - timedelta(days=VIEW_WINDOW_DAYS))
-        logging.getLogger(__name__).info("Đã yêu cầu tính lại gợi ý (%d dòng đổi)", count)
+        logger.info("Đã yêu cầu tính lại gợi ý (%d dòng đổi)", count)
 
     return run
 
