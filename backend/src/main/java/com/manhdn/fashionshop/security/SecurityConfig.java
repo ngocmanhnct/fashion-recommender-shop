@@ -63,6 +63,8 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/survey/brands", "/api/survey/evaluate")
                     .permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/recommendations/events")
+                    .permitAll()
                     .requestMatchers(
                         HttpMethod.GET, "/api/payments/vnpay/return", "/api/payments/vnpay/ipn")
                     .permitAll()

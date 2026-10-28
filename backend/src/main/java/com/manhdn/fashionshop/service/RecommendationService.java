@@ -4,6 +4,7 @@ import static com.manhdn.fashionshop.repository.ProductSpecifications.forSale;
 import static com.manhdn.fashionshop.repository.ProductSpecifications.inStock;
 
 import com.manhdn.fashionshop.dto.ProductCardResponse;
+import com.manhdn.fashionshop.dto.RecommendationSource;
 import com.manhdn.fashionshop.dto.RecommendationsResponse;
 import com.manhdn.fashionshop.dto.RelatedProductResponse;
 import com.manhdn.fashionshop.entity.Recommendation;
@@ -34,13 +35,13 @@ public class RecommendationService {
   public static final int HOME_LIMIT = 8;
 
   /** Danh sách theo dữ liệu hành vi (đã đạt ngưỡng BR-19). */
-  public static final String SOURCE_BEHAVIOR = "BEHAVIOR";
+  public static final String SOURCE_BEHAVIOR = RecommendationSource.BEHAVIOR;
 
   /** Danh sách theo khảo sát lần đầu (chưa đạt ngưỡng BR-19). */
-  public static final String SOURCE_SURVEY = "SURVEY";
+  public static final String SOURCE_SURVEY = RecommendationSource.SURVEY;
 
   /** Chưa có danh sách riêng: sản phẩm bán chạy. */
-  public static final String SOURCE_POPULAR = "POPULAR";
+  public static final String SOURCE_POPULAR = RecommendationSource.POPULAR;
 
   private final RecommendationRepository recommendationRepository;
   private final ProductRepository productRepository;
@@ -74,18 +75,24 @@ public class RecommendationService {
     Map<Long, ProductCardResponse> cards =
         AvailableProducts.byId(
             productRepository, rows.stream().map(r -> r.getProduct().getId()).toList());
-    List<RelatedProductResponse> products = new ArrayList<>();
+    List<Recommendation> shown = new ArrayList<>();
     for (Recommendation row : rows) {
-      ProductCardResponse card = cards.get(row.getProduct().getId());
-      if (card != null && products.size() < HOME_LIMIT) {
-        products.add(new RelatedProductResponse(card, row.getReason()));
+      if (cards.containsKey(row.getProduct().getId()) && shown.size() < HOME_LIMIT) {
+        shown.add(row);
       }
     }
-    if (products.isEmpty()) {
+    if (shown.isEmpty()) {
       return new RecommendationsResponse(SOURCE_POPULAR, bestSellers());
     }
-    return new RecommendationsResponse(
-        hasEnoughBehaviour(accountId) ? SOURCE_BEHAVIOR : SOURCE_SURVEY, products);
+    String source = hasEnoughBehaviour(accountId) ? SOURCE_BEHAVIOR : SOURCE_SURVEY;
+    List<RelatedProductResponse> products =
+        shown.stream()
+            .map(
+                row ->
+                    new RelatedProductResponse(
+                        cards.get(row.getProduct().getId()), row.getReason(), source))
+            .toList();
+    return new RecommendationsResponse(source, products);
   }
 
   /** Ngưỡng "đủ dữ liệu hành vi" của BR-19, cùng cách đếm với ProductViewService và ml-service. */
@@ -107,7 +114,9 @@ public class RecommendationService {
         .map(
             p ->
                 new RelatedProductResponse(
-                    ProductCardResponse.from(p), ProductCatalogService.BEST_SELLER))
+                    ProductCardResponse.from(p),
+                    ProductCatalogService.BEST_SELLER,
+                    RecommendationSource.POPULAR))
         .toList();
   }
 }

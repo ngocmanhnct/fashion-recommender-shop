@@ -98,6 +98,7 @@ class RecommendationIntegrationTest {
         .andExpect(jsonPath("$.products[0].product.id").value(ids.get(0)))
         .andExpect(jsonPath("$.products[0].product.name").value("Kestrel 1"))
         .andExpect(jsonPath("$.products[0].reason").value("Lý do " + ids.get(0)))
+        .andExpect(jsonPath("$.products[0].source").value("BEHAVIOR"))
         .andExpect(jsonPath("$.products[7].product.id").value(ids.get(7)))
         .andExpect(jsonPath("$.products[*].product.id", not(hasItem((int) soldOut))))
         .andExpect(jsonPath("$.products[*].product.id", not(hasItem((int) deleted))));
@@ -114,11 +115,13 @@ class RecommendationIntegrationTest {
 
     customer(get(HOME), fromSurvey)
         .andExpect(jsonPath("$.source").value("SURVEY"))
-        .andExpect(jsonPath("$.products[0].product.id").value(product));
+        .andExpect(jsonPath("$.products[0].product.id").value(product))
+        .andExpect(jsonPath("$.products[0].source").value("SURVEY"));
     customer(get(HOME), newcomer)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.source").value("POPULAR"))
-        .andExpect(jsonPath("$.products[0].reason").value(BEST_SELLER));
+        .andExpect(jsonPath("$.products[0].reason").value(BEST_SELLER))
+        .andExpect(jsonPath("$.products[0].source").value("POPULAR"));
   }
 
   @Test
@@ -159,8 +162,10 @@ class RecommendationIntegrationTest {
         .andExpect(jsonPath("$.length()").value(4))
         .andExpect(jsonPath("$[0].product.id").value(similar.id()))
         .andExpect(jsonPath("$[0].reason").value(SIMILAR))
+        .andExpect(jsonPath("$[0].source").value("RELATED"))
         .andExpect(jsonPath("$[1].product.id").value(best.id()))
         .andExpect(jsonPath("$[1].reason").value(BEST_SELLER))
+        .andExpect(jsonPath("$[1].source").value("POPULAR"))
         .andExpect(jsonPath("$[*].product.id", not(hasItem(viewed.id().intValue()))))
         .andExpect(jsonPath("$[*].product.id", not(hasItem(soldOut.id().intValue()))));
   }
@@ -233,6 +238,7 @@ class RecommendationIntegrationTest {
         .perform(get("/api/products/" + viewed.id() + "/related"))
         .andExpect(jsonPath("$[0].product.id").value(sibling.id()))
         .andExpect(jsonPath("$[0].reason").value("Cùng danh mục với sản phẩm bạn đang xem"))
+        .andExpect(jsonPath("$[0].source").value("RULE"))
         .andExpect(jsonPath("$[*].reason", not(contains(SIMILAR))));
   }
 

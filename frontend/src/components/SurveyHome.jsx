@@ -68,7 +68,7 @@ function ForYou({ answers }) {
       {loading ? (
         <p className="muted">Đang tải...</p>
       ) : (
-        <SurveyProfile evaluation={data} heading="h3" />
+        <SurveyProfile evaluation={data} heading="h3" placement="HOME" />
       )}
     </section>
   );
