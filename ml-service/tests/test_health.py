@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
 from app.main import app
-from app.recompute.queue import RECOMMENDATION
+from app.recompute.queue import RECOMMENDATION, SEGMENT_ASSIGN
 from tests.db_helpers import TEST_DB, create_account, request_recompute
 
 
@@ -33,4 +33,4 @@ def test_recompute_status_counts_pending_requests(clean_db, monkeypatch):
     with TestClient(app) as client:
         status = client.get("/recompute/status").json()
     assert status["pending"] == {RECOMMENDATION: {"total": 1, "due": 1}}
-    assert status["taskTypes"] == [RECOMMENDATION]
+    assert status["taskTypes"] == [RECOMMENDATION, SEGMENT_ASSIGN]

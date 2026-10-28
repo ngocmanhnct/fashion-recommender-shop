@@ -502,24 +502,36 @@ UNIQUE(account\_id, product\_id) — BR-18: tối đa 1 đánh giá/sản phẩm
 
 UNIQUE(account\_id, product\_id).
 
-### 3.10 Phân nhóm khách hàng — `customer_segment`, `account_segment`
+### 3.10 Phân nhóm khách hàng — `segment_model`, `customer_segment`, `account_segment`
 
 *Nguồn: US-18, US-19, BR-23, BR-24*
 
 | Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
 | :---- | :---- | :---- | :---- | :---- |
+| segment\_model | id | BIGINT UNSIGNED | PK | Mỗi lần huấn luyện 1 dòng (giữ lịch sử để so chất lượng qua các tuần). *Bổ sung 28/10/2026, migration V6* |
+| segment\_model | cluster\_count | INT | NOT NULL | Số nhóm K đã chọn |
+| segment\_model | elbow\_cluster\_count | INT | NOT NULL | K tại điểm gãy của đường inertia (Elbow) |
+| segment\_model | customer\_count | INT | NOT NULL | Số khách dùng để huấn luyện |
+| segment\_model | silhouette | DOUBLE | NOT NULL | Silhouette của K đã chọn (KPI ≥ 0,3) |
+| segment\_model | log\_recency\_mean, log\_recency\_std, log\_frequency\_mean, log\_frequency\_std, log\_monetary\_mean, log\_monetary\_std | DOUBLE | NOT NULL | Tham số chuẩn hóa: trung bình, độ lệch chuẩn của ln(1 + R), ln(1 + F), ln(1 + M) trên tập huấn luyện (BR-23: gán khách mới bằng tham số của lần huấn luyện gần nhất) |
+| segment\_model | trained\_at | DATETIME | NOT NULL |  |
 | customer\_segment | id | BIGINT UNSIGNED | PK |  |
-| customer\_segment | name | VARCHAR(100) | NOT NULL | Vd "Khách hàng thân thiết" (US-19: không chỉ số cụm vô nghĩa) |
-| customer\_segment | description | TEXT | NOT NULL | Diễn giải ý nghĩa nhóm |
+| customer\_segment | model\_id | BIGINT UNSIGNED | FK → segment\_model.id, NOT NULL | Lần huấn luyện tạo ra nhóm (V6) |
+| customer\_segment | code | VARCHAR(20) | NOT NULL, UNIQUE | VIP, LOYAL, SAVER, NEW, AT\_RISK, LOST (V6) |
+| customer\_segment | name | VARCHAR(100) | NOT NULL | Vd "Khách thân thiết" (US-19: không chỉ số cụm vô nghĩa) |
+| customer\_segment | description | TEXT | NOT NULL | Diễn giải ý nghĩa nhóm, số liệu trung bình và gợi ý chăm sóc |
+| customer\_segment | center\_recency, center\_frequency, center\_monetary | DOUBLE | NOT NULL | Tâm nhóm sau chuẩn hóa (dạng z), để gán khách mới vào nhóm gần nhất (V6) |
 | customer\_segment | computed\_at | DATETIME | NOT NULL | Lần chạy batch tạo/cập nhật định nghĩa nhóm gần nhất |
 | account\_segment | account\_id | BIGINT UNSIGNED | PK, FK → account.id |  |
 | account\_segment | segment\_id | BIGINT UNSIGNED | FK → customer\_segment.id, NOT NULL |  |
-| account\_segment | rfm\_recency | INT UNSIGNED | NOT NULL | Giá trị R — công thức tính cụ thể chốt khi cài đặt mô hình |
-| account\_segment | rfm\_frequency | INT UNSIGNED | NOT NULL | Giá trị F |
-| account\_segment | rfm\_monetary | BIGINT UNSIGNED | NOT NULL | Giá trị M, VNĐ |
+| account\_segment | rfm\_recency | INT UNSIGNED | NOT NULL | R: số ngày từ lúc đặt đơn Đã giao gần nhất đến lúc tính |
+| account\_segment | rfm\_frequency | INT UNSIGNED | NOT NULL | F: số đơn Đã giao |
+| account\_segment | rfm\_monetary | BIGINT UNSIGNED | NOT NULL | M: tổng `total_amount` các đơn Đã giao, VNĐ |
 | account\_segment | computed\_at | DATETIME | NOT NULL | Lần phân cụm gần nhất cho tài khoản này (BR-23: batch hàng tuần) |
 
-*Một tài khoản **có dòng** trong `account_segment` khi và chỉ khi đã được phân cụm thành công. Tài khoản chưa có đơn hoàn tất nào (BR-24) đơn giản là **không có dòng** — admin đọc "không tìm thấy" và hiển thị "Khách hàng mới / chưa đủ dữ liệu" (US-18/19). Chỉ lưu kết quả phân cụm mới nhất (ghi đè mỗi lần batch chạy), không lưu lịch sử qua các lần.*
+*Một tài khoản **có dòng** trong `account_segment` khi và chỉ khi đã được phân cụm thành công. Tài khoản chưa có đơn hoàn tất nào (BR-24) đơn giản là **không có dòng** — admin đọc "không tìm thấy" và hiển thị "Khách hàng mới / chưa đủ dữ liệu" (US-18/19). Chỉ lưu kết quả phân cụm mới nhất (ghi đè mỗi lần batch chạy), không lưu lịch sử qua các lần; riêng `segment_model` giữ 1 dòng cho mỗi lần huấn luyện.*
+
+*Cách chọn K (cài đặt 28/10/2026): K-Means với K = 1..8 trên ln(1 + R), ln(1 + F), ln(1 + M) đã chuẩn hóa; chọn K lớn nhất trong 3..6 không nhỏ hơn điểm gãy Elbow, có Silhouette ≥ 0,3 và kém Silhouette tốt nhất không quá 0,05; cần ít nhất 20 khách có đơn Đã giao. Tên nhóm gán bằng cách ghép tâm nhóm với kiểu khách mẫu gần nhất, không trùng tên.*
 
 ### 3.11 Mã giảm giá — `voucher`
 
@@ -662,7 +674,7 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 
 ---
 
-**Tổng cộng: 25 bảng dữ liệu** (21 bảng ban đầu và 4 bảng khảo sát ở Mục 3.16), bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 26 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16 và `segment_model` ở Mục 3.10), bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 
