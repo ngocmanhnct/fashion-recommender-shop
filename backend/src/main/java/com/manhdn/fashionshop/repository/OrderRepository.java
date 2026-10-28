@@ -74,4 +74,29 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   @Modifying(flushAutomatically = true)
   @Query("update Order o set o.addressId = null where o.addressId = :addressId")
   int detachAddress(@Param("addressId") Long addressId);
+
+  /** Số đơn đã đặt, số đơn Đã giao và tổng tiền các đơn Đã giao của một tài khoản (US-18). */
+  @Query(
+      """
+      SELECT COUNT(o) AS orders,
+             COALESCE(SUM(CASE WHEN o.status = com.manhdn.fashionshop.entity.OrderStatus.DELIVERED
+                          THEN 1 ELSE 0 END), 0) AS delivered,
+             COALESCE(SUM(CASE WHEN o.status = com.manhdn.fashionshop.entity.OrderStatus.DELIVERED
+                          THEN o.totalAmount ELSE 0 END), 0) AS deliveredAmount
+      FROM Order o WHERE o.account.id = :accountId
+      """)
+  OrderTotals totalsForAccount(@Param("accountId") Long accountId);
+
+  /** Thống kê đơn của một tài khoản. */
+  interface OrderTotals {
+
+    /** Số đơn đã đặt (mọi trạng thái). */
+    long getOrders();
+
+    /** Số đơn Đã giao. */
+    long getDelivered();
+
+    /** Tổng tiền các đơn Đã giao (VNĐ). */
+    long getDeliveredAmount();
+  }
 }

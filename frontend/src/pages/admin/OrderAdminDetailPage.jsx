@@ -100,7 +100,10 @@ function AdminOrderDetail({ id }) {
       <section className="checkout-section">
         <h2>Khách hàng</h2>
         <p>
-          <strong>{detail.customerName}</strong> · {detail.customerEmail}
+          <Link to={`/admin/customers/${detail.customerId}`}>
+            <strong>{detail.customerName}</strong>
+          </Link>{' '}
+          · {detail.customerEmail}
         </p>
       </section>
 

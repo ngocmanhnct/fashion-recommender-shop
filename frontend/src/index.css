@@ -1411,3 +1411,140 @@ legend {
 .survey-profile h3 {
   margin: 0 0 4px;
 }
+
+/* Khách hàng và phân nhóm (US-18, US-19) */
+.segment-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  background: #eef1f5;
+  color: var(--muted);
+}
+
+.segment-vip {
+  background: #fdf1d8;
+  color: #8a5a00;
+}
+
+.segment-loyal {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.segment-saver {
+  background: #e6f4f7;
+  color: #1b6474;
+}
+
+.segment-new {
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary-hover);
+}
+
+.segment-at-risk {
+  background: #fff0e3;
+  color: #9a4a0b;
+}
+
+.segment-lost {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 0;
+}
+
+.info-grid dt {
+  color: var(--muted);
+}
+
+.info-grid dd {
+  margin: 0;
+}
+
+.rfm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.rfm-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.segment-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.segment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.segment-card p {
+  margin: 0;
+}
+
+.segment-card > a {
+  margin-top: auto;
+}
+
+.segment-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.segment-card .rfm-grid {
+  margin: 0;
+}
+
+.segment-card .rfm-cell {
+  padding: 6px 8px;
+}
+
+.segment-card .rfm-cell strong {
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.segment-count {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.segment-explain ol {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.segment-explain li {
+  margin-bottom: 6px;
+}
+
+@media (max-width: 520px) {
+  .rfm-grid {
+    grid-template-columns: 1fr;
+  }
+}
