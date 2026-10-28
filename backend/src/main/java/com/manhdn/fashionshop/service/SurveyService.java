@@ -16,6 +16,7 @@ import com.manhdn.fashionshop.dto.BrandResponse;
 import com.manhdn.fashionshop.dto.CategoryResponse;
 import com.manhdn.fashionshop.dto.MySurveyResponse;
 import com.manhdn.fashionshop.dto.ProductCardResponse;
+import com.manhdn.fashionshop.dto.RecommendationSource;
 import com.manhdn.fashionshop.dto.RelatedProductResponse;
 import com.manhdn.fashionshop.dto.SurveyAnswer;
 import com.manhdn.fashionshop.dto.SurveyEvaluationResponse;
@@ -451,8 +452,16 @@ public class SurveyService {
     } else {
       addRulePicks(picks, profile, inInterest);
     }
-    picks.add(inInterest, ProductCatalogService.POPULAR_ORDER, REASON_CATEGORY_BEST_SELLER);
-    picks.add(forSale().and(inStock()), ProductCatalogService.POPULAR_ORDER, REASON_BEST_SELLER);
+    picks.add(
+        inInterest,
+        ProductCatalogService.POPULAR_ORDER,
+        REASON_CATEGORY_BEST_SELLER,
+        RecommendationSource.POPULAR);
+    picks.add(
+        forSale().and(inStock()),
+        ProductCatalogService.POPULAR_ORDER,
+        REASON_BEST_SELLER,
+        RecommendationSource.POPULAR);
     return picks.result;
   }
 
@@ -478,25 +487,47 @@ public class SurveyService {
             hasVariantPriceBetween(
                 profile.priceMin > 0 ? profile.priceMin : null, profile.priceMax));
     switch (profile.style) {
-      case SAVER -> picks.add(matching, PRICE_ASC_ORDER, REASON_PRICE);
+      case SAVER -> picks.add(matching, PRICE_ASC_ORDER, REASON_PRICE, RecommendationSource.RULE);
       case BRAND -> {
         if (profile.brand != null) {
           picks.add(
               matching.and(ofBrand(profile.brand.getId())),
               ProductCatalogService.POPULAR_ORDER,
-              REASON_FAVORITE_BRAND);
+              REASON_FAVORITE_BRAND,
+              RecommendationSource.RULE);
         }
-        picks.add(matching, ProductCatalogService.POPULAR_ORDER, REASON_FITS_NEEDS);
+        picks.add(
+            matching,
+            ProductCatalogService.POPULAR_ORDER,
+            REASON_FITS_NEEDS,
+            RecommendationSource.RULE);
       }
       case QUALITY -> {
         double threshold = profile.minRating == null ? 0 : profile.minRating.doubleValue();
-        picks.add(matching.and(unratedOrRatingAtLeast(threshold)), QUALITY_ORDER, null);
+        picks.add(
+            matching.and(unratedOrRatingAtLeast(threshold)),
+            QUALITY_ORDER,
+            null,
+            RecommendationSource.RULE);
       }
-      case TREND -> picks.add(matching, ProductCatalogService.POPULAR_ORDER, REASON_TRENDING);
+      case TREND ->
+          picks.add(
+              matching,
+              ProductCatalogService.POPULAR_ORDER,
+              REASON_TRENDING,
+              RecommendationSource.RULE);
       default -> {
         // GIFT: quà có thương hiệu trước.
-        picks.add(matching.and(hasBrand()), ProductCatalogService.POPULAR_ORDER, REASON_GIFT_BRAND);
-        picks.add(matching, ProductCatalogService.POPULAR_ORDER, REASON_GIFT_FITS);
+        picks.add(
+            matching.and(hasBrand()),
+            ProductCatalogService.POPULAR_ORDER,
+            REASON_GIFT_BRAND,
+            RecommendationSource.RULE);
+        picks.add(
+            matching,
+            ProductCatalogService.POPULAR_ORDER,
+            REASON_GIFT_FITS,
+            RecommendationSource.RULE);
       }
     }
   }
@@ -527,13 +558,13 @@ public class SurveyService {
         if (card != null && result.size() < RECOMMENDATION_LIMIT && chosen.add(card.id())) {
           String reason =
               gift && ML_REASON_FITS_SURVEY.equals(s.reason()) ? REASON_GIFT_FITS : s.reason();
-          result.add(new RelatedProductResponse(card, reason));
+          result.add(new RelatedProductResponse(card, reason, s.source()));
         }
       }
     }
 
     /** Thêm sản phẩm thỏa điều kiện theo thứ tự cho trước; lý do null = lý do theo đánh giá. */
-    void add(Specification<Product> filter, Sort order, String reason) {
+    void add(Specification<Product> filter, Sort order, String reason, String source) {
       int missing = RECOMMENDATION_LIMIT - result.size();
       if (missing <= 0) {
         return;
@@ -543,7 +574,7 @@ public class SurveyService {
         chosen.add(p.getId());
         result.add(
             new RelatedProductResponse(
-                ProductCardResponse.from(p), reason == null ? qualityReason(p) : reason));
+                ProductCardResponse.from(p), reason == null ? qualityReason(p) : reason, source));
       }
     }
   }

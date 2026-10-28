@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 
 /**
  * Một sự kiện với sản phẩm, bảng product_event_log (Mục 3.14; BR-20). Dùng để đo tỷ lệ bấm vào gợi
- * ý ở Chương 5. Hiện chỉ ghi ADD_TO_CART; placement, source, rank_position chỉ có giá trị với sự
- * kiện của gợi ý, làm từ Tuần 8.
+ * ý ở Chương 5. placement, source, rank_position chỉ có giá trị với sự kiện của gợi ý
+ * (RECOMMENDATION_SHOWN, RECOMMENDATION_CLICKED).
  */
 @Entity
 @Table(name = "product_event_log")
@@ -61,6 +61,21 @@ public class ProductEventLog {
     this.product = product;
     this.eventType = eventType;
     this.createdAt = createdAt;
+  }
+
+  /** Tạo sự kiện của một sản phẩm gợi ý (hiển thị hoặc được bấm). */
+  public ProductEventLog(
+      Account account,
+      Product product,
+      ProductEventType eventType,
+      String placement,
+      String source,
+      int rankPosition,
+      LocalDateTime createdAt) {
+    this(account, product, eventType, createdAt);
+    this.placement = placement;
+    this.source = source;
+    this.rankPosition = rankPosition;
   }
 
   public Long getId() {

@@ -6,12 +6,13 @@ import ProductImage from './ProductImage';
  * Thẻ sản phẩm trong lưới: cả thẻ là 1 liên kết tới trang chi tiết (không lồng nút hay liên kết
  * khác bên trong). Điểm đánh giá chỉ hiện khi đã có đánh giá, số đã bán chỉ hiện khi lớn hơn 0.
  * reason: lý do gợi ý (danh sách sản phẩm liên quan), không bắt buộc.
+ * onClick: gọi khi bấm vào thẻ (ghi lượt bấm gợi ý), không bắt buộc.
  */
-function ProductCard({ product, reason }) {
+function ProductCard({ product, reason, onClick }) {
   const hasRating = product.ratingAverage != null;
   const hasSold = product.soldCount > 0;
   return (
-    <Link to={`/products/${product.id}`} className="product-card">
+    <Link to={`/products/${product.id}`} className="product-card" onClick={onClick}>
       <span className="product-card-media">
         <ProductImage
           src={product.thumbnailUrl}

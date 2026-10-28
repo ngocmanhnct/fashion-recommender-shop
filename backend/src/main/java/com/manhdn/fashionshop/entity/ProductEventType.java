@@ -7,8 +7,8 @@ package com.manhdn.fashionshop.entity;
 public enum ProductEventType {
   /** Khách hàng đã đăng nhập thêm sản phẩm vào giỏ hàng (US-06). */
   ADD_TO_CART,
-  /** Một sản phẩm gợi ý được hiển thị (US-12, US-13; dùng từ Tuần 8). */
+  /** Một sản phẩm gợi ý được hiển thị (US-12, US-13, US-23). */
   RECOMMENDATION_SHOWN,
-  /** Một sản phẩm gợi ý được bấm vào (US-12, US-13; dùng từ Tuần 8). */
+  /** Một sản phẩm gợi ý được bấm vào (US-12, US-13, US-23). */
   RECOMMENDATION_CLICKED
 }

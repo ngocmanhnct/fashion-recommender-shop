@@ -591,7 +591,7 @@ UNIQUE(account\_id, rank\_position); UNIQUE(account\_id, product\_id). Mỗi l�
 | rank\_position | INT UNSIGNED | NULLABLE | Thứ hạng trong danh sách gợi ý. Thuộc tính `rank` trên sơ đồ lớp, đổi tên như ở `recommendation` |
 | created\_at | DATETIME | NOT NULL |  |
 
-Index (event\_type, created\_at) để tính tỷ lệ bấm theo khoảng thời gian. `placement`, `source`, `rank_position` chỉ có giá trị với sự kiện của gợi ý. Giá trị cụ thể của `placement`, `source` và chính sách lưu trữ dài hạn chốt khi làm phần gợi ý (Tuần 8–10).
+Index (event\_type, created\_at) để tính tỷ lệ bấm theo khoảng thời gian. `placement`, `source`, `rank_position` chỉ có giá trị với sự kiện của gợi ý. `placement` (chốt Tuần 8): `HOME` (trang chủ), `PRODUCT_DETAIL` (sản phẩm liên quan), `SURVEY_RESULT` (trang kết quả khảo sát). `source`: `BEHAVIOR`, `SURVEY`, `RELATED` (dịch vụ học máy), `RULE` (quy tắc khi không gọi được dịch vụ học máy), `POPULAR` (sản phẩm bán chạy). Một lượt hiện ghi khi khối gợi ý lọt vào màn hình lần đầu (mỗi sản phẩm một dòng), một lượt bấm ghi khi bấm vào sản phẩm; tài khoản Quản trị viên không ghi. Chính sách lưu trữ dài hạn chưa chốt.
 
 ### 3.15 Yêu cầu tính lại — `recompute_request`
 

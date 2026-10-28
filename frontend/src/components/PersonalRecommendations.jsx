@@ -2,7 +2,7 @@ import { Link } from 'react-router';
 import { useApiData } from '../hooks/useApiData';
 import { useAuth } from '../hooks/useAuth';
 import { getMyRecommendations } from '../services/recommendationApi';
-import ProductGrid from './ProductGrid';
+import RecommendationGrid from './RecommendationGrid';
 import SurveyHome from './SurveyHome';
 
 const SUBTITLES = {
@@ -23,7 +23,6 @@ function PersonalRecommendations() {
   if (loading) return null;
   if (!data || data.source === 'POPULAR' || data.products.length === 0) return <SurveyHome />;
 
-  const reasons = Object.fromEntries(data.products.map((item) => [item.product.id, item.reason]));
   return (
     <section className="product-section">
       <div className="section-header">
@@ -31,7 +30,7 @@ function PersonalRecommendations() {
         <Link to="/survey">Làm lại khảo sát ›</Link>
       </div>
       <p className="muted small">{SUBTITLES[data.source]}</p>
-      <ProductGrid products={data.products.map((item) => item.product)} reasons={reasons} />
+      <RecommendationGrid items={data.products} placement="HOME" />
     </section>
   );
 }

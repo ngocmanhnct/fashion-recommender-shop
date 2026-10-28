@@ -18,6 +18,7 @@ import com.manhdn.fashionshop.dto.ProductCardResponse;
 import com.manhdn.fashionshop.dto.ProductDetailResponse;
 import com.manhdn.fashionshop.dto.ProductSearchCriteria;
 import com.manhdn.fashionshop.dto.ProductSort;
+import com.manhdn.fashionshop.dto.RecommendationSource;
 import com.manhdn.fashionshop.dto.RelatedProductResponse;
 import com.manhdn.fashionshop.entity.Brand;
 import com.manhdn.fashionshop.entity.Product;
@@ -167,7 +168,8 @@ public class ProductCatalogService {
     } else {
       addRuleTiers(result, chosen, product);
     }
-    addTier(result, chosen, Specification.unrestricted(), BEST_SELLER);
+    addTier(
+        result, chosen, Specification.unrestricted(), BEST_SELLER, RecommendationSource.POPULAR);
     return result;
   }
 
@@ -180,7 +182,7 @@ public class ProductCatalogService {
     for (MlSuggestion s : suggestions) {
       ProductCardResponse card = cards.get(s.productId());
       if (card != null && result.size() < RELATED_LIMIT && chosen.add(card.id())) {
-        result.add(new RelatedProductResponse(card, s.reason()));
+        result.add(new RelatedProductResponse(card, s.reason(), s.source()));
       }
     }
   }
@@ -195,11 +197,22 @@ public class ProductCatalogService {
           result,
           chosen,
           inCategory(categoryId).and(ofBrand(brand.getId())),
-          SAME_CATEGORY_AND_BRAND);
-      addTier(result, chosen, inCategory(categoryId).and(notOfBrand(brand.getId())), SAME_CATEGORY);
-      addTier(result, chosen, ofBrand(brand.getId()).and(notInCategory(categoryId)), SAME_BRAND);
+          SAME_CATEGORY_AND_BRAND,
+          RecommendationSource.RULE);
+      addTier(
+          result,
+          chosen,
+          inCategory(categoryId).and(notOfBrand(brand.getId())),
+          SAME_CATEGORY,
+          RecommendationSource.RULE);
+      addTier(
+          result,
+          chosen,
+          ofBrand(brand.getId()).and(notInCategory(categoryId)),
+          SAME_BRAND,
+          RecommendationSource.RULE);
     } else {
-      addTier(result, chosen, inCategory(categoryId), SAME_CATEGORY);
+      addTier(result, chosen, inCategory(categoryId), SAME_CATEGORY, RecommendationSource.RULE);
     }
   }
 
@@ -208,14 +221,15 @@ public class ProductCatalogService {
       List<RelatedProductResponse> result,
       Set<Long> chosen,
       Specification<Product> tier,
-      String reason) {
+      String reason,
+      String source) {
     int missing = RELATED_LIMIT - result.size();
     if (missing <= 0) {
       return;
     }
     for (Product p : bestSellers(chosen, tier, missing)) {
       chosen.add(p.getId());
-      result.add(new RelatedProductResponse(ProductCardResponse.from(p), reason));
+      result.add(new RelatedProductResponse(ProductCardResponse.from(p), reason, source));
     }
   }
 

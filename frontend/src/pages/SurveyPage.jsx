@@ -210,7 +210,7 @@ function SurveyDone({ result, onRestart }) {
   return (
     <div className="survey-result">
       <p className="muted small">Kết quả khảo sát</p>
-      <SurveyProfile evaluation={result.evaluation} heading="h1" />
+      <SurveyProfile evaluation={result.evaluation} heading="h1" placement="SURVEY_RESULT" />
       {result.gift && (
         <p className="muted small">Kết quả tìm quà chỉ để gợi ý, không lưu vào sở thích của bạn.</p>
       )}
