@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Fashion Shop API (Tuần 8)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "name": "Fashion Shop API (Tuần 9)",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR); danh sách khách hàng và kết quả phân nhóm (US-18, US-19).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -69,6 +69,10 @@
     },
     {
       "key": "orderId",
+      "value": ""
+    },
+    {
+      "key": "customerId",
       "value": ""
     },
     {
@@ -2295,6 +2299,160 @@
                 },
                 "description": "Chỉ cho đơn có hoàn tiền FAILED: ghi nhận Quản trị viên đã tự hoàn tiền, trạng thái hoàn tiền thành COMPLETED. Đơn không có hoàn tiền thất bại trả 409. Trả chi tiết đơn như GET /api/admin/orders/{id}."
               }
+            }
+          ]
+        },
+        {
+          "name": "Khách hàng và phân nhóm",
+          "description": "Danh sách, chi tiết khách hàng (US-18) và kết quả phân nhóm RFM + K-Means (US-19). Chỉ đọc: ml-service ghi các bảng phân nhóm. Chạy 'Danh sách khách hàng' trước để lưu biến customerId.",
+          "item": [
+            {
+              "name": "Danh sách khách hàng",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/customers?page=0&size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "customers"
+                  ],
+                  "query": [
+                    {
+                      "key": "keyword",
+                      "value": "mophong",
+                      "disabled": true,
+                      "description": "Một phần tên (không phân biệt dấu) hoặc email, tối đa 100 ký tự"
+                    },
+                    {
+                      "key": "segment",
+                      "value": "VIP",
+                      "disabled": true,
+                      "description": "Mã nhóm (VIP, LOYAL, SAVER, NEW, AT_RISK, LOST) hoặc NONE = chưa phân nhóm (BR-24); bỏ trống là tất cả"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "description": "Tối đa 50"
+                    }
+                  ]
+                },
+                "description": "Trả PageResponse; mỗi khách có id, fullName, email, createdAt, orderCount (mọi đơn đã đặt) và segment { code, name } hoặc null. Mới đăng ký trước. Mã nhóm sai định dạng trả 400."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Có danh sách', () => pm.response.to.have.status(200));",
+                      "const first = pm.response.json().content[0];",
+                      "if (first) pm.collectionVariables.set('customerId', first.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Chi tiết khách hàng",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/customers/{{customerId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "customers",
+                    "{{customerId}}"
+                  ]
+                },
+                "description": "Thông tin khách, số đơn đã đặt, số đơn và tổng tiền đã giao, nhóm hiện tại kèm R (ngày), F (đơn), M (VNĐ) lúc xếp nhóm; segment null nếu chưa phân nhóm. Tài khoản không phải khách hàng trả 404."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Có khách hàng', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Đơn hàng của khách",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/customers/{{customerId}}/orders?page=0&size=10",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "customers",
+                    "{{customerId}}",
+                    "orders"
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "10"
+                    }
+                  ]
+                },
+                "description": "Lịch sử đơn của khách, mới nhất trước (cùng dạng 'Đơn hàng của tôi')."
+              }
+            },
+            {
+              "name": "Kết quả phân nhóm",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/segments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "segments"
+                  ]
+                },
+                "description": "Trả { model, segments, segmentedCount, unsegmentedCount }: model là lần huấn luyện gần nhất (K, K tại điểm gãy Elbow, số khách, Silhouette, thời điểm) hoặc null khi chưa huấn luyện; mỗi nhóm có số khách, tỷ lệ %, R/F/M trung bình hiện tại và mô tả."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Có kết quả phân nhóm', () => pm.response.to.have.status(200));",
+                      "pm.test('Có danh sách nhóm', () => pm.expect(pm.response.json().segments).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },
