@@ -6,7 +6,7 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -18,6 +18,12 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+  },
+  {
+    // Test không chạy qua Vite dev server nên không cần luật của Fast Refresh: file hỗ trợ test
+    // được export cả component lẫn hàm.
+    files: ['tests/**/*.{js,jsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
   },
   eslintConfigPrettier,
 ]);

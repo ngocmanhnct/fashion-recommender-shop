@@ -129,6 +129,8 @@ src/
 └── context/        # React Context (vd AuthContext lưu JWT — hết hạn 24h, NFR-03)
 ```
 
+Test nằm ở thư mục riêng `frontend/tests/`, chia thư mục con giống `src/` (`tests/services/`, `tests/hooks/`, `tests/context/`, `tests/components/`, `tests/pages/`), xem Mục 2.5.
+
 ### 2.2 Quy ước đặt tên
 
 | Đối tượng | Quy ước | Ví dụ |
@@ -159,7 +161,7 @@ import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'coverage']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -172,9 +174,15 @@ export default defineConfig([
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
   },
+  {
+    files: ['tests/**/*.{js,jsx}'],
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
   eslintConfigPrettier,
 ]);
 ```
+
+*Cập nhật 29/10/2026 (Tuần 9, thêm test frontend):* bỏ qua thư mục `coverage` (báo cáo độ phủ sinh ra khi chạy test) và tắt rule `react-refresh/only-export-components` cho `tests/`: test không chạy qua Vite dev server, file hỗ trợ test (`tests/renderWithContext.jsx`) cần export cả component lẫn hàm.
 
 *Cập nhật 23/09/2026 (Tuần 4, lúc dựng khung React) — khác bản gốc của mục này ở 3 điểm:*
 
@@ -197,6 +205,25 @@ File `frontend/.prettierrc.json`:
 ```
 
 *Vì sao `printWidth: 100` (khác mặc định Prettier là 80):* khớp đúng độ dài dòng đã chọn cho Java ở Checkstyle (Mục 1.3) — một chuẩn thống nhất cho cả 2 ngôn ngữ trong cùng dự án, dễ nhớ hơn 2 con số khác nhau.
+
+### 2.5 Test — Vitest + Testing Library
+
+*Thêm 29/10/2026 (Tuần 9).* Test thành phần chạy bằng **Vitest** (đọc chung `frontend/vite.config.js`, mục `test`) trong môi trường **jsdom** (trình duyệt giả lập trong Node), vẽ component bằng **React Testing Library** và giả lập thao tác người dùng bằng **user-event**. Lệnh (trong `frontend/`):
+
+```powershell
+npm test                 # chạy toàn bộ test 1 lần
+npm run test:coverage    # chạy kèm đo độ phủ, báo cáo ở frontend/coverage/index.html
+npx vitest               # chế độ theo dõi: sửa file là chạy lại test liên quan
+```
+
+- Tên file `<tên thứ được kiểm>.test.js(x)`, đặt trong `tests/` theo đúng thư mục con của file nguồn (vd `src/pages/CartPage.jsx` → `tests/pages/CartPage.test.jsx`). Không đặt test cạnh code trong `src/`: SonarQube sẽ thấy file vừa là mã nguồn vừa là test.
+- Không bật `globals` của Vitest: mỗi file tự `import { describe, expect, it, vi } from 'vitest'` (ESLint không cần khai thêm biến toàn cục). `tests/setup.js` dọn DOM và `localStorage` sau mỗi test.
+- Tìm phần tử theo cách người dùng thấy (`getByRole`, `getByLabelText`, `getByText`), không theo class CSS; tên test là câu tiếng Việt mô tả hành vi (vd `'chưa đăng nhập thì tới /login, nhớ trang đang muốn vào'`).
+- Không gọi backend thật. Cách giả lập API, chọn theo thứ cần kiểm:
+  - Kiểm tầng `services/` (đường dẫn, tham số, token, xử lý 401): `tests/apiMock.js` thay phần gửi request của `apiClient`, interceptor vẫn chạy thật.
+  - Kiểm trang, component, hook: `vi.mock('../../src/services/<tên>Api')` rồi đặt kết quả từng hàm bằng `vi.mocked(fn).mockResolvedValue(...)`.
+- Trang và component dùng `useAuth`, `useCart`, router: vẽ bằng `renderWithContext` (`tests/renderWithContext.jsx`) với `authValue(...)`, `cartValue(...)` giả, không cần `AuthProvider`/`CartProvider` thật. Trang bị chuyển tới (`Navigate`, `navigate`) hiện đường dẫn ở phần tử `data-testid="location"`.
+- Độ phủ chỉ tính `src/` (trừ `main.jsx`); `lcov.info` ghi đường dẫn từ gốc repo (`frontend/src/...`) để SonarQube khớp file.
 
 ---
 
@@ -290,6 +317,7 @@ Các công cụ trên chạy trong pipeline GitHub Actions (`.github/workflows/c
 | Java — build, test, kiểm tra quy tắc | `sh ./mvnw -B -ntp verify` (Checkstyle gắn vào pha `verify`) | Lỗi biên dịch, test hỏng, hoặc vi phạm Google Java Style |
 | React — kiểm tra format | `npx prettier --check .` | Có file chưa format đúng |
 | React — kiểm tra quy tắc | `npx eslint .` | Có lỗi ESLint |
+| React — test | `npm run test:coverage` (Vitest, Mục 2.5) | Test hỏng |
 | Python — kiểm tra format | `uv run ruff format --check .` | Có file chưa format đúng |
 | Python — kiểm tra quy tắc | `uv run ruff check .` | Có lỗi Ruff |
 | Cả repo — phân tích tĩnh | SonarQube Cloud (cấu hình ở `sonar-project.properties`, Bước 7) | Lần quét bị lỗi (sai cấu hình, token hết hạn). Cổng chất lượng chưa chặn, xem đoạn dưới bảng |
