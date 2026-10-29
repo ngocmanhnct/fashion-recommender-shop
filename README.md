@@ -21,6 +21,7 @@ Website thương mại điện tử (dữ liệu sản phẩm Tiki) tích hợp 
 ## 1. Môi trường triển khai thực tế
 
 - **Staging:** https://fashionshop-staging.eastasia.cloudapp.azure.com. Mỗi lần merge vào `main`, CI tự build và deploy lên đây.
+- **Giám sát:** UptimeRobot (gói miễn phí) kiểm tra `/actuator/health` (phải có `"status":"UP"`) và trang chủ staging mỗi 5 phút, gửi email khi lỗi. Trang trạng thái công khai: https://stats.uptimerobot.com/hOhfzy7MHT.
 - **Tài khoản test:** tài khoản quản trị viên và tài khoản khách hàng mẫu được gửi riêng cho hội đồng. Mật khẩu không ghi trong repository để đảm bảo 0 secret bị lộ.
 - **Thanh toán:** VNPay sandbox (thẻ test của VNPay, không trừ tiền thật).
 
