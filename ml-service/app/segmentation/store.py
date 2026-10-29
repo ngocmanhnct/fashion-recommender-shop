@@ -1,4 +1,5 @@
-"""Ghi, đọc mô hình phân nhóm trong CSDL; gán nhóm khi có đơn Đã giao; huấn luyện lại hằng tuần.
+"""Ghi, đọc mô hình phân nhóm trong CSDL; gán nhóm khi có đơn Đã giao và mỗi đêm; huấn luyện lại
+hằng tuần.
 
 Chỉ ml-service ghi các bảng segment_model, customer_segment, account_segment, và chỉ từ tiến
 trình lấy việc (hàm xử lý SEGMENT_ASSIGN và việc mỗi đêm) hoặc lệnh `evaluate --save`, nên không
@@ -165,11 +166,33 @@ def retrain(conn: Connection, now: datetime) -> SegmentModel | None:
 
 
 def retrain_if_due(conn: Connection, now: datetime) -> bool:
-    """Việc mỗi đêm: huấn luyện lại nếu chưa có mô hình hoặc mô hình đã gần 1 tuần tuổi."""
+    """Việc mỗi đêm: huấn luyện lại nếu chưa có mô hình hoặc mô hình đã gần 1 tuần tuổi; chưa
+    đến hạn thì gán lại nhóm cho mọi khách theo R, F, M mới nhất (`reassign_all`)."""
     current = load_model(conn)
     if current is not None and now - current[2] < RETRAIN_INTERVAL - RETRAIN_TOLERANCE:
+        reassign_all(conn, now, current)
         return False
     return retrain(conn, now) is not None
+
+
+def reassign_all(
+    conn: Connection,
+    now: datetime,
+    current: tuple[SegmentModel, dict[str, int], datetime] | None = None,
+) -> int:
+    """Gán lại mọi khách vào nhóm gần nhất của mô hình hiện tại, không huấn luyện lại.
+
+    R tăng mỗi ngày dù khách không làm gì, nên nếu chỉ gán khi có đơn Đã giao thì khách VIP
+    lâu không mua vẫn nằm ở nhóm cũ tới lần huấn luyện sau. Trả về số khách đã gán."""
+    if current is None:
+        current = load_model(conn)
+        if current is None:
+            return 0
+    model, segment_ids, _ = current
+    rows = load_rfm(conn, now)
+    _upsert_assignments(conn, rows, model.assign(rows), segment_ids, now.replace(microsecond=0))
+    logger.info("Đã gán lại nhóm cho %d khách theo R, F, M mới nhất", len(rows))
+    return len(rows)
 
 
 def assign_account(conn: Connection, account_id: int, now: datetime) -> None:
