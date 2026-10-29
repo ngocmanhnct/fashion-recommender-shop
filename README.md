@@ -55,6 +55,7 @@ npm run dev
 **Kiểm thử:**
 - Backend: `.\mvnw.cmd verify` trong `backend/` (dùng CSDL riêng `fashionshop_test`, có báo cáo JaCoCo).
 - ML service: `uv run pytest` trong `ml-service/`.
+- Frontend: `npm test` trong `frontend/` (Vitest, không cần backend; `npm run test:coverage` kèm độ phủ).
 - API: import `docs/postman/fashion-shop.postman_collection.json` vào Postman.
 
 **Lỗi hay gặp:**
@@ -65,7 +66,7 @@ npm run dev
 
 | Vị trí / Mô-đun | Vấn đề hiện tại | Rủi ro | Kế hoạch xử lý |
 |---|---|---|---|
-| Frontend | Chưa có test tự động và chưa đo độ phủ | Lỗi giao diện chỉ phát hiện khi thử tay | Thêm test E2E (Playwright) cho luồng mua hàng ở giai đoạn kiểm thử |
+| Frontend | Đã có test thành phần (Vitest, Tuần 9) nhưng chưa có test đầu cuối trên trình duyệt thật | Lỗi chỉ xuất hiện khi các trang và backend chạy cùng nhau (đăng nhập, giỏ hàng, đặt hàng) chưa được kiểm tự động | Thêm test E2E (Playwright) cho luồng mua hàng và admin đổi trạng thái đơn |
 | Ảnh sản phẩm | Đang dùng ảnh SVG minh họa tạm (PR #38, issue #39) | Giao diện chưa giống thật khi thực nghiệm người dùng | Thay bằng ảnh thật ở Tuần 8 |
 | Gợi ý sản phẩm liên quan (US-12) | Tạm gợi ý theo cùng danh mục, cùng thương hiệu | Chưa phản ánh hành vi của khách | Thay bằng mô hình content-based ở giai đoạn học máy |
 | SonarQube Cloud | Cổng chất lượng mới chỉ để báo cáo, chưa chặn merge | Lỗi mới có thể lọt vào `main` nếu không đọc kết quả | Bắt buộc đọc kết quả trước khi merge (AI_REVIEW, R5); xem lại việc chặn merge ở giai đoạn kiểm thử |
