@@ -117,6 +117,16 @@ describe('CheckoutPage', () => {
     await waitFor(() => expect(screen.getByRole('button', { name: 'Đặt hàng' })).toBeEnabled());
   });
 
+  it('chờ giỏ hàng tải xong (gộp giỏ sau đăng nhập) rồi mới xem trước đơn (issue #63)', async () => {
+    renderWithContext(<CheckoutPage />, {
+      cart: cartValue({ mode: 'customer', cart: null, loading: true }),
+      path: '/checkout',
+    });
+    await waitFor(() => expect(addressApi.listAddresses).toHaveBeenCalled());
+    expect(orderApi.getCheckoutPreview).not.toHaveBeenCalled();
+    expect(screen.getByText('Đang tải...')).toBeInTheDocument();
+  });
+
   it('giỏ trống, tải lỗi', async () => {
     vi.mocked(orderApi.getCheckoutPreview).mockResolvedValueOnce({ ...PREVIEW, items: [] });
     const { unmount } = renderCheckout();

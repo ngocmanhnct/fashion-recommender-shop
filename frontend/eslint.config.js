@@ -25,5 +25,11 @@ export default defineConfig([
     files: ['tests/**/*.{js,jsx}'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },
+  {
+    // Test E2E (Playwright) và file cấu hình chạy trong Node, không phải trình duyệt.
+    files: ['e2e/**/*.js', 'playwright.config.js'],
+    languageOptions: { globals: globals.node },
+    rules: { 'react-refresh/only-export-components': 'off' },
+  },
   eslintConfigPrettier,
 ]);

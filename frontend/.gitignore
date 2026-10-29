@@ -15,6 +15,11 @@ dist-ssr
 # Báo cáo độ phủ test (npm run test:coverage)
 coverage
 
+# Kết quả test E2E (npm run test:e2e)
+test-results
+playwright-report
+blob-report
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

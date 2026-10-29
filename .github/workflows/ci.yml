@@ -1,5 +1,5 @@
 # CI cơ bản (Tuần 4, Bước 6): mỗi service được build, kiểm tra format/quy tắc code và chạy test;
-# thêm 1 job build thử 3 Docker image. Các lệnh giống hệt lệnh chạy tay trên máy
+# thêm 1 job build thử 3 Docker image (Tuần 9: chạy thử cả cụm và test E2E). Các lệnh giống hệt lệnh chạy tay trên máy
 # (CLAUDE.md, docs/coding-convention.md Mục 4), chỉ khác là chạy trên Linux.
 # Bước 7: thêm phân tích tĩnh SonarQube Cloud (cấu hình ở sonar-project.properties) và quét
 # secret bằng gitleaks trên toàn bộ lịch sử Git.
@@ -207,19 +207,59 @@ jobs:
   docker:
     name: Docker images
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
+    # Build 3 image, rồi (Tuần 9) chạy thử cả cụm bằng docker-compose.yml và chạy test E2E
+    # Playwright (frontend/e2e) cho 4 luồng chính trên cụm đó. Tên job giữ "Docker images" vì
+    # là check bắt buộc của main.
+    # docker-compose.yml đọc biến từ .env (không có trên CI): đặt ở đây, chỉ dùng cho cụm tạm
+    # trong job này. ADMIN_EMAIL, ADMIN_PASSWORD: backend tạo admin lúc khởi động, test đọc lại.
+    env:
+      MYSQL_ROOT_PASSWORD: ci_only_password
+      ADMIN_EMAIL: admin@e2e.test
+      ADMIN_PASSWORD: ci_only_admin_2026
     steps:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false # không job nào cần đẩy code, không giữ token trong .git
 
-      # Chỉ build image để chắc 3 Dockerfile còn build được, chưa chạy thử cả cụm (để Tuần 11).
-      # docker-compose.yml đọc MYSQL_ROOT_PASSWORD từ .env (không có trên CI): đặt tạm để
-      # compose không cảnh báo biến trống.
       - name: Build 3 image (backend, frontend, ml-service)
-        env:
-          MYSQL_ROOT_PASSWORD: ci_only_password
         run: docker compose build
+
+      # --wait chờ healthcheck của mysql, ml-service, backend. Backend chỉ báo UP sau khi nạp xong
+      # danh mục mẫu và tạo tài khoản admin (các bước này chạy trước khi nhận request).
+      - name: Chạy cả cụm (docker compose up)
+        run: docker compose up -d --wait --wait-timeout 300
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Cài thư viện và Chromium cho Playwright
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Test E2E (Playwright)
+        working-directory: frontend
+        run: npx playwright test
+
+      - name: Log của cụm khi có bước đỏ
+        if: failure()
+        run: docker compose logs --no-color --tail 300
+
+      # Ảnh chụp màn hình và trace lúc test đỏ: tải về rồi mở bằng npx playwright show-trace.
+      - name: Lưu báo cáo Playwright khi test đỏ
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7
 
   sonarcloud:
     name: SonarQube Cloud

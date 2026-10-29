@@ -22,8 +22,10 @@ const FREE_SHIPPING_THRESHOLD = 500_000;
  */
 function CheckoutPage() {
   const navigate = useNavigate();
-  const { refresh: refreshCart } = useCart();
-  const preview = useApiData('checkout-preview', getCheckoutPreview);
+  const { refresh: refreshCart, loading: cartLoading } = useCart();
+  // Vừa đăng nhập thì CartProvider còn đang gộp giỏ của trình duyệt vào tài khoản: chờ gộp xong
+  // mới xem trước đơn, nếu không preview đọc giỏ cũ và báo giỏ trống (issue #63).
+  const preview = useApiData(cartLoading ? null : 'checkout-preview', getCheckoutPreview);
   const addressBook = useApiData('addresses', listAddresses);
   const [idempotencyKey] = useState(newIdempotencyKey);
   const [selectedId, setSelectedId] = useState(null);
