@@ -171,6 +171,28 @@ def test_background_thread_picks_up_new_requests(clean_db, make_worker):
     assert worker.status()["running"] is False and not worker.holds_lock
 
 
+def test_full_batch_is_followed_by_next_batch_without_waiting(clean_db, make_worker):
+    with clean_db.begin() as conn:
+        accounts = [create_account(conn, f"kh{i}@test.vn") for i in range(5)]
+        for account_id in accounts:
+            request_recompute(conn, account_id, RECOMMENDATION)
+    done = []
+    worker = make_worker(
+        clean_db,
+        {RECOMMENDATION: lambda conn, req: done.append(req.account_id)},
+        batch_size=2,
+        poll_interval_seconds=30,
+    )
+    worker.start()
+    deadline = time.monotonic() + 5
+    while len(done) < 5 and time.monotonic() < deadline:
+        time.sleep(0.02)
+    worker.stop()
+
+    # 3 lượt (2 + 2 + 1) chạy liền nhau; nếu chờ 30 giây giữa các lượt thì chỉ xong 2.
+    assert sorted(done) == accounts
+
+
 # ---- việc mỗi đêm ----
 
 

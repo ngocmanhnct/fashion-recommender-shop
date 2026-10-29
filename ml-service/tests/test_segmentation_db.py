@@ -171,6 +171,38 @@ def test_retrain_if_due_once_a_week(seg_db):
         assert conn.execute(text("SELECT COUNT(*) FROM customer_segment")).scalar() == 4
 
 
+def rfm_row(engine, account_id):
+    with engine.connect() as conn:
+        return conn.execute(
+            text("SELECT rfm_recency, computed_at FROM account_segment WHERE account_id = :id"),
+            {"id": account_id},
+        ).one()
+
+
+def test_nightly_reassigns_with_current_recency_without_retraining(seg_db):
+    with seg_db.begin() as conn:
+        truth = add_groups(conn)
+        store.retrain(conn, NOW)
+    customer = next(iter(truth))
+    before = rfm_row(seg_db, customer)
+    with seg_db.begin() as conn:
+        assert store.retrain_if_due(conn, NOW + timedelta(days=6)) is False
+        assert conn.execute(text("SELECT COUNT(*) FROM segment_model")).scalar() == 1
+    after = rfm_row(seg_db, customer)
+    assert after.rfm_recency == before.rfm_recency + 6
+    assert after.computed_at == NOW + timedelta(days=6)
+
+
+def test_reassign_moves_lapsed_customer_to_lost(seg_db):
+    with seg_db.begin() as conn:
+        assert store.reassign_all(conn, NOW) == 0  # chưa có mô hình: không làm gì
+        truth = add_groups(conn)
+        store.retrain(conn, NOW)
+        new = next(a for a, c in truth.items() if c == "NEW")
+        assert store.reassign_all(conn, NOW + timedelta(days=290)) == len(truth)
+    assert segment_of(seg_db, new) == "LOST"
+
+
 def test_worker_handles_segment_assign_and_nightly_job_trains(seg_db):
     with seg_db.begin() as conn:
         truth = add_groups(conn)

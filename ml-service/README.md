@@ -1,6 +1,6 @@
 # ml-service
 
-Service FastAPI cho 2 tính năng ML của đề tài: gợi ý sản phẩm (hybrid: lọc theo nội dung, hay mua cùng, khảo sát, bán chạy) và phân nhóm khách hàng (RFM + K-Means). Chỉ được Spring Boot gọi nội bộ, không gọi thẳng từ trình duyệt. Từ Tuần 8 đọc/ghi MySQL: tiến trình lấy việc (`app/recompute/`) xử lý bảng `recompute_request` mỗi 2 giây.
+Service FastAPI cho 2 tính năng ML của đề tài: gợi ý sản phẩm (hybrid: lọc theo nội dung, hay mua cùng, khảo sát, bán chạy) và phân nhóm khách hàng (RFM + K-Means). Chỉ được Spring Boot gọi nội bộ, không gọi thẳng từ trình duyệt. Từ Tuần 8 đọc/ghi MySQL: tiến trình lấy việc (`app/recompute/`) xử lý bảng `recompute_request` mỗi 2 giây (lượt lấy đủ 50 yêu cầu thì lấy tiếp ngay, không chờ).
 
 ## Chạy trên máy (cần uv: https://docs.astral.sh/uv/)
 
@@ -79,7 +79,7 @@ Package `app/segmentation/` (US-19, BR-23, BR-24). Chỉ khách có ít nhất 1
 - **R, F, M** (`rfm.py`): R = số ngày từ lúc đặt đơn Đã giao gần nhất, F = số đơn Đã giao, M = tổng `total_amount` các đơn Đã giao.
 - **Huấn luyện** (`model.py`): đặc trưng ln(1 + R), ln(1 + F), ln(1 + M), chuẩn hóa z; K-Means với K = 1..8. Elbow (điểm gãy của inertia) và Silhouette: chọn K lớn nhất trong 3..6, không nhỏ hơn điểm gãy, Silhouette từ 0,3 và kém tốt nhất không quá 0,05. Cần ít nhất 20 khách. Tên nhóm (VIP, thân thiết, tiết kiệm, mới, có nguy cơ rời bỏ, đã lâu không mua) gán bằng cách ghép tâm nhóm với kiểu khách mẫu gần nhất (thuật toán Hungary, không trùng tên); mô tả ghi số liệu trung bình của nhóm và gợi ý chăm sóc.
 - **Lưu** (`store.py`, migration V6): `segment_model` (tham số chuẩn hóa, K, Silhouette, mỗi lần huấn luyện 1 dòng), `customer_segment` (nhóm của lần mới nhất, tâm dạng z), `account_segment` (nhóm và R, F, M của từng khách).
-- **Khi nào chạy**: yêu cầu SEGMENT_ASSIGN (backend ghi khi đơn sang Đã giao) gán khách vào nhóm có tâm gần nhất, không huấn luyện lại; chưa có mô hình thì huấn luyện lần đầu. Việc mỗi đêm huấn luyện lại khi mô hình đã đủ 1 tuần.
+- **Khi nào chạy**: yêu cầu SEGMENT_ASSIGN (backend ghi khi đơn sang Đã giao) gán khách vào nhóm có tâm gần nhất, không huấn luyện lại; chưa có mô hình thì huấn luyện lần đầu. Việc mỗi đêm huấn luyện lại khi mô hình đã đủ 1 tuần; chưa đủ thì gán lại mọi khách vào tâm gần nhất theo R, F, M mới nhất (R tăng mỗi ngày dù khách không mua, nên khách lâu không mua được chuyển nhóm ngay đêm đó).
 
 Huấn luyện ngay và in bảng Elbow/Silhouette, các nhóm, so với kiểu khách mô phỏng (chỉ số ARI):
 

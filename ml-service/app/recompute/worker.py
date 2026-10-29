@@ -119,9 +119,14 @@ class RecomputeWorker:
         self._drop_lock(release=True)
 
     def _run(self) -> None:
-        """Thân luồng nền: lặp tick() đến khi có lệnh dừng."""
+        """Thân luồng nền: lặp tick() đến khi có lệnh dừng.
+
+        Lượt vừa lấy đủ `batch_size` yêu cầu thì có thể còn việc đến hạn (vd sau lần yêu cầu tính
+        lại cho mọi khách lúc 02:00): lấy tiếp ngay, không chờ. Yêu cầu lỗi bị lùi hạn nên không
+        lấy lại ngay, vòng lặp không quay liên tục."""
         while not self._stop.is_set():
-            self.tick()
+            if self.tick() >= self.batch_size:
+                continue
             self._stop.wait(self.poll_interval_seconds)
 
     def tick(self) -> int:

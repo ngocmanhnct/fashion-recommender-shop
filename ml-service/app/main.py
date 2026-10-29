@@ -33,8 +33,9 @@ def task_handlers(cache: ModelCache) -> dict[str, Handler]:
 
 
 def nightly_job(cache: ModelCache) -> Callable[[Connection], None]:
-    """Việc mỗi đêm và khi khởi động: huấn luyện lại phân nhóm nếu đã đủ 1 tuần (BR-23), dựng
-    lại mô hình gợi ý, yêu cầu tính lại gợi ý cho mọi khách."""
+    """Việc mỗi đêm và khi khởi động: huấn luyện lại phân nhóm nếu đã đủ 1 tuần (BR-23), chưa đủ
+    thì gán lại nhóm theo R, F, M mới nhất; dựng lại mô hình gợi ý, yêu cầu tính lại gợi ý cho
+    mọi khách."""
     logger = logging.getLogger(__name__)
 
     def run(conn: Connection) -> None:
