@@ -129,7 +129,7 @@ src/
 └── context/        # React Context (vd AuthContext lưu JWT — hết hạn 24h, NFR-03)
 ```
 
-Test nằm ở thư mục riêng `frontend/tests/`, chia thư mục con giống `src/` (`tests/services/`, `tests/hooks/`, `tests/context/`, `tests/components/`, `tests/pages/`), xem Mục 2.5.
+Test nằm ở thư mục riêng `frontend/tests/`, chia thư mục con giống `src/` (`tests/services/`, `tests/hooks/`, `tests/context/`, `tests/components/`, `tests/pages/`), xem Mục 2.5. Test E2E (Playwright) ở `frontend/e2e/`, xem Mục 2.6.
 
 ### 2.2 Quy ước đặt tên
 
@@ -225,6 +225,34 @@ npx vitest               # chế độ theo dõi: sửa file là chạy lại te
 - Trang và component dùng `useAuth`, `useCart`, router: vẽ bằng `renderWithContext` (`tests/renderWithContext.jsx`) với `authValue(...)`, `cartValue(...)` giả, không cần `AuthProvider`/`CartProvider` thật. Trang bị chuyển tới (`Navigate`, `navigate`) hiện đường dẫn ở phần tử `data-testid="location"`.
 - Độ phủ chỉ tính `src/` (trừ `main.jsx`); `lcov.info` ghi đường dẫn từ gốc repo (`frontend/src/...`) để SonarQube khớp file.
 
+### 2.6 Test E2E — Playwright
+
+*Thêm 29/10/2026 (Tuần 9).* Test đầu-cuối chạy trình duyệt Chromium thật trên **cả hệ thống đang chạy** (frontend, backend, MySQL), không giả lập API như Mục 2.5. Cấu hình ở `frontend/playwright.config.js`, test ở `frontend/e2e/`, 4 luồng chính:
+
+| File | Luồng |
+| :---- | :---- |
+| `auth.spec.js` | Đăng ký, đăng xuất, đăng nhập lại; sai mật khẩu; chưa đăng nhập bị chuyển tới `/login` |
+| `cart.spec.js` | Khách chưa đăng nhập thêm vào giỏ, bấm "Mua hàng", đăng nhập thì giỏ được gộp vào tài khoản |
+| `order.spec.js` | Khách thêm vào giỏ, nhập địa chỉ, đặt đơn COD, thấy đơn trong "Đơn hàng của tôi" |
+| `admin-order.spec.js` | Admin tìm đơn của khách, chuyển sang trạng thái kế tiếp |
+
+Chạy trên máy (Windows, cmd), ở gốc repo bật cả cụm rồi chạy trong `frontend/`:
+
+```bat
+docker compose up -d --build --wait
+cd frontend
+npx playwright install chromium
+set E2E_ADMIN_EMAIL=<ADMIN_EMAIL trong .env>
+set E2E_ADMIN_PASSWORD=<ADMIN_PASSWORD trong .env>
+npm run test:e2e
+```
+
+- Mặc định frontend ở `http://localhost:3000` (Docker), backend ở `http://localhost:8080`; đổi bằng `E2E_BASE_URL`, `E2E_API_URL` (vd `set E2E_BASE_URL=http://localhost:5173` khi chạy `npm run dev`). `npx playwright install chromium` chỉ cần chạy 1 lần (tải trình duyệt).
+- Thiếu biến admin thì test admin bị bỏ qua trên máy; trên CI không bỏ qua.
+- Mỗi test tự tạo tài khoản khách mới (email `@e2e.test`, mật khẩu ngẫu nhiên) và chuẩn bị dữ liệu qua REST API (`e2e/helpers.js`); chỉ bước đang kiểm tra mới đi qua giao diện. Nhờ vậy test chạy song song, chạy lại nhiều lần trên cùng CSDL vẫn đúng. Mỗi lần chạy đặt vài đơn COD thật nên tồn kho sản phẩm được chọn giảm dần: chạy trên CSDL dev chứ không trên dữ liệu cần giữ.
+- Tìm phần tử theo cách người dùng thấy như Mục 2.5; hộp `window.confirm` phải được chấp nhận bằng `page.once('dialog', (d) => d.accept())` (Playwright mặc định bấm Hủy).
+- Test đỏ: báo cáo ở `frontend/playwright-report/` (`npx playwright show-report`), ảnh chụp và trace ở `frontend/test-results/` (`npx playwright show-trace <file trace.zip>`). Trên CI, 2 thư mục này là artifact `playwright-report` của job "Docker images".
+
 ---
 
 ## 3. Python — FastAPI (ml-service)
@@ -318,12 +346,13 @@ Các công cụ trên chạy trong pipeline GitHub Actions (`.github/workflows/c
 | React — kiểm tra format | `npx prettier --check .` | Có file chưa format đúng |
 | React — kiểm tra quy tắc | `npx eslint .` | Có lỗi ESLint |
 | React — test | `npm run test:coverage` (Vitest, Mục 2.5) | Test hỏng |
+| Cả hệ thống — test E2E | Job "Docker images": `docker compose build`, `docker compose up -d --wait`, rồi `npx playwright test` trong `frontend/` (Mục 2.6) | Image không build được, cụm không lên healthy, hoặc test E2E hỏng |
 | Python — kiểm tra format | `uv run ruff format --check .` | Có file chưa format đúng |
 | Python — kiểm tra quy tắc | `uv run ruff check .` | Có lỗi Ruff |
 | Cả repo — phân tích tĩnh | SonarQube Cloud (cấu hình ở `sonar-project.properties`, Bước 7) | Lần quét bị lỗi (sai cấu hình, token hết hạn). Cổng chất lượng chưa chặn, xem đoạn dưới bảng |
 | Cả repo — quét secret | `gitleaks git .` trên toàn bộ lịch sử Git (Bước 7) | Có token hoặc khóa mà bộ quy tắc mặc định của gitleaks nhận ra, trong bất kỳ commit nào (không bắt được mật khẩu người tự đặt, không quét .docx và ảnh) |
 
-CI gọi `sh ./mvnw` vì `mvnw` commit từ Windows không có quyền thực thi trên Linux. Test của backend khởi động cả Spring context nên CI bật kèm 1 MySQL 8.4 tạm. Trên máy (Windows), kiểm tra nhanh không cần MySQL: `.\mvnw.cmd spotless:check checkstyle:check`; muốn chạy giống hệt CI: bật MySQL rồi `.\mvnw.cmd verify`. Frontend còn chạy `npm run build`; CI có thêm 1 job build thử 3 Docker image.
+CI gọi `sh ./mvnw` vì `mvnw` commit từ Windows không có quyền thực thi trên Linux. Test của backend khởi động cả Spring context nên CI bật kèm 1 MySQL 8.4 tạm. Trên máy (Windows), kiểm tra nhanh không cần MySQL: `.\mvnw.cmd spotless:check checkstyle:check`; muốn chạy giống hệt CI: bật MySQL rồi `.\mvnw.cmd verify`. Frontend còn chạy `npm run build`; CI có thêm 1 job build 3 Docker image, chạy cả cụm và test E2E trên đó.
 
 SonarQube Cloud (trước gọi là SonarCloud) dùng gói Free, nên cổng chất lượng là "Sonar way" cố định, trong đó có điều kiện coverage của code mới từ 80%. Coverage đến Tuần 11 mới đo, nên tới lúc đó cổng chỉ để báo cáo, không chặn merge. Trước khi merge, tự xem kết quả Sonar trên PR và chỉ merge khi: 0 bug mới, 0 lỗ hổng mới, mọi issue bảo mật mới đã được xử lý (sửa, hoặc đánh dấu False positive/Accept trên SonarQube Cloud kèm lý do), trùng lặp trên code mới không quá 3%. Coverage báo đỏ là chuyện đã biết cho tới Tuần 11.
 
