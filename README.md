@@ -5,8 +5,8 @@
 - **GVHD:** ThS. Nguyễn Minh Đạo
 
 Website thương mại điện tử (dữ liệu sản phẩm Tiki) tích hợp học máy cho hai bài toán:
-- **Gợi ý mua hàng:** content-based, cập nhật gần thời gian thực theo hành vi của khách.
-- **Phân nhóm khách hàng:** K-Means trên R, F, M.
+- **Gợi ý mua hàng:** hybrid, kết hợp gợi ý theo nội dung, sản phẩm hay mua cùng, khảo sát sở thích lần đầu và bán chạy; cập nhật gần thời gian thực theo hành vi của khách.
+- **Phân nhóm khách hàng:** K-Means trên R, F, M, chọn K bằng Elbow và Silhouette.
 
 | Thành phần | Công nghệ | Thư mục |
 |---|---|---|
@@ -71,3 +71,4 @@ npm run dev
 | SonarQube Cloud | Cổng chất lượng mới chỉ để báo cáo, chưa chặn merge | Lỗi mới có thể lọt vào `main` nếu không đọc kết quả | Bắt buộc đọc kết quả trước khi merge (AI_REVIEW, R5); xem lại việc chặn merge ở giai đoạn kiểm thử |
 | Phiên đăng nhập | JWT sống 24 giờ, chưa có refresh token (NFR-03) | Token lộ thì dùng được đến hết hạn | Ngoài phạm vi tiểu luận; ghi vào hướng phát triển |
 | Hạ tầng staging | Máy ảo Azure for Students 4 GB, chạy bằng credit có hạn | Hết credit thì máy dừng, mất môi trường demo | Tắt máy khi không dùng; theo dõi credit trước buổi bảo vệ |
+| Dữ liệu học máy | Gợi ý và phân nhóm mới được đánh giá trên dữ liệu hành vi mô phỏng (300 khách) | Số đo chưa phản ánh hành vi khách thật | Đo lại trong đợt thực nghiệm với người dùng (Tuần 12–13), kèm tỷ lệ bấm gợi ý (CTR) |
