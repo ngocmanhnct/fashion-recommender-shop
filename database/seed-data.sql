@@ -12,7 +12,7 @@
 
 LOCK TABLES `flyway_schema_history` WRITE;
 /*!40000 ALTER TABLE `flyway_schema_history` DISABLE KEYS */;
-INSERT INTO `flyway_schema_history` VALUES (1,'1','init schema','SQL','V1__init_schema.sql',-1420325115,'root','2026-10-21 06:08:00',516,1),(2,'2','survey preference recommendation voucher cap','SQL','V2__survey_preference_recommendation_voucher_cap.sql',-1449547236,'root','2026-10-21 06:08:00',156,1),(3,'3','variation tiers event log recompute request','SQL','V3__variation_tiers_event_log_recompute_request.sql',1768872421,'root','2026-10-21 06:08:01',444,1),(4,'4','vnpay payment info','SQL','V4__vnpay_payment_info.sql',1334421191,'root','2026-10-22 02:16:29',99,1),(5,'5','first visit survey','SQL','V5__first_visit_survey.sql',875367209,'root','2026-10-22 09:22:38',397,1);
+INSERT INTO `flyway_schema_history` VALUES (1,'1','init schema','SQL','V1__init_schema.sql',-1420325115,'root','2026-10-21 06:08:00',516,1),(2,'2','survey preference recommendation voucher cap','SQL','V2__survey_preference_recommendation_voucher_cap.sql',-1449547236,'root','2026-10-21 06:08:00',156,1),(3,'3','variation tiers event log recompute request','SQL','V3__variation_tiers_event_log_recompute_request.sql',1768872421,'root','2026-10-21 06:08:01',444,1),(4,'4','vnpay payment info','SQL','V4__vnpay_payment_info.sql',1334421191,'root','2026-10-22 02:16:29',99,1),(5,'5','first visit survey','SQL','V5__first_visit_survey.sql',875367209,'root','2026-10-22 09:22:38',397,1),(6,'6','segment model','SQL','V6__segment_model.sql',1990028578,'root','2026-10-30 08:21:35',150,1);
 /*!40000 ALTER TABLE `flyway_schema_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
