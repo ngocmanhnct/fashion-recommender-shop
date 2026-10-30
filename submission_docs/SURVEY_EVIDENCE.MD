@@ -64,7 +64,7 @@ Hai nhóm dưới đây tổng hợp từ dữ liệu khảo sát, không phải
 | Coolmate | Không có, chỉ có danh mục tĩnh | CoolClub: ưu đãi thành viên, không phân hạng theo hành vi | Chưa có gợi ý cá nhân hóa |
 | YODY | Không có, chỉ có bộ sưu tập tĩnh | Chính sách khách thân thiết dạng trang tĩnh | Không dùng dữ liệu hành vi |
 | DEGREY | Có nhãn "Gợi ý cho bạn", nhiều khả năng chỉ là widget tĩnh của nền tảng dựng web | Không có | Không có cá nhân hóa thật, không có phân nhóm |
-| **Hệ thống của đề tài** | Gợi ý content-based theo hành vi xem/mua trên chính website; cập nhật trong vài phút; khảo sát lần đầu cho người dùng mới | K-Means trên R, F, M, có diễn giải từng nhóm | Minh bạch, giải thích được, khả thi cho shop nhỏ/vừa |
+| **Hệ thống của đề tài** | Gợi ý hybrid (theo nội dung, sản phẩm hay mua cùng, khảo sát, bán chạy) theo hành vi xem/mua trên chính website; cập nhật trong vài phút; khảo sát lần đầu cho người dùng mới | K-Means trên R, F, M, chọn K bằng Elbow và Silhouette, có diễn giải từng nhóm | Minh bạch, giải thích được, khả thi cho shop nhỏ/vừa |
 
 **Nguồn:**
 - [Shopee Rewards](https://fptshop.com.vn/tin-tuc/danh-gia/shopee-rewards-162440)
@@ -77,7 +77,7 @@ Hai nhóm dưới đây tổng hợp từ dữ liệu khảo sát, không phải
 ## 4. Phạm vi: phần làm và phần không làm
 
 **Làm:**
-- Gợi ý content-based.
+- Gợi ý hybrid: theo nội dung, sản phẩm hay mua cùng, khảo sát lần đầu, bán chạy.
 - Phân nhóm RFM + K-Means.
 - Luồng thương mại điện tử đầy đủ: danh mục, giỏ hàng, đặt hàng, thanh toán VNPay sandbox, quản trị.
 

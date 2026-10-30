@@ -24,7 +24,7 @@ CREATE TABLE `account` (
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_account_email` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=309 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `account_segment`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -56,7 +56,7 @@ CREATE TABLE `address` (
   PRIMARY KEY (`id`),
   KEY `fk_address_account` (`account_id`),
   CONSTRAINT `fk_address_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=276 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `brand`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -82,7 +82,7 @@ CREATE TABLE `cart_item` (
   KEY `fk_cart_item_variant` (`variant_id`),
   CONSTRAINT `fk_cart_item_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_cart_item_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variant` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=79 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `category`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -99,11 +99,19 @@ DROP TABLE IF EXISTS `customer_segment`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `customer_segment` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `model_id` bigint unsigned NOT NULL,
+  `code` varchar(20) NOT NULL,
   `name` varchar(100) NOT NULL,
   `description` text NOT NULL,
+  `center_recency` double NOT NULL,
+  `center_frequency` double NOT NULL,
+  `center_monetary` double NOT NULL,
   `computed_at` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_customer_segment_code` (`code`),
+  KEY `fk_customer_segment_model` (`model_id`),
+  CONSTRAINT `fk_customer_segment_model` FOREIGN KEY (`model_id`) REFERENCES `segment_model` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `flyway_schema_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -140,7 +148,7 @@ CREATE TABLE `order_item` (
   KEY `fk_order_item_variant` (`variant_id`),
   CONSTRAINT `fk_order_item_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
   CONSTRAINT `fk_order_item_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variant` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2897 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `orders`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -175,7 +183,7 @@ CREATE TABLE `orders` (
   CONSTRAINT `fk_orders_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_orders_address` FOREIGN KEY (`address_id`) REFERENCES `address` (`id`),
   CONSTRAINT `fk_orders_voucher` FOREIGN KEY (`voucher_id`) REFERENCES `voucher` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1481 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `product`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -217,7 +225,7 @@ CREATE TABLE `product_event_log` (
   KEY `idx_product_event_log_type_created` (`event_type`,`created_at`),
   CONSTRAINT `fk_product_event_log_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_product_event_log_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3905 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `product_image`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -265,7 +273,7 @@ CREATE TABLE `product_view_log` (
   KEY `idx_product_view_log_account_viewed` (`account_id`,`viewed_at`),
   CONSTRAINT `fk_product_view_log_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_product_view_log_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31038 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `recommendation`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -284,7 +292,7 @@ CREATE TABLE `recommendation` (
   KEY `fk_recommendation_product` (`product_id`),
   CONSTRAINT `fk_recommendation_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_recommendation_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6061 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `recompute_request`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -341,7 +349,26 @@ CREATE TABLE `review` (
   CONSTRAINT `fk_review_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_review_order_item` FOREIGN KEY (`order_item_id`) REFERENCES `order_item` (`id`),
   CONSTRAINT `fk_review_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=898 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `segment_model`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `segment_model` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `cluster_count` int NOT NULL,
+  `elbow_cluster_count` int NOT NULL,
+  `customer_count` int NOT NULL,
+  `silhouette` double NOT NULL,
+  `log_recency_mean` double NOT NULL,
+  `log_recency_std` double NOT NULL,
+  `log_frequency_mean` double NOT NULL,
+  `log_frequency_std` double NOT NULL,
+  `log_monetary_mean` double NOT NULL,
+  `log_monetary_std` double NOT NULL,
+  `trained_at` datetime NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `survey_option`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -433,7 +460,7 @@ CREATE TABLE `user_preference` (
   CONSTRAINT `fk_user_preference_brand` FOREIGN KEY (`brand_id`) REFERENCES `brand` (`id`),
   CONSTRAINT `fk_user_preference_category` FOREIGN KEY (`category_id`) REFERENCES `category` (`id`),
   CONSTRAINT `ck_user_preference_price_range` CHECK (((`price_max` is null) or (`price_max` >= `price_min`)))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1885 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `voucher`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -469,7 +496,7 @@ CREATE TABLE `wishlist_item` (
   KEY `fk_wishlist_item_product` (`product_id`),
   CONSTRAINT `fk_wishlist_item_account` FOREIGN KEY (`account_id`) REFERENCES `account` (`id`),
   CONSTRAINT `fk_wishlist_item_product` FOREIGN KEY (`product_id`) REFERENCES `product` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=192 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
