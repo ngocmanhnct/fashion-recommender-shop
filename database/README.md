@@ -4,7 +4,7 @@ Có 2 cách dựng lại cơ sở dữ liệu.
 
 ## Cách 1 (khuyên dùng): để backend tự dựng
 
-Cấu trúc bảng được quản lý bằng Flyway, trong `backend/src/main/resources/db/migration/` (V1 đến V5, 25 bảng nghiệp vụ cộng bảng `flyway_schema_history`). Từ điển dữ liệu nằm trong `docs/dac-ta-yeu-cau.md`, Mục 3.
+Cấu trúc bảng được quản lý bằng Flyway, trong `backend/src/main/resources/db/migration/` (V1 đến V6, 26 bảng nghiệp vụ cộng bảng `flyway_schema_history`). Từ điển dữ liệu nằm trong `docs/dac-ta-yeu-cau.md`, Mục 3.
 
 ```powershell
 docker compose up -d mysql
