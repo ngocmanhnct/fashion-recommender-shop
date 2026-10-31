@@ -1,6 +1,7 @@
 package com.manhdn.fashionshop.service;
 
 import static com.manhdn.fashionshop.repository.ProductSpecifications.forSale;
+import static com.manhdn.fashionshop.repository.ProductSpecifications.idNotIn;
 import static com.manhdn.fashionshop.repository.ProductSpecifications.inStock;
 
 import com.manhdn.fashionshop.dto.ProductCardResponse;
@@ -43,8 +44,9 @@ import org.springframework.transaction.annotation.Transactional;
  * giờ, tính lúc mở trang như khối sản phẩm liên quan (US-12). Sản phẩm đã có ở hàng này không lặp
  * lại ở danh sách chính.
  *
- * <p>Khi có thử nghiệm A/B đang chạy (US-27), khách thuộc nhóm CONTROL thấy sản phẩm bán chạy thay
- * cho cả 2 phần trên; nhóm TREATMENT thấy như bình thường.
+ * <p>Khi có thử nghiệm A/B đang chạy (US-27), khách thuộc nhóm CONTROL thấy sản phẩm bán chạy (trừ
+ * sản phẩm đã mua hoặc đang trong giỏ, giống danh sách học máy) thay cho cả 2 phần trên; nhóm
+ * TREATMENT thấy như bình thường.
  */
 @Service
 @Transactional(readOnly = true)
@@ -103,8 +105,9 @@ public class RecommendationService {
    * đang tính lại (frontend tải lại sau vài giây để khách thấy danh sách mới).
    *
    * <p>Có thử nghiệm A/B đang chạy thì khách có danh sách riêng được chia nhóm ở lần gọi đầu (vì
-   * vậy phương thức này có ghi); nhóm CONTROL nhận sản phẩm bán chạy, không có hàng hành động gần
-   * nhất. {@code abVariant} cho biết nhóm của khách, null khi không tham gia thử nghiệm.
+   * vậy phương thức này có ghi); nhóm CONTROL nhận sản phẩm bán chạy trừ sản phẩm đã mua hoặc đang
+   * trong giỏ, không có hàng hành động gần nhất. {@code abVariant} cho biết nhóm của khách, null
+   * khi không tham gia thử nghiệm.
    *
    * @param accountId mã tài khoản khách hàng
    * @return nguồn, danh sách sản phẩm kèm lý do, hàng hành động gần nhất và trạng thái cập nhật
@@ -118,8 +121,12 @@ public class RecommendationService {
     Optional<AbVariant> variant = abTestService.variantFor(accountId, !cards.isEmpty());
     String abVariant = variant.map(AbVariant::name).orElse(null);
     if (variant.isPresent() && variant.get() == AbVariant.CONTROL) {
+      Set<Long> owned =
+          recommendationRepository.findOwnedProductIds(accountId).stream()
+              .map(Number::longValue)
+              .collect(Collectors.toSet());
       return new RecommendationsResponse(
-          SOURCE_POPULAR, bestSellers(), null, null, false, abVariant);
+          SOURCE_POPULAR, bestSellers(owned), null, null, false, abVariant);
     }
 
     RecentActivityResponse recent = recentActivity(accountId);
@@ -204,9 +211,14 @@ public class RecommendationService {
   }
 
   private List<RelatedProductResponse> bestSellers() {
+    return bestSellers(Set.of());
+  }
+
+  /** Sản phẩm bán chạy đang bán, còn hàng, trừ các mã cho trước. */
+  private List<RelatedProductResponse> bestSellers(Set<Long> excludedIds) {
     return productRepository
         .findBy(
-            forSale().and(inStock()),
+            forSale().and(inStock()).and(idNotIn(excludedIds)),
             q -> q.sortBy(ProductCatalogService.POPULAR_ORDER).limit(HOME_LIMIT).all())
         .stream()
         .map(

@@ -53,6 +53,25 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
       nativeQuery = true)
   long countPendingRecompute(@Param("accountId") Long accountId);
 
+  /**
+   * Mã các sản phẩm tài khoản đã mua (đơn khác CANCELLED) hoặc đang có trong giỏ: những sản phẩm
+   * không đưa vào gợi ý. Trả về {@link Number} vì cột BIGINT UNSIGNED được đọc thành BigInteger.
+   */
+  @Query(
+      value =
+          """
+          SELECT v.product_id FROM order_item oi
+          JOIN orders o ON o.id = oi.order_id
+          JOIN product_variant v ON v.id = oi.variant_id
+          WHERE o.account_id = :accountId AND o.status <> 'CANCELLED'
+          UNION
+          SELECT v.product_id FROM cart_item c
+          JOIN product_variant v ON v.id = c.variant_id
+          WHERE c.account_id = :accountId
+          """,
+      nativeQuery = true)
+  List<Number> findOwnedProductIds(@Param("accountId") Long accountId);
+
   /** Một dòng của {@link #findLatestActivity}: sản phẩm và loại hành động (VIEW hoặc CART). */
   interface LatestActivity {
 

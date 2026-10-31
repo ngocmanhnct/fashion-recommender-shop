@@ -3,6 +3,8 @@ package com.manhdn.fashionshop.controller;
 import static com.manhdn.fashionshop.controller.OrderFixtures.insertOrder;
 import static com.manhdn.fashionshop.controller.OrderFixtures.insertOrderItem;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -108,6 +110,44 @@ class AbTestIntegrationTest {
     customer(get(HOME), control)
         .andExpect(jsonPath("$.abVariant").doesNotExist())
         .andExpect(jsonPath("$.products[0].product.id").value(forControl));
+  }
+
+  @Test
+  void controlBestSellersSkipProductsBoughtOrInCart() throws Exception {
+    long experiment = start(50);
+    long control = accountIn(experiment, 50, AbVariant.CONTROL);
+    long buyer = account();
+    ProductResponse inCart = product("Bán chạy trong giỏ", 5);
+    ProductResponse bought = product("Bán chạy đã mua", 5);
+    ProductResponse cancelled = product("Bán chạy đơn hủy", 5);
+    store(control, product("Gợi ý riêng", 5).id());
+    // Đơn của khách khác với số lượng rất lớn: 3 sản phẩm chắc chắn đứng đầu bán chạy.
+    long hot = insertOrder(jdbcTemplate, buyer, "DELIVERED");
+    for (ProductResponse p : List.of(inCart, bought, cancelled)) {
+      insertOrderItem(jdbcTemplate, hot, p.variants().get(0).id(), 100_000);
+    }
+    insertOrderItem(
+        jdbcTemplate,
+        insertOrder(jdbcTemplate, control, "DELIVERED"),
+        bought.variants().get(0).id(),
+        1);
+    insertOrderItem(
+        jdbcTemplate,
+        insertOrder(jdbcTemplate, control, "CANCELLED"),
+        cancelled.variants().get(0).id(),
+        1);
+    jdbcTemplate.update(
+        "INSERT INTO cart_item (account_id, variant_id, quantity, updated_at) VALUES (?, ?, 1, ?)",
+        control,
+        inCart.variants().get(0).id(),
+        LocalDateTime.now());
+    reload();
+
+    customer(get(HOME), control)
+        .andExpect(jsonPath("$.abVariant").value("CONTROL"))
+        .andExpect(jsonPath("$.products[0].product.id").value(cancelled.id()))
+        .andExpect(jsonPath("$.products[*].product.id", not(hasItem(inCart.id()))))
+        .andExpect(jsonPath("$.products[*].product.id", not(hasItem(bought.id()))));
   }
 
   @Test
