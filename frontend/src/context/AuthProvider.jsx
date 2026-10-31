@@ -38,14 +38,17 @@ function AuthProvider({ children }) {
     return auth.account;
   }, []);
 
+  // Sửa hồ sơ xong: thay thông tin tài khoản đang hiện (vd tên ở "Xin chào, ..."), token giữ nguyên.
+  const updateUser = useCallback((account) => setUser(account), []);
+
   const logout = useCallback(() => {
     clearToken();
     setUser(null);
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout }),
-    [user, loading, login, register, logout]
+    () => ({ user, loading, login, register, logout, updateUser }),
+    [user, loading, login, register, logout, updateUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

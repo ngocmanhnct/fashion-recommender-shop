@@ -3,9 +3,11 @@ import AdminLayout from './components/AdminLayout';
 import Layout from './components/Layout';
 import RequireAdmin from './components/RequireAdmin';
 import RequireCustomer from './components/RequireCustomer';
+import RequireLogin from './components/RequireLogin';
 import AddressesPage from './pages/AddressesPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import HealthCheckPage from './pages/HealthCheckPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -15,7 +17,9 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import OrdersPage from './pages/OrdersPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProductsPage from './pages/ProductsPage';
+import ProfilePage from './pages/ProfilePage';
 import RegisterPage from './pages/RegisterPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import SurveyPage from './pages/SurveyPage';
 import VnPayReturnPage from './pages/VnPayReturnPage';
 import WishlistPage from './pages/WishlistPage';
@@ -94,6 +98,16 @@ function App() {
         <Route path="payment/vnpay-return" element={<VnPayReturnPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="reset-password" element={<ResetPasswordPage />} />
+        <Route
+          path="profile"
+          element={
+            <RequireLogin>
+              <ProfilePage />
+            </RequireLogin>
+          }
+        />
         <Route path="health" element={<HealthCheckPage />} />
         <Route
           path="admin"

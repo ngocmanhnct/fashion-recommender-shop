@@ -42,6 +42,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!-- Gửi email đặt lại mật khẩu (chức năng 21) qua SMTP, vd Gmail -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 
 		<!-- Bước 2 Tuần 5: xác thực + phân quyền. Spring Security, và JWT qua resource server
 		     (Nimbus JOSE có sẵn trong starter, không cần thư viện JWT bên thứ ba như jjwt) -->

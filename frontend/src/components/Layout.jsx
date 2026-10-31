@@ -58,6 +58,7 @@ function Layout() {
             {user && (
               <div className="utility-account">
                 <span className="topbar-greeting">Xin chào, {user.fullName}</span>
+                <Link to="/profile">Hồ sơ</Link>
                 {user.role === 'CUSTOMER' && <Link to="/addresses">Sổ địa chỉ</Link>}
                 <button type="button" className="btn-link" onClick={handleLogout}>
                   Đăng xuất
@@ -226,6 +227,9 @@ function DrawerAccount({ user, onLogout }) {
     <div className="drawer-account">
       <p className="drawer-title">Tài khoản của {user.fullName}</p>
       <ul className="drawer-links">
+        <li>
+          <Link to="/profile">Hồ sơ cá nhân</Link>
+        </li>
         {user.role === 'ADMIN' && (
           <li>
             <Link to="/admin">Quản trị</Link>

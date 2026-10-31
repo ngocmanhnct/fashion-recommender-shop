@@ -98,6 +98,11 @@
     {
       "key": "abTestId",
       "value": ""
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "description": "Phần sau ?token= trong liên kết email đặt lại mật khẩu"
     }
   ],
   "item": [
@@ -239,6 +244,147 @@
                 "me"
               ]
             }
+          }
+        },
+        {
+          "name": "Sửa hồ sơ cá nhân",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn A\",\n  \"gender\": \"MALE\",\n  \"birthdate\": \"2000-05-20\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Chức năng 21, dùng token khách hoặc admin (biến token). Trả 200 kèm tài khoản sau khi sửa. gender, birthdate để null là bỏ thông tin đã khai; email, vai trò không sửa được. Họ tên trống hoặc ngày sinh không trong quá khứ: 400 kèm errors; không token: 401."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Đã sửa hồ sơ', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đổi mật khẩu",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me/password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me",
+                "password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"matkhau123\",\n  \"newPassword\": \"matkhaumoi456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Chức năng 21. Trả 204. Mật khẩu hiện tại sai: 400 (tính như đăng nhập sai, 5 lần trong 15 phút thì 429); mật khẩu mới trùng mật khẩu cũ hoặc không đúng BR-02: 400. Đổi xong thì mọi liên kết đặt lại mật khẩu chưa dùng hết hiệu lực."
+          }
+        },
+        {
+          "name": "Quên mật khẩu (gửi liên kết qua email)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "forgot-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"khach1@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Chức năng 21, BR-48, không cần đăng nhập. Luôn trả 202 dù email có tài khoản hay không. Có tài khoản thì gửi email chứa liên kết {FRONTEND_URL}/reset-password?token=... (dùng 1 lần, hết hạn sau 30 phút); không gửi thêm nếu vừa gửi trong 60 giây hoặc đã gửi 5 lần trong 1 giờ. Chưa đặt MAIL_HOST thì không gửi; MAIL_LOG_LINKS=true ghi liên kết vào log backend (chỉ máy dev). Email sai định dạng: 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Đã nhận yêu cầu', () => pm.response.to.have.status(202));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đặt lại mật khẩu bằng liên kết",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "reset-password"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"newPassword\": \"matkhaumoi789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Chức năng 21, BR-48, không cần đăng nhập. token là phần sau ?token= trong liên kết của email (đặt vào biến resetToken). Trả 204, gỡ khóa đăng nhập sai của email; liên kết không có, đã dùng hoặc hết hạn: 400."
           }
         }
       ],

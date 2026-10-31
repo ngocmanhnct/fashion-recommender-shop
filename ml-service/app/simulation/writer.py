@@ -34,6 +34,7 @@ RESET_STATEMENTS = (
     f"DELETE FROM recommendation WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM account_segment WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM recompute_request WHERE account_id IN ({SIM_ACCOUNTS})",
+    f"DELETE FROM password_reset_token WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM account WHERE email LIKE '%@{EMAIL_DOMAIN}'",
 )
 RESET_TABLES = tuple(stmt.split()[2] for stmt in RESET_STATEMENTS)
