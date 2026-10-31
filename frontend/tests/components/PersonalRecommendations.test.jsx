@@ -1,4 +1,4 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import PersonalRecommendations from '../../src/components/PersonalRecommendations';
@@ -72,7 +72,8 @@ describe('PersonalRecommendations', () => {
     expect(screen.getByText('Cập nhật 2 phút trước')).toBeInTheDocument();
     // Lần đầu chưa có gì để so nên không có nhãn "Mới".
     expect(screen.queryByText('Mới')).not.toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem(SEEN_KEY))).toEqual([1, 2]);
+    // Danh sách đã thấy được ghi trong useEffect, có thể chạy sau khi DOM đã cập nhật.
+    await waitFor(() => expect(JSON.parse(localStorage.getItem(SEEN_KEY))).toEqual([1, 2]));
   });
 
   it('đánh dấu "Mới" sản phẩm chưa có ở lần trước', async () => {
