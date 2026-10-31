@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  * trong {@link #VIEW_WINDOW_DAYS} ngày gần nhất (viewed_at tính theo giờ của JVM backend như các
  * bảng khác, sản phẩm đã xóa mềm vẫn được đếm). Lượt xem làm tài khoản vừa đạt ngưỡng (sản phẩm
  * khác nhau thứ 5, khi tài khoản chưa có đơn đã hoàn tất nào) được xử lý như hành động rõ ý: gợi ý
- * được tính lại sau vài giây thay vì tối đa 5 phút.
+ * được tính lại sau vài giây thay vì tối đa 30 giây.
  */
 @Service
 public class ProductViewService {

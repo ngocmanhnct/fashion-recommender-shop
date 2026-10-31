@@ -4,8 +4,9 @@ import ProductCard from './ProductCard';
  * Lưới thẻ sản phẩm, tự đổi số cột theo bề rộng chỗ đặt lưới (2 cột trên điện thoại, tối đa 4).
  * reasons: lý do gợi ý theo mã sản phẩm (danh sách liên quan), không bắt buộc.
  * onProductClick(product, index): gọi khi bấm vào một thẻ (ghi lượt bấm gợi ý), không bắt buộc.
+ * newIds: tập mã sản phẩm hiện nhãn "Mới", không bắt buộc.
  */
-function ProductGrid({ products, reasons, onProductClick }) {
+function ProductGrid({ products, reasons, onProductClick, newIds }) {
   return (
     <div className="product-grid-container">
       <ul className="product-grid">
@@ -15,6 +16,7 @@ function ProductGrid({ products, reasons, onProductClick }) {
               product={product}
               reason={reasons?.[product.id]}
               onClick={onProductClick && (() => onProductClick(product, index))}
+              isNew={newIds?.has(product.id) ?? false}
             />
           </li>
         ))}

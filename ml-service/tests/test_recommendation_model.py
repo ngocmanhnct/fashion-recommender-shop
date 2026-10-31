@@ -1,5 +1,7 @@
 """Test mô hình gợi ý không cần CSDL: vector sản phẩm, hay mua cùng, trộn nguồn, lý do."""
 
+from datetime import UTC, datetime, timedelta
+
 import numpy as np
 import pytest
 
@@ -141,6 +143,45 @@ def test_behaviour_reason_names_the_most_similar_viewed_product(model):
     assert result[2] == "Giống Giày thể thao nam Adidas chạy bộ bạn đã xem"
     assert result[3] == "Bạn đã xem sản phẩm này gần đây"
     assert result[1] == "Khách mua Vớ nam cổ ngắn cotton cũng hay mua sản phẩm này"
+
+
+NOW = datetime(2026, 10, 30, 14, 0, tzinfo=UTC).replace(tzinfo=None)
+
+
+def test_recent_interaction_outweighs_older_ones(model):
+    # Đã mua vớ từ lâu, vừa thêm giày Adidas vào giỏ: giày lên đầu, lý do ghi "vừa".
+    signals = UserSignals(1, purchased={7}, cart={3}, delivered_orders=1, now=NOW)
+    signals.touch(7, NOW - timedelta(days=60))
+    signals.touch(3, NOW - timedelta(minutes=2))
+    result = model.for_account(signals, limit=3)
+    assert result[0].product_id == 1
+    assert result[0].reason == "Giống Giày thể thao nam Adidas chạy bộ bạn vừa thêm vào giỏ"
+
+    # Cùng dữ liệu nhưng không có thời điểm: vớ đã mua (trọng số 5) lấn giày trong giỏ (3).
+    plain = UserSignals(1, purchased={7}, cart={3}, delivered_orders=1)
+    first = model.for_account(plain, limit=1)[0]
+    assert first.product_id == 6
+    assert first.reason == "Giống Vớ nam cổ cao bạn đã mua"
+
+
+def test_recency_factor_halves_each_half_life(model):
+    assert model._recency(None, NOW) == 1.0
+    assert model._recency(NOW, None) == 1.0
+    assert model._recency(NOW, NOW) == pytest.approx(4.0)
+    assert model._recency(NOW, NOW - timedelta(days=1)) == pytest.approx(2.5)
+    assert model._recency(NOW, NOW + timedelta(hours=1)) == pytest.approx(4.0)  # lệch giờ máy
+    model.weights = Weights(recent_boost=0)
+    assert model._recency(NOW, NOW) == 1.0
+
+
+def test_touch_keeps_the_latest_time():
+    signals = UserSignals(1)
+    signals.touch(5, NOW - timedelta(days=2))
+    signals.touch(5, NOW - timedelta(days=5))
+    signals.touch(5, None)
+    assert signals.last_at == {5: NOW - timedelta(days=2)}
+    signals.touch(5, NOW)
+    assert signals.last_at[5] == NOW
 
 
 def test_wishlisted_product_can_come_back(model):

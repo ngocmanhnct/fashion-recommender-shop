@@ -2,8 +2,9 @@
 
 Trang chủ (US-13), nguồn chọn theo BR-38:
 1. Đủ dữ liệu hành vi (BR-19): hồ sơ P(u) là trung bình có trọng số vector các sản phẩm khách đã
-   tương tác, cộng vector khảo sát s(u) với trọng số thấp nhất (công thức (1.3)). Điểm của sản
-   phẩm j:
+   tương tác, cộng vector khảo sát s(u) với trọng số thấp nhất (công thức (1.3)). Tương tác càng
+   gần đây càng nặng (nhân hệ số 1 + β · 0,5^(tuổi / chu kỳ bán rã)), để việc khách vừa làm thấy
+   ngay trên trang chủ. Điểm của sản phẩm j:
 
        score(j) = w_c · cos(P(u), v(j)) + w_cf · cf(j) + w_p · pop(j)
                   + λ · b(j)
@@ -23,6 +24,7 @@ Trang chi tiết (US-12): độ tương đồng nội dung với sản phẩm đ
 
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass
+from datetime import datetime
 
 import numpy as np
 from scipy import sparse
@@ -34,6 +36,17 @@ from app.recommendation.features import CatalogItem, ItemVectors
 # vector khảo sát nhẹ nhất (BR-38). Chốt bằng đánh giá trên dữ liệu mô phỏng (evaluate.py).
 INTERACTION_WEIGHTS = {"PURCHASE": 5.0, "CART": 3.0, "WISHLIST": 2.0, "VIEW": 1.0}
 SURVEY_WEIGHT = 0.5
+
+# Ưu tiên tương tác gần đây: hệ số 1 + β · 0,5^(tuổi / chu kỳ bán rã), để khách thấy gợi ý đổi theo
+# việc vừa làm (thêm 1 món vào giỏ: trung bình 0,5 → 1,6 trên 8 món trang chủ đổi). Trên dữ liệu mô
+# phỏng tỷ lệ trúng tăng 49% → 64%, nhưng ở đó khách luôn xem món trước khi mua nên con số này nói
+# lên giả định mô phỏng nhiều hơn; chỉ dùng để chắc chắn độ chính xác không giảm. β lớn hơn làm danh
+# sách chỉ xoay quanh vài món vừa xem, mất các sở thích lâu dài.
+RECENT_BOOST = 3.0
+RECENT_HALF_LIFE_DAYS = 1.0
+
+RECENT_PHRASE_HOURS = 24
+"""Tương tác trong chừng này giờ thì lý do gợi ý ghi "vừa xem", "vừa thêm vào giỏ"."""
 
 
 @dataclass(frozen=True)
@@ -53,6 +66,10 @@ class Weights:
     survey_popular: float = 0.2
     """Trọng số bán chạy khi gợi ý chỉ theo khảo sát (nhiều sản phẩm cùng danh mục, cùng tầm giá
     có cosine bằng nhau, nên bán chạy quyết định thứ tự)."""
+    recent_boost: float = RECENT_BOOST
+    """β: tương tác vừa xảy ra nặng gấp (1 + β) lần tương tác cùng loại đã lâu."""
+    recent_half_life_days: float = RECENT_HALF_LIFE_DAYS
+    """Sau chừng này ngày, phần ưu tiên còn một nửa."""
 
 
 DEFAULT_WEIGHTS = Weights()
@@ -88,6 +105,13 @@ _KIND_PHRASES = {
     "CART": "trong giỏ hàng của bạn",
     "WISHLIST": "bạn đã thích",
     "VIEW": "bạn đã xem",
+}
+
+_RECENT_KIND_PHRASES = {
+    "PURCHASE": "bạn vừa mua",
+    "CART": "bạn vừa thêm vào giỏ",
+    "WISHLIST": "bạn vừa thích",
+    "VIEW": "bạn vừa xem",
 }
 
 
@@ -213,7 +237,10 @@ class Recommender:
         return []
 
     def _interaction_weights(self, signals: UserSignals) -> dict[int, tuple[float, str]]:
-        """Hàng ma trận → (trọng số, loại) của loại tương tác mạnh nhất với sản phẩm đó."""
+        """Hàng ma trận → (trọng số, loại) của loại tương tác mạnh nhất với sản phẩm đó.
+
+        Trọng số theo loại nhân hệ số gần đây của lần tương tác muộn nhất với sản phẩm.
+        """
         weights: dict[int, tuple[float, str]] = {}
         for kind, products in (
             ("VIEW", signals.viewed),
@@ -224,8 +251,18 @@ class Recommender:
             for product_id in products:
                 row = self.vectors.index.get(product_id)
                 if row is not None:
-                    weights[row] = (INTERACTION_WEIGHTS[kind], kind)
+                    factor = self._recency(signals.now, signals.last_at.get(product_id))
+                    weights[row] = (INTERACTION_WEIGHTS[kind] * factor, kind)
         return weights
+
+    def _recency(self, now: datetime | None, at: datetime | None) -> float:
+        """1 + β · 0,5^(tuổi / chu kỳ bán rã); thiếu thời điểm thì 1 (không ưu tiên)."""
+        if now is None or at is None or self.weights.recent_boost <= 0:
+            return 1.0
+        age_days = max((now - at).total_seconds(), 0.0) / 86_400
+        return 1.0 + self.weights.recent_boost * 0.5 ** (
+            age_days / self.weights.recent_half_life_days
+        )
 
     def _behaviour(
         self, signals: UserSignals, weights: dict[int, tuple[float, str]], limit: int
@@ -266,7 +303,9 @@ class Recommender:
 
         result = []
         for row in picked:
-            reason = self._behaviour_reason(row, rows, w, weights, content[row], copurchase[row])
+            reason = self._behaviour_reason(
+                row, rows, w, weights, content[row], copurchase[row], signals
+            )
             result.append(
                 Suggestion(int(self.vectors.ids[row]), float(score[row]), reason, SOURCE_BEHAVIOUR)
             )
@@ -280,6 +319,7 @@ class Recommender:
         weights: dict[int, tuple[float, str]],
         content: float,
         copurchase: float,
+        signals: UserSignals,
     ) -> str:
         """Lý do theo sản phẩm đã tương tác đóng góp nhiều nhất vào điểm của sản phẩm `row`."""
         if row in weights:
@@ -295,7 +335,15 @@ class Recommender:
         similarity = (matrix[anchors] @ matrix[row].T).toarray().ravel()
         anchor = int(anchors[int(np.argmax(anchor_weights * similarity))])
         kind = weights[anchor][1]
-        return f"Giống {short_name(self.names[anchor])} {_KIND_PHRASES[kind]}"
+        phrases = _RECENT_KIND_PHRASES if self._is_recent(signals, anchor) else _KIND_PHRASES
+        return f"Giống {short_name(self.names[anchor])} {phrases[kind]}"
+
+    def _is_recent(self, signals: UserSignals, row: int) -> bool:
+        """Khách tương tác với sản phẩm ở hàng `row` trong RECENT_PHRASE_HOURS giờ qua."""
+        at = signals.last_at.get(int(self.vectors.ids[row]))
+        if signals.now is None or at is None:
+            return False
+        return (signals.now - at).total_seconds() <= RECENT_PHRASE_HOURS * 3600
 
     # ---- theo khảo sát ----
 

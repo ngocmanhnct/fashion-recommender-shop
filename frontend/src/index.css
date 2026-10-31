@@ -645,6 +645,26 @@ legend {
   color: #fff;
 }
 
+.badge-new {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+  background: var(--primary);
+  color: #fff;
+}
+
+.recommendation-status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+}
+
+.recommendation-updating {
+  color: var(--primary);
+}
+
 /* ---- Trang danh sách sản phẩm ---- */
 .shop {
   display: grid;

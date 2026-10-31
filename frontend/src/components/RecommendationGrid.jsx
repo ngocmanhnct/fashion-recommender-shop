@@ -21,9 +21,10 @@ function logShownOnce(loggedKey, key, placement, items) {
 /**
  * Lưới sản phẩm gợi ý kèm lý do, có ghi nhật ký để tính tỷ lệ bấm (CTR): một lượt hiện khi khối lọt
  * vào màn hình lần đầu, một lượt bấm khi bấm vào sản phẩm. Quản trị viên không được ghi.
- * items: [{ product, reason, source }] từ API gợi ý. placement: HOME, PRODUCT_DETAIL, SURVEY_RESULT.
+ * items: [{ product, reason, source }] từ API gợi ý. placement: HOME, HOME_RECENT, PRODUCT_DETAIL,
+ * SURVEY_RESULT. newIds: tập mã sản phẩm hiện nhãn "Mới", không bắt buộc.
  */
-function RecommendationGrid({ items, placement }) {
+function RecommendationGrid({ items, placement, newIds }) {
   const { user } = useAuth();
   const tracked = user?.role !== 'ADMIN';
   const containerRef = useRef(null);
@@ -64,6 +65,7 @@ function RecommendationGrid({ items, placement }) {
         products={items.map((item) => item.product)}
         reasons={reasons}
         onProductClick={handleClick}
+        newIds={newIds}
       />
     </div>
   );

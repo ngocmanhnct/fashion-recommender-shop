@@ -35,8 +35,11 @@ public class RecomputeRequestService {
   /** Thời gian chờ của hành động rõ ý: đặt đơn, đổi giỏ hàng, yêu thích, khảo sát (BR-20). */
   public static final Duration STRONG_ACTION_DELAY = Duration.ofSeconds(3);
 
-  /** Thời gian chờ tối đa với lượt xem (BR-20). */
-  public static final Duration VIEW_DELAY = Duration.ofMinutes(5);
+  /**
+   * Thời gian chờ tối đa với lượt xem (BR-20): ngắn để khách thấy gợi ý đổi theo sản phẩm vừa xem,
+   * đủ dài để một lượt lướt nhiều sản phẩm chỉ gộp thành 1 lần tính.
+   */
+  public static final Duration VIEW_DELAY = Duration.ofSeconds(30);
 
   /**
    * Gộp vào yêu cầu đang chờ (nếu có) mà không làm lùi thời điểm đến hạn, và tăng version để dịch
