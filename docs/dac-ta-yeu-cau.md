@@ -63,7 +63,8 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 
 - Xem danh sách sản phẩm, số lượng, đơn giá, tổng tiền  
 - Sửa số lượng hoặc xóa từng sản phẩm  
-- Tổng tiền cập nhật ngay khi thay đổi
+- Tổng tiền cập nhật ngay khi thay đổi  
+- Dưới giỏ có khối "Thường được mua cùng" (bổ sung 31/10/2026): tối đa 4 sản phẩm còn hàng hay được mua kèm các sản phẩm trong giỏ, mỗi sản phẩm kèm lý do, lấy từ ma trận "hay mua cùng" của mô hình gợi ý (US-12, US-13); chưa ai mua cùng thì ẩn khối, không lấp bằng sản phẩm bán chạy
 
 **US-08: Bắt đầu thanh toán — yêu cầu đăng nhập nếu chưa có tài khoản** Là khách chưa đăng nhập, khi tôi bấm "Mua hàng" từ giỏ hàng, tôi được yêu cầu đăng nhập hoặc đăng ký trước khi tiếp tục, để hệ thống gắn đơn hàng với đúng tài khoản của tôi. Tiêu chí chấp nhận:
 

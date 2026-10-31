@@ -1,6 +1,8 @@
 package com.manhdn.fashionshop.repository;
 
 import com.manhdn.fashionshop.entity.Product;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,4 +44,25 @@ public interface ProductRepository
       @Param("categoryId") Long categoryId,
       @Param("includeDeleted") boolean includeDeleted,
       Pageable pageable);
+
+  /**
+   * Sản phẩm hay nằm chung đơn (khác CANCELLED) với các sản phẩm cho trước, đơn chung nhiều nhất
+   * trước; dùng cho "Thường được mua cùng" ở giỏ hàng khi không gọi được ml-service.
+   */
+  @Query(
+      value =
+          """
+          SELECT v2.product_id
+          FROM order_item i1
+          JOIN product_variant v1 ON v1.id = i1.variant_id
+          JOIN orders o ON o.id = i1.order_id AND o.status <> 'CANCELLED'
+          JOIN order_item i2 ON i2.order_id = o.id
+          JOIN product_variant v2 ON v2.id = i2.variant_id
+          WHERE v1.product_id IN (:ids) AND v2.product_id NOT IN (:ids)
+          GROUP BY v2.product_id
+          ORDER BY COUNT(DISTINCT o.id) DESC, v2.product_id
+          LIMIT :limit
+          """,
+      nativeQuery = true)
+  List<Long> findBoughtTogether(@Param("ids") Collection<Long> ids, @Param("limit") int limit);
 }

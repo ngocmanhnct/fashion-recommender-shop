@@ -66,6 +66,15 @@ class MlServiceClientTest {
   }
 
   @Test
+  void boughtTogetherSendsCartProducts() {
+    respond("/recommendations/bought-together", 200, SUGGESTIONS, Duration.ZERO);
+
+    assertThat(client(true).boughtTogether(List.of(3L, 5L), 4)).isPresent();
+    assertThat(lastRequest.get()).isEqualTo("POST /recommendations/bought-together");
+    assertThat(lastBody.get()).contains("\"productIds\":[3,5]", "\"limit\":4");
+  }
+
+  @Test
   void errorsAndSlowAnswersGiveNothing() {
     respond("/recommendations/related/404", 404, "{\"detail\":\"Không có\"}", Duration.ZERO);
     respond("/recommendations/related/9", 200, SUGGESTIONS, Duration.ofSeconds(2));

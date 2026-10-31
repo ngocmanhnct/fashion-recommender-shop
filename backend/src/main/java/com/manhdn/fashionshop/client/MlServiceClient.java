@@ -81,6 +81,27 @@ public class MlServiceClient {
                 .body(SUGGESTIONS));
   }
 
+  /**
+   * "Thường được mua cùng" các sản phẩm trong giỏ hàng (chức năng 20).
+   *
+   * @param productIds các sản phẩm trong giỏ
+   * @param limit số sản phẩm tối đa
+   * @return danh sách theo thứ tự gợi ý (có thể rỗng khi chưa ai mua cùng), hoặc rỗng nếu không gọi
+   *     được ml-service
+   */
+  public Optional<List<MlSuggestion>> boughtTogether(List<Long> productIds, int limit) {
+    return call(
+        "thường được mua cùng",
+        () ->
+            restClient
+                .post()
+                .uri("/recommendations/bought-together")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new BoughtTogetherRequest(productIds, limit))
+                .retrieve()
+                .body(SUGGESTIONS));
+  }
+
   private Optional<List<MlSuggestion>> call(String what, Request request) {
     if (!enabled) {
       return Optional.empty();
@@ -108,6 +129,14 @@ public class MlServiceClient {
    * @param source nguồn gợi ý: BEHAVIOR, SURVEY hoặc RELATED
    */
   public record MlSuggestion(long productId, double score, String reason, String source) {}
+
+  /**
+   * Các sản phẩm trong giỏ gửi sang ml-service.
+   *
+   * @param productIds mã sản phẩm trong giỏ
+   * @param limit số sản phẩm tối đa
+   */
+  record BoughtTogetherRequest(List<Long> productIds, int limit) {}
 
   /**
    * Hồ sơ khảo sát gửi sang ml-service.

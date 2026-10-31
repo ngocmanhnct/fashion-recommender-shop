@@ -473,6 +473,47 @@
           }
         },
         {
+          "name": "Thường được mua cùng (giỏ hàng)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/bought-together?productIds={{publicProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "bought-together"
+              ],
+              "query": [
+                {
+                  "key": "productIds",
+                  "value": "{{publicProductId}}",
+                  "description": "Mã các sản phẩm trong giỏ, cách nhau bằng dấu phẩy (vd 1,2), từ 1 đến 50 mã"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Khối \"Thường được mua cùng\" ở trang giỏ hàng (chức năng 20): tối đa 4 sản phẩm còn hàng hay được mua kèm các sản phẩm trong giỏ, không gồm chính các sản phẩm đó, mỗi sản phẩm kèm lý do (reason) và source. Công khai vì khách chưa đăng nhập cũng có giỏ trong trình duyệt. Backend lấy từ ml-service (ma trận hay mua cùng theo khách, source RELATED); ml-service tắt hoặc trả lời quá 500ms thì đếm số đơn chung khác CANCELLED (source RULE). Không lấp bằng bán chạy: chưa ai mua cùng thì trả [] và trang giỏ ẩn khối. Thiếu mã hoặc quá 50 mã trả 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Trả danh sách mua cùng', () => pm.response.to.have.status(200));",
+                  "pm.test('Tối đa 4 sản phẩm', () => pm.expect(pm.response.json().length).to.be.at.most(4));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Ghi lượt hiện gợi ý",
           "request": {
             "method": "POST",
@@ -493,7 +534,7 @@
                 "events"
               ]
             },
-            "description": "Một lượt hiện của cả khối gợi ý (frontend gửi khi khối lọt vào màn hình lần đầu, mỗi sản phẩm một dòng). Ghi nhật ký để tính tỷ lệ bấm gợi ý (CTR), bảng product_event_log. Công khai: không token thì account_id để trống; gửi kèm token khách hàng thì ghi theo tài khoản; token admin thì bỏ qua (vẫn 204). placement: HOME (trang chủ, Gợi ý cho bạn), HOME_RECENT (trang chủ, hàng Vì bạn vừa xem/vừa thêm vào giỏ), PRODUCT_DETAIL (sản phẩm liên quan), SURVEY_RESULT (trang khảo sát). source lấy từ trường source của API gợi ý: BEHAVIOR, SURVEY, RELATED (ml-service), RULE (quy tắc khi ml-service lỗi), POPULAR (bán chạy). rank từ 1 đến 100; tối đa 20 sản phẩm mỗi lần; mã sản phẩm không có thì bỏ qua. Sai giá trị trả 400.",
+            "description": "Một lượt hiện của cả khối gợi ý (frontend gửi khi khối lọt vào màn hình lần đầu, mỗi sản phẩm một dòng). Ghi nhật ký để tính tỷ lệ bấm gợi ý (CTR), bảng product_event_log. Công khai: không token thì account_id để trống; gửi kèm token khách hàng thì ghi theo tài khoản; token admin thì bỏ qua (vẫn 204). placement: HOME (trang chủ, Gợi ý cho bạn), HOME_RECENT (trang chủ, hàng Vì bạn vừa xem/vừa thêm vào giỏ), PRODUCT_DETAIL (sản phẩm liên quan), SURVEY_RESULT (trang khảo sát), CART (giỏ hàng, Thường được mua cùng). source lấy từ trường source của API gợi ý: BEHAVIOR, SURVEY, RELATED (ml-service), RULE (quy tắc khi ml-service lỗi), POPULAR (bán chạy). rank từ 1 đến 100; tối đa 20 sản phẩm mỗi lần; mã sản phẩm không có thì bỏ qua. Sai giá trị trả 400.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"type\": \"SHOWN\",\n  \"placement\": \"PRODUCT_DETAIL\",\n  \"items\": [\n    { \"productId\": {{publicProductId}}, \"source\": \"RELATED\", \"rank\": 1 }\n  ]\n}",
@@ -540,7 +581,7 @@
                 "events"
               ]
             },
-            "description": "Một lượt bấm vào sản phẩm gợi ý (frontend gửi khi bấm thẻ sản phẩm). Ghi nhật ký để tính tỷ lệ bấm gợi ý (CTR), bảng product_event_log. Công khai: không token thì account_id để trống; gửi kèm token khách hàng thì ghi theo tài khoản; token admin thì bỏ qua (vẫn 204). placement: HOME (trang chủ, Gợi ý cho bạn), HOME_RECENT (trang chủ, hàng Vì bạn vừa xem/vừa thêm vào giỏ), PRODUCT_DETAIL (sản phẩm liên quan), SURVEY_RESULT (trang khảo sát). source lấy từ trường source của API gợi ý: BEHAVIOR, SURVEY, RELATED (ml-service), RULE (quy tắc khi ml-service lỗi), POPULAR (bán chạy). rank từ 1 đến 100; tối đa 20 sản phẩm mỗi lần; mã sản phẩm không có thì bỏ qua. Sai giá trị trả 400.",
+            "description": "Một lượt bấm vào sản phẩm gợi ý (frontend gửi khi bấm thẻ sản phẩm). Ghi nhật ký để tính tỷ lệ bấm gợi ý (CTR), bảng product_event_log. Công khai: không token thì account_id để trống; gửi kèm token khách hàng thì ghi theo tài khoản; token admin thì bỏ qua (vẫn 204). placement: HOME (trang chủ, Gợi ý cho bạn), HOME_RECENT (trang chủ, hàng Vì bạn vừa xem/vừa thêm vào giỏ), PRODUCT_DETAIL (sản phẩm liên quan), SURVEY_RESULT (trang khảo sát), CART (giỏ hàng, Thường được mua cùng). source lấy từ trường source của API gợi ý: BEHAVIOR, SURVEY, RELATED (ml-service), RULE (quy tắc khi ml-service lỗi), POPULAR (bán chạy). rank từ 1 đến 100; tối đa 20 sản phẩm mỗi lần; mã sản phẩm không có thì bỏ qua. Sai giá trị trả 400.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"type\": \"CLICKED\",\n  \"placement\": \"PRODUCT_DETAIL\",\n  \"items\": [\n    { \"productId\": {{publicProductId}}, \"source\": \"RELATED\", \"rank\": 1 }\n  ]\n}",
@@ -2631,6 +2672,47 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Có gợi ý theo khảo sát', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Thường được mua cùng (ml-service)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productIds\": [\n    {{publicProductId}}\n  ],\n  \"limit\": 4\n}"
+            },
+            "url": {
+              "raw": "{{mlBaseUrl}}/recommendations/bought-together",
+              "host": [
+                "{{mlBaseUrl}}"
+              ],
+              "path": [
+                "recommendations",
+                "bought-together"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Cộng cột của ma trận \"hay mua cùng\" (cosine theo khách đã mua) cho các sản phẩm trong giỏ, bỏ chính các sản phẩm đó và sản phẩm hết hàng/ngừng bán; lý do nêu sản phẩm trong giỏ đóng góp nhiều nhất. productIds từ 1 đến 50 mã, limit từ 1 đến 20 (mặc định 4). Backend gọi API này ở /api/products/bought-together."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Có danh sách mua cùng', () => pm.response.to.have.status(200));"
                 ]
               }
             }

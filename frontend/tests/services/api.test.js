@@ -120,6 +120,11 @@ const QUERIES = [
   [() => productApi.searchProducts({ page: 0 }), '/api/products', { page: 0 }],
   [() => productApi.getProductSuggestions(''), '/api/products/suggestions', {}],
   [() => productApi.getProductSuggestions('túi'), '/api/products/suggestions', { keyword: 'túi' }],
+  [
+    () => productApi.getBoughtTogether([3, 5]),
+    '/api/products/bought-together',
+    { productIds: '3,5' },
+  ],
 ];
 
 const withoutUndefined = (params = {}) =>
