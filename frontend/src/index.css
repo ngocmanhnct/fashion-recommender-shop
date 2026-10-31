@@ -639,17 +639,19 @@ textarea:disabled {
 /* ---- Trang quản trị ---- */
 .admin {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-columns: 268px minmax(0, 1fr);
   gap: 28px;
   align-items: start;
 }
 
+/* Menu quản trị: mỗi nhóm là 1 khối riêng (tiêu đề vàng đồng, đường kẻ dọc nối các mục của
+   nhóm), mục có biểu tượng và 1 dòng mô tả để không nhầm mục này với mục khác. */
 .admin-nav {
   position: sticky;
   top: calc(var(--header-height) + 16px);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 10px;
   padding: 18px 12px;
   border-radius: var(--radius);
   background: var(--deep);
@@ -657,48 +659,95 @@ textarea:disabled {
 }
 
 .admin-nav-heading {
-  margin: 0 10px 8px;
+  margin: 0 8px 2px;
   font-family: var(--font-heading);
   font-size: 1.2rem;
   font-weight: var(--heading-weight);
 }
 
 .admin-nav-section {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-top: 10px;
+  padding: 10px 8px 8px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 4%);
 }
 
 .admin-nav-title {
-  margin: 0 10px 4px;
-  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 4px 6px;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: var(--accent);
+}
+
+.admin-nav-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgb(255 255 255 / 12%);
+}
+
+.admin-nav-section ul {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin-nav-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid transparent;
+  color: var(--on-deep);
+  line-height: 1.3;
+  transition:
+    background-color var(--duration),
+    border-color var(--duration);
+}
+
+.admin-nav-link .icon {
+  flex: none;
+  margin-top: 1px;
   color: var(--on-deep-muted);
 }
 
-.admin-nav a {
-  position: relative;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  color: var(--on-deep);
-  transition:
-    background-color var(--duration),
-    padding-left var(--duration) var(--ease-out);
+.admin-nav-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.admin-nav a:hover {
+.admin-nav-text small {
+  font-size: 0.75rem;
+  color: var(--on-deep-muted);
+}
+
+.admin-nav-link:hover {
   background: rgb(255 255 255 / 8%);
   text-decoration: none;
-  padding-left: 16px;
 }
 
-.admin-nav a.active {
+.admin-nav-link.active {
+  border-left-color: var(--accent);
   background: var(--on-deep);
   color: var(--deep);
   font-weight: 600;
+}
+
+.admin-nav-link.active .icon,
+.admin-nav-link.active small {
+  color: var(--primary);
+  font-weight: 400;
 }
 
 .admin-content {
@@ -706,8 +755,32 @@ textarea:disabled {
   overflow-x: auto;
 }
 
+.admin-breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.admin-breadcrumb li + li::before {
+  content: '›';
+  margin-right: 6px;
+}
+
+.admin-breadcrumb [aria-current='page'] {
+  color: var(--accent);
+}
+
 .page-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -725,23 +798,22 @@ textarea:disabled {
 
   .admin-nav {
     position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
     padding: 10px;
   }
 
-  .admin-nav-heading {
+  .admin-nav-heading,
+  .admin-nav-text small {
     display: none;
   }
 
-  .admin-nav-section {
+  .admin-nav-section ul {
     flex-direction: row;
     flex-wrap: wrap;
-    margin: 0;
   }
 
-  .admin-nav-title {
-    display: none;
+  .admin-nav-link {
+    align-items: center;
+    border-left: 0;
   }
 }
 
@@ -2357,7 +2429,7 @@ legend {
 
 .segment-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
   gap: 16px;
   margin: 16px 0;
 }
@@ -2376,12 +2448,9 @@ legend {
   margin: 0;
 }
 
-.segment-card > a {
-  margin-top: auto;
-}
-
 .segment-card-head {
   display: flex;
+  white-space: nowrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -2403,6 +2472,105 @@ legend {
 .segment-count {
   font-size: 1.4rem;
   font-weight: 600;
+}
+
+.segment-card-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+
+/* Hồ sơ nhóm khách hàng (US-25) */
+.stat-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.stat-tile {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.stat-tile dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.stat-tile dd {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 0;
+}
+
+.stat-tile strong {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: var(--heading-weight);
+  overflow-wrap: anywhere;
+}
+
+.profile-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.profile-panels .checkout-section {
+  margin: 0;
+}
+
+.share-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.share-bars li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 12px;
+  font-size: 0.9rem;
+}
+
+.share-bars li.is-empty {
+  color: var(--muted);
+}
+
+.share-bar-track {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+
+.share-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+}
+
+.share-bar-value {
+  color: var(--muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.care-list {
+  margin-top: 16px;
 }
 
 .segment-explain ol {

@@ -27,6 +27,7 @@ import OrderListPage from './pages/admin/OrderListPage';
 import ProductCreatePage from './pages/admin/ProductCreatePage';
 import ProductEditPage from './pages/admin/ProductEditPage';
 import ProductListPage from './pages/admin/ProductListPage';
+import SegmentDetailPage from './pages/admin/SegmentDetailPage';
 import SegmentPage from './pages/admin/SegmentPage';
 
 function App() {
@@ -101,6 +102,7 @@ function App() {
           <Route path="customers" element={<CustomerListPage />} />
           <Route path="customers/:id" element={<CustomerDetailPage />} />
           <Route path="segments" element={<SegmentPage />} />
+          <Route path="segments/:code" element={<SegmentDetailPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

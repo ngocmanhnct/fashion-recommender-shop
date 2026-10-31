@@ -43,6 +43,7 @@ const CALLS = [
   [() => catalogApi.getBrands(), 'get', '/api/brands'],
   [() => customerAdminApi.getCustomer(7), 'get', '/api/admin/customers/7'],
   [() => customerAdminApi.getSegments(), 'get', '/api/admin/segments'],
+  [() => customerAdminApi.getSegmentProfile('VIP'), 'get', '/api/admin/segments/VIP'],
   [() => healthApi.getHealth(), 'get', '/actuator/health'],
   [() => orderAdminApi.getAdminOrder(9), 'get', '/api/admin/orders/9'],
   [

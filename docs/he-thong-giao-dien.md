@@ -58,8 +58,10 @@ xanh rêu cho thao tác chính, vàng đồng làm điểm nhấn, tiêu đề c
   ý hoạt động (`#cach-goi-y`).
 - **Danh sách sản phẩm, chi tiết, giỏ hàng**: bảng lọc, ảnh sản phẩm và khối tạm tính đứng yên khi
   cuộn trên màn hình rộng (`position: sticky`, cách đầu trang `--header-height`).
-- **Quản trị** (`components/AdminLayout.jsx`): menu bên trái nền rêu đậm, chia nhóm Cửa hàng, Bán
-  hàng, Khách hàng.
+- **Quản trị** (`components/AdminLayout.jsx`, danh sách mục ở `services/adminMenu.js`): menu bên
+  trái nền rêu đậm, mỗi nhóm (Cửa hàng, Bán hàng, Khách hàng) là 1 khối có viền, tiêu đề vàng đồng;
+  mỗi mục có biểu tượng và 1 dòng mô tả, tên mục không trùng tên nhóm. Trên nội dung có dòng vị
+  trí "nhóm › mục". Màn hình dưới 720px: menu nằm trên nội dung, ẩn dòng mô tả.
 
 ## Chuyển động
 

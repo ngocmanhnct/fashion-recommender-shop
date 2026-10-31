@@ -31,3 +31,11 @@ export function getCustomerOrders(id, page = 0, size = 10) {
 export function getSegments() {
   return apiClient.get(`${BASE}/segments`).then((res) => res.data);
 }
+
+/**
+ * Hồ sơ 1 nhóm (US-25): doanh thu, nhịp mua, danh mục mua nhiều, giới tính, độ tuổi và khách cần
+ * chăm sóc (BR-43).
+ */
+export function getSegmentProfile(code) {
+  return apiClient.get(`${BASE}/segments/${encodeURIComponent(code)}`).then((res) => res.data);
+}

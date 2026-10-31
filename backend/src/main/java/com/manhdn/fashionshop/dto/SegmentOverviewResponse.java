@@ -41,6 +41,8 @@ public record SegmentOverviewResponse(
    * @param avgRecency R trung bình (ngày)
    * @param avgFrequency F trung bình (đơn)
    * @param avgMonetary M trung bình (VNĐ, làm tròn)
+   * @param revenue tổng tiền các đơn Đã giao của khách hiện thuộc nhóm (VNĐ)
+   * @param revenueShare tỷ lệ trên doanh thu của mọi khách đã phân nhóm (%), làm tròn 1 chữ số
    */
   public record SegmentStats(
       String code,
@@ -50,5 +52,7 @@ public record SegmentOverviewResponse(
       double share,
       double avgRecency,
       double avgFrequency,
-      long avgMonetary) {}
+      long avgMonetary,
+      long revenue,
+      double revenueShare) {}
 }

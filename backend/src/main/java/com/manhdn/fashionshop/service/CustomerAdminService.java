@@ -17,6 +17,7 @@ import com.manhdn.fashionshop.repository.CustomerSegmentRepository;
 import com.manhdn.fashionshop.repository.OrderRepository;
 import com.manhdn.fashionshop.repository.OrderRepository.OrderTotals;
 import com.manhdn.fashionshop.repository.SegmentModelRepository;
+import com.manhdn.fashionshop.repository.SegmentProfileRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +50,7 @@ public class CustomerAdminService {
   private final CustomerSegmentRepository customerSegmentRepository;
   private final SegmentModelRepository segmentModelRepository;
   private final OrderRepository orderRepository;
+  private final SegmentProfileRepository segmentProfileRepository;
 
   /** Nhận các repository qua constructor. */
   public CustomerAdminService(
@@ -56,12 +58,14 @@ public class CustomerAdminService {
       AccountSegmentRepository accountSegmentRepository,
       CustomerSegmentRepository customerSegmentRepository,
       SegmentModelRepository segmentModelRepository,
-      OrderRepository orderRepository) {
+      OrderRepository orderRepository,
+      SegmentProfileRepository segmentProfileRepository) {
     this.accountRepository = accountRepository;
     this.accountSegmentRepository = accountSegmentRepository;
     this.customerSegmentRepository = customerSegmentRepository;
     this.segmentModelRepository = segmentModelRepository;
     this.orderRepository = orderRepository;
+    this.segmentProfileRepository = segmentProfileRepository;
   }
 
   /**
@@ -149,7 +153,7 @@ public class CustomerAdminService {
 
   /**
    * Kết quả phân nhóm khách hàng (US-19): lần huấn luyện gần nhất, các nhóm kèm số khách, R, F, M
-   * trung bình hiện tại, và số khách chưa được phân nhóm (BR-24).
+   * trung bình hiện tại và doanh thu (US-25), và số khách chưa được phân nhóm (BR-24).
    *
    * @return tổng quan phân nhóm; chưa huấn luyện lần nào thì model null và segments rỗng
    */
@@ -159,10 +163,19 @@ public class CustomerAdminService {
         accountSegmentRepository.statsBySegment().stream()
             .collect(Collectors.toMap(SegmentStats::getSegmentId, Function.identity()));
     long segmented = stats.values().stream().mapToLong(SegmentStats::getCustomers).sum();
+    Map<Long, Long> revenue = segmentProfileRepository.revenueBySegment();
+    long totalRevenue = revenue.values().stream().mapToLong(Long::longValue).sum();
     List<SegmentOverviewResponse.SegmentStats> segments =
         customerSegmentRepository.findAll().stream()
             .sorted(Comparator.comparingInt(CustomerAdminService::displayOrder))
-            .map(segment -> segmentStats(segment, stats.get(segment.getId()), segmented))
+            .map(
+                segment ->
+                    segmentStats(
+                        segment,
+                        stats.get(segment.getId()),
+                        segmented,
+                        revenue.getOrDefault(segment.getId(), 0L),
+                        totalRevenue))
             .toList();
     SegmentOverviewResponse.ModelInfo model =
         segmentModelRepository
@@ -213,9 +226,13 @@ public class CustomerAdminService {
   }
 
   private static SegmentOverviewResponse.SegmentStats segmentStats(
-      CustomerSegment segment, SegmentStats stats, long segmented) {
+      CustomerSegment segment,
+      SegmentStats stats,
+      long segmented,
+      long revenue,
+      long totalRevenue) {
     long count = stats == null ? 0 : stats.getCustomers();
-    double share = segmented == 0 ? 0 : Math.round(count * 1000.0 / segmented) / 10.0;
+    double share = percent(count, segmented);
     return new SegmentOverviewResponse.SegmentStats(
         segment.getCode(),
         segment.getName(),
@@ -224,7 +241,13 @@ public class CustomerAdminService {
         share,
         stats == null ? 0 : round1(stats.getRecency()),
         stats == null ? 0 : round1(stats.getFrequency()),
-        stats == null ? 0 : Math.round(stats.getMonetary()));
+        stats == null ? 0 : Math.round(stats.getMonetary()),
+        revenue,
+        percent(revenue, totalRevenue));
+  }
+
+  private static double percent(long part, long total) {
+    return total == 0 ? 0 : Math.round(part * 1000.0 / total) / 10.0;
   }
 
   private static double round1(Double value) {

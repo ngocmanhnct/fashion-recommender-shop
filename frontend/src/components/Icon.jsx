@@ -10,9 +10,18 @@ const PATHS = {
   search: 'M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm5-2 4 4',
   chevron: 'm6 9 6 6 6-6',
   arrow: 'M5 12h14m-5-5 5 5-5 5',
+  box: 'M4 8l8-4 8 4v8l-8 4-8-4V8Zm0 0 8 4 8-4m-8 4v8',
+  grid: 'M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z',
+  tag: 'M3 12V4h8l10 10-8 8-10-10Zm5-4.5h.01',
+  users:
+    'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9a6 6 0 0 1 12 0m1-17a4 4 0 0 1 0 8m5 9a6 6 0 0 0-4-5.7',
+  pie: 'M12 3a9 9 0 1 0 9 9h-9V3Zm3 0.5A9 9 0 0 1 20.5 9H15V3.5Z',
 };
 
-/** Biểu tượng tên name (bag, heart, receipt, user, menu, close, search, chevron, arrow). */
+/**
+ * Biểu tượng tên name: bag, heart, receipt, user, menu, close, search, chevron, arrow; menu quản
+ * trị dùng thêm box, grid, tag, users, pie.
+ */
 function Icon({ name, size = 20, className = '' }) {
   return (
     <svg

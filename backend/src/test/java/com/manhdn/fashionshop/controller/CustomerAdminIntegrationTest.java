@@ -168,8 +168,11 @@ class CustomerAdminIntegrationTest {
         .andExpect(jsonPath("$.segments[0].avgRecency").value(5.0))
         .andExpect(jsonPath("$.segments[0].avgFrequency").value(2.0))
         .andExpect(jsonPath("$.segments[0].avgMonetary").value(3_000_000))
+        .andExpect(jsonPath("$.segments[0].revenue").value(1_500_000))
+        .andExpect(jsonPath("$.segments[0].revenueShare").value(100.0))
         .andExpect(jsonPath("$.segments[1].code").value("NEW"))
         .andExpect(jsonPath("$.segments[1].customerCount").value(0))
+        .andExpect(jsonPath("$.segments[1].revenue").value(0))
         .andExpect(jsonPath("$.segmentedCount").value(2))
         .andExpect(jsonPath("$.unsegmentedCount").value(customers - 2));
   }
