@@ -211,16 +211,19 @@ def _fit(z: np.ndarray, k: int) -> KMeans:
     return KMeans(n_clusters=k, n_init=N_INIT, random_state=RANDOM_STATE).fit(z)
 
 
-def train(rows: Sequence[Rfm]) -> SegmentModel | None:
-    """Huấn luyện trên R, F, M của mọi khách có đơn Đã giao. None nếu chưa đủ dữ liệu: ít hơn
-    MIN_CUSTOMERS khách, hoặc số điểm khác nhau không đủ cho 2 nhóm."""
-    if len(rows) < MIN_CUSTOMERS:
-        return None
-    x = log_features(rows)
-    mean = x.mean(axis=0)
-    std = x.std(axis=0)
-    std[std == 0] = 1.0  # mọi khách cùng giá trị ở 1 đặc trưng: đặc trưng đó thành 0
-    z = (x - mean) / std
+@dataclass(frozen=True)
+class KSearch:
+    """Kết quả thử các giá trị K trên 1 ma trận đặc trưng đã chuẩn hóa."""
+
+    scores: tuple[KScore, ...]
+    fits: dict[int, KMeans]  # chỉ các K trong khoảng cho phép
+    elbow_k: int
+    k: int  # K đã chọn
+
+
+def search_k(z: np.ndarray) -> KSearch | None:
+    """Chạy K-Means với K = 1..8 và chọn K (Elbow + Silhouette, bước 3). None nếu số điểm khác
+    nhau không đủ cho 2 nhóm."""
     distinct = len(np.unique(z, axis=0))
     max_k = min(MAX_CLUSTERS, distinct - 1)
     if max_k < 2:
@@ -239,8 +242,28 @@ def train(rows: Sequence[Rfm]) -> SegmentModel | None:
             )
         scores.append(KScore(k, float(fit.inertia_), silhouette))
     elbow_k = elbow_point(scores)
-    k = choose_k(scores, elbow_k)
-    fit = fits[k]
+    return KSearch(tuple(scores), fits, elbow_k, choose_k(scores, elbow_k))
+
+
+def standardize(x: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """z = (x - mean) / std theo từng cột; cột mọi khách cùng giá trị thành 0. Trả về z, mean, std."""
+    mean = x.mean(axis=0)
+    std = x.std(axis=0)
+    std[std == 0] = 1.0
+    return (x - mean) / std, mean, std
+
+
+def train(rows: Sequence[Rfm]) -> SegmentModel | None:
+    """Huấn luyện trên R, F, M của mọi khách có đơn Đã giao. None nếu chưa đủ dữ liệu: ít hơn
+    MIN_CUSTOMERS khách, hoặc số điểm khác nhau không đủ cho 2 nhóm."""
+    if len(rows) < MIN_CUSTOMERS:
+        return None
+    z, mean, std = standardize(log_features(rows))
+    search = search_k(z)
+    if search is None:
+        return None
+    scores, elbow_k, k = search.scores, search.elbow_k, search.k
+    fit = search.fits[k]
     types = name_segments(fit.cluster_centers_)
     raw = np.array([[r.recency, r.frequency, r.monetary] for r in rows], dtype=float)
     segments = []

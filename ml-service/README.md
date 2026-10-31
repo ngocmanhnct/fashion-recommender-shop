@@ -86,4 +86,7 @@ Huấn luyện ngay và in bảng Elbow/Silhouette, các nhóm, so với kiểu 
 ```powershell
 uv run python -m app.segmentation.evaluate          # chỉ in, không ghi
 uv run python -m app.segmentation.evaluate --save   # ghi mô hình vào CSDL (vd sau khi chạy lại mô phỏng)
+uv run python -m app.segmentation.evaluate --features   # so các bộ đặc trưng ngoài R, F, M (không ghi)
 ```
+
+**Đặc trưng ngoài R, F, M** (`features.py`, góp ý 30/10: thêm nếu có tác động): chạy cùng quy trình huấn luyện cho 9 bộ đặc trưng (thêm AOV = M/F, giá trung bình mỗi món, L = thời gian gắn bó của LRFM, khoảng cách trung bình giữa 2 đơn, số sản phẩm xem 90 ngày; hoặc thay M bằng AOV, giá mỗi món) rồi so ARI với kiểu khách mô phỏng. Trên 3 bộ dữ liệu mô phỏng (seed 2026, 2027, 2028) không bộ nào hơn R, F, M (ARI trung bình 0,46): LRFM 0,48 (chênh trong khoảng dao động giữa các seed), các bộ còn lại 0,36 – 0,47. Giá mỗi món của khách tiết kiệm thấp hơn khách quen (trung vị 78.000đ so với 134.000đ) nhưng dao động trong nhóm lớn, thêm vào chỉ làm nhiễu khoảng cách K-Means. Vì vậy mô hình giữ R, F, M.
