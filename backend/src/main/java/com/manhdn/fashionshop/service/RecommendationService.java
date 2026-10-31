@@ -17,6 +17,7 @@ import com.manhdn.fashionshop.repository.RecommendationRepository.LatestActivity
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -131,10 +132,11 @@ public class RecommendationService {
                     new RelatedProductResponse(
                         cards.get(row.getProduct().getId()), row.getReason(), source))
             .toList();
+    // ml-service và backend cùng ghi giờ địa phương; quy về múi giờ của clock để phép trừ đúng cả
+    // khi đổi giờ mùa hè.
+    ZonedDateTime generatedAt = shown.get(0).getGeneratedAt().atZone(clock.getZone());
     long secondsAgo =
-        Math.max(
-            0,
-            Duration.between(shown.get(0).getGeneratedAt(), LocalDateTime.now(clock)).toSeconds());
+        Math.max(0, Duration.between(generatedAt, ZonedDateTime.now(clock)).toSeconds());
     return new RecommendationsResponse(source, products, recent, secondsAgo, updating);
   }
 
