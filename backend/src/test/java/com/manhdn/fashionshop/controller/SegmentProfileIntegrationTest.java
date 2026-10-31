@@ -16,6 +16,7 @@ import com.manhdn.fashionshop.service.CategoryService;
 import com.manhdn.fashionshop.service.ProductService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,7 +57,8 @@ class SegmentProfileIntegrationTest {
     jdbcTemplate.update("DELETE FROM customer_segment");
     jdbcTemplate.update("DELETE FROM segment_model");
     marker = UUID.randomUUID().toString().substring(0, 8);
-    LocalDateTime now = LocalDateTime.now();
+    // Cột DATETIME làm tròn phần lẻ của giây (có thể lên giây sau), nên bỏ phần lẻ trước khi ghi.
+    LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
     LocalDate today = now.toLocalDate();
     long variant = variant("Giày hồ sơ " + marker);
     long otherVariant = variant("Túi hồ sơ " + marker);
