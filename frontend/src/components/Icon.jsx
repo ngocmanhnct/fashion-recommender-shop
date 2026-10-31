@@ -19,11 +19,12 @@ const PATHS = {
   pie: 'M12 3a9 9 0 1 0 9 9h-9V3Zm3 0.5A9 9 0 0 1 20.5 9H15V3.5Z',
   ticket: 'M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4V7Zm10 0v10',
   chart: 'M4 4v16h16M8 16v-5m4 5V8m4 8v-3',
+  gauge: 'M4 17a8 8 0 1 1 16 0M12 17l4-5M7 13.5h.01M12 9h.01M17 13.5h.01',
 };
 
 /**
  * Biểu tượng tên name: bag, eye, heart, receipt, user, menu, close, search, chevron, arrow; menu quản
- * trị dùng thêm box, grid, tag, users, pie, ticket, chart.
+ * trị dùng thêm gauge, box, grid, tag, users, pie, ticket, chart.
  */
 function Icon({ name, size = 20, className = '' }) {
   return (

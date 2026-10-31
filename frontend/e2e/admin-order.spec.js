@@ -23,9 +23,11 @@ test.describe('Quản trị đơn hàng', () => {
     await page.goto('/login');
     await fillLoginForm(page, ADMIN.email, ADMIN.password);
     await expect(page.getByText('Xin chào, Quản trị viên')).toBeVisible();
-    await expect(page).toHaveURL(/\/admin\//);
+    await expect(page).toHaveURL(/\/admin$/);
+    await expect(page.getByRole('heading', { name: 'Bảng điều khiển' })).toBeVisible();
 
-    await page.getByRole('link', { name: 'Đơn hàng' }).click();
+    // Chỉ khớp đầu tên: dòng mô tả của Bảng điều khiển cũng có chữ "đơn hàng".
+    await page.getByRole('link', { name: /^Đơn hàng/ }).click();
     const search = page.getByPlaceholder('Mã đơn, email khách hoặc số điện thoại');
     await search.fill(customer.email);
     await search.press('Enter');

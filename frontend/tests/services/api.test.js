@@ -6,6 +6,7 @@ import * as authApi from '../../src/services/authApi';
 import * as cartApi from '../../src/services/cartApi';
 import * as catalogApi from '../../src/services/catalogApi';
 import * as customerAdminApi from '../../src/services/customerAdminApi';
+import * as dashboardApi from '../../src/services/dashboardApi';
 import * as healthApi from '../../src/services/healthApi';
 import * as orderAdminApi from '../../src/services/orderAdminApi';
 import * as orderApi from '../../src/services/orderApi';
@@ -164,6 +165,11 @@ const QUERIES = [
   [
     () => abTestApi.getRecommendationCtr({ from: '2026-10-01', to: '2026-10-30' }),
     '/api/admin/recommendations/ctr',
+    { from: '2026-10-01', to: '2026-10-30' },
+  ],
+  [
+    () => dashboardApi.getDashboard({ from: '2026-10-01', to: '2026-10-30' }),
+    '/api/admin/dashboard',
     { from: '2026-10-01', to: '2026-10-30' },
   ],
   [() => orderApi.getCheckoutPreview('CHAOBAN'), '/api/orders/preview', { voucherCode: 'CHAOBAN' }],

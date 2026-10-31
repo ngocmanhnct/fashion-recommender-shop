@@ -204,9 +204,17 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Mỗi tỷ lệ theo khách có chênh lệch A − B, giá trị p và kết luận (BR-46); xem lại được kết quả của các thử nghiệm đã dừng
 - Cùng trang có bảng tỷ lệ bấm theo vị trí và nguồn gợi ý trong 7, 30 hoặc 90 ngày gần nhất
 
+**US-28: Bảng điều khiển của Quản trị viên** *(bổ sung 31/10/2026)* Là admin, tôi muốn mở trang quản trị là thấy ngay tình hình cửa hàng trong một khoảng ngày: doanh thu, đơn hàng, sản phẩm bán chạy và hiệu quả gợi ý, để biết cửa hàng đang thế nào mà không phải mở từng trang. Tiêu chí chấp nhận:
+
+- Trang `/admin` là bảng điều khiển (mục "Bảng điều khiển", nhóm "Tổng quan" đầu menu); mặc định 30 ngày gần nhất, chọn nhanh 7, 30, 90 ngày hoặc chọn ngày tự do, tối đa 366 ngày; ngày bắt đầu sau ngày kết thúc thì báo lỗi, không tải
+- Ngày tính theo giờ Việt Nam. Số tổng: doanh thu, số đơn đã giao, giá trị đơn trung bình, số đơn đặt (mọi trạng thái), số khách hàng mới (BR-47)
+- Biểu đồ cột doanh thu theo ngày (ngày không có đơn là 0), rê chuột hoặc Tab vào cột để xem số, có dạng bảng
+- Số đơn theo 5 trạng thái kèm tỷ lệ; 10 sản phẩm bán nhiều nhất trong đơn đã giao (số lượng, tiền hàng), bấm tên để mở trang sửa sản phẩm
+- Hiệu quả gợi ý: lượt hiện, lượt bấm, tỷ lệ bấm theo vị trí và theo nguồn, doanh thu từ gợi ý và tỷ lệ của nó trên tiền hàng (BR-47), tóm tắt thử nghiệm A/B đang chạy (US-27) với liên kết sang trang "Hiệu quả gợi ý"
+
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý).**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý), US-28 (bảng điều khiển của Quản trị viên).**
 
 ## 2\. Business rules
 
@@ -339,10 +347,11 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 - **BR-45 — Khách mới vào nhóm** *(bổ sung 31/10/2026)*: ml-service ghi đè `account_segment` mỗi lần xếp nhóm nên không giữ lúc khách vào nhóm; backend tự ghi nhóm hiện tại và lúc vào nhóm của mỗi khách vào `segment_entry` (khách mới được phân nhóm hoặc đổi sang nhóm khác thì lúc vào nhóm là thời điểm backend thấy thay đổi, khách vẫn ở nhóm cũ thì giữ nguyên). Mỗi phút, chương trình tự tặng đang chạy (mã còn bật và trong thời hạn) tặng mã cho khách đang thuộc nhóm có lúc vào nhóm **sau** lúc bật chương trình và chưa nhận mã đó; hạn dùng riêng của khách = min(lúc nhận + số ngày đã đặt, hạn của mã), tính theo giờ Việt Nam như BR-30. Khách rời nhóm rồi quay lại không nhận lần hai từ cùng chương trình. **\[Giả định\]** quét mỗi phút là đủ gần thời gian thực vì khách chỉ đổi nhóm sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm. *(US-24)*
 
 - **BR-46 — Thử nghiệm A/B gợi ý** *(bổ sung 31/10/2026, US-27)*: nhóm của khách chọn bằng băm, không bằng số ngẫu nhiên: lấy 4 byte đầu của SHA-256(`ab:{mã thử nghiệm}:{mã tài khoản}`) chia lấy dư 100, nhỏ hơn tỷ lệ nhóm gợi ý thì vào nhóm A (TREATMENT), còn lại nhóm B (CONTROL). Cách này ngẫu nhiên giữa các khách nhưng cố định với từng khách, và đổi giữa các lần thử nghiệm; nhóm được ghi vào `ab_assignment` kèm lúc chia ở lần đầu khách đủ điều kiện mở trang chủ. Chỉ số so sánh tính theo khách (mỗi khách là 1 quan sát độc lập): tỷ lệ khách bấm gợi ý trang chủ ít nhất 1 lần, tỷ lệ khách đặt ít nhất 1 đơn chưa hủy, tỷ lệ khách đặt đơn có sản phẩm đã bấm từ gợi ý trang chủ trước lúc đặt. Hai tỷ lệ x₁/n₁ (A) và x₂/n₂ (B) được so bằng kiểm định z hai tỷ lệ, hai phía: p̂ = (x₁ + x₂)/(n₁ + n₂), z = (x₁/n₁ − x₂/n₂) / √(p̂(1 − p̂)(1/n₁ + 1/n₂)), giá trị p = 2(1 − Φ(|z|)). Kết luận: nhóm nào dưới 30 khách thì "chưa đủ khách để kết luận"; p < 0,05 thì nhóm có tỷ lệ cao hơn "cao hơn rõ rệt"; còn lại "chưa thấy khác biệt có ý nghĩa". Tỷ lệ bấm theo lượt hiện chỉ để tham khảo, không kiểm định (các lượt hiện của cùng một khách không độc lập).
+- **BR-47 — Số liệu bảng điều khiển** *(bổ sung 31/10/2026, US-28)*: một đơn thuộc ngày nó được đặt (`orders.created_at`, đổi sang giờ Việt Nam), vì chưa lưu lúc giao. Doanh thu = tổng `total_amount` (đã gồm phí vận chuyển, đã trừ giảm giá) của đơn DELIVERED; giá trị đơn trung bình = doanh thu / số đơn DELIVERED; số đơn đặt tính mọi trạng thái; khách hàng mới = tài khoản CUSTOMER tạo trong khoảng. Sản phẩm bán chạy xếp theo tổng số lượng trong đơn DELIVERED, bằng nhau thì theo tiền hàng. Doanh thu từ gợi ý = tổng `line_total` của các dòng đơn DELIVERED mà cùng khách đã bấm sản phẩm đó trong một khối gợi ý (RECOMMENDATION_CLICKED, mọi vị trí) trong 7 ngày trước lúc đặt; tỷ lệ của nó tính trên tổng `subtotal_amount` (tiền hàng chưa trừ giảm giá) của đơn DELIVERED. Đây là số quy cho gợi ý, không phải bằng chứng gợi ý làm tăng doanh thu (khách có thể vẫn mua dù không có gợi ý); bằng chứng nhân quả là thử nghiệm A/B (BR-46).
 
 ---
 
-**Tổng cộng: 36 business rule gốc**, bao phủ toàn bộ 9 epic ở Mục 1\. Bổ sung sau: BR-37 đến BR-46. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
+**Tổng cộng: 36 business rule gốc**, bao phủ toàn bộ 9 epic ở Mục 1\. Bổ sung sau: BR-37 đến BR-47. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
 
 ## 3\. Từ điển dữ liệu
 

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router';
+import ShareBars from '../../components/ShareBars';
+import StatTile from '../../components/StatTile';
 import VoucherForm from '../../components/VoucherForm';
 import { useApiData } from '../../hooks/useApiData';
 import {
@@ -428,37 +430,6 @@ function CampaignResults({ campaigns }) {
         </div>
       )}
     </section>
-  );
-}
-
-function StatTile({ label, value, note }) {
-  return (
-    <div className="stat-tile">
-      <dt>{label}</dt>
-      <dd>
-        <strong>{value}</strong>
-        <span className="muted small">{note}</span>
-      </dd>
-    </div>
-  );
-}
-
-/** Thanh tỷ lệ nằm ngang: nhãn, thanh dài theo %, số lượng kèm %. */
-function ShareBars({ label, rows }) {
-  return (
-    <ul className="share-bars" aria-label={label}>
-      {rows.map((row) => (
-        <li key={row.key} className={row.count === 0 ? 'is-empty' : undefined}>
-          <span className="share-bar-label">{row.label}</span>
-          <span className="share-bar-track" aria-hidden="true">
-            <span className="share-bar-fill" style={{ width: `${row.share}%` }} />
-          </span>
-          <span className="share-bar-value">
-            {formatNumber(row.count)} {row.unit} · {DECIMAL.format(row.share)}%
-          </span>
-        </li>
-      ))}
-    </ul>
   );
 }
 
