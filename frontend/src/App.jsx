@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router';
+import { Route, Routes } from 'react-router';
 import AdminLayout from './components/AdminLayout';
 import Layout from './components/Layout';
 import RequireAdmin from './components/RequireAdmin';
@@ -23,6 +23,7 @@ import BrandAdminPage from './pages/admin/BrandAdminPage';
 import CategoryAdminPage from './pages/admin/CategoryAdminPage';
 import CustomerDetailPage from './pages/admin/CustomerDetailPage';
 import CustomerListPage from './pages/admin/CustomerListPage';
+import DashboardPage from './pages/admin/DashboardPage';
 import OrderAdminDetailPage from './pages/admin/OrderAdminDetailPage';
 import OrderListPage from './pages/admin/OrderListPage';
 import ProductCreatePage from './pages/admin/ProductCreatePage';
@@ -102,7 +103,7 @@ function App() {
             </RequireAdmin>
           }
         >
-          <Route index element={<Navigate to="products" replace />} />
+          <Route index element={<DashboardPage />} />
           <Route path="products" element={<ProductListPage />} />
           <Route path="products/new" element={<ProductCreatePage />} />
           <Route path="products/:id" element={<ProductEditPage />} />

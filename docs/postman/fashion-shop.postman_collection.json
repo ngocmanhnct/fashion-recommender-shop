@@ -2062,6 +2062,56 @@
       "description": "API quản trị, chỉ tài khoản ADMIN gọi được. Token khách sẽ bị 403, không có token sẽ bị 401. Chạy '1. Xác thực > Đăng nhập admin' trước.",
       "item": [
         {
+          "name": "Bảng điều khiển",
+          "item": [
+            {
+              "name": "Tổng quan cửa hàng",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/dashboard",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "dashboard"
+                  ],
+                  "query": [
+                    {
+                      "key": "from",
+                      "value": "2026-10-01",
+                      "disabled": true,
+                      "description": "Ngày đầu yyyy-MM-dd theo giờ Việt Nam (tính cả ngày này); bỏ trống là 30 ngày gần nhất tính đến ngày cuối"
+                    },
+                    {
+                      "key": "to",
+                      "value": "2026-10-31",
+                      "disabled": true,
+                      "description": "Ngày cuối yyyy-MM-dd theo giờ Việt Nam (tính cả ngày này); bỏ trống là hôm nay"
+                    }
+                  ]
+                },
+                "description": "Trả { from, to, summary, days, ordersByStatus, topProducts, recommendations, abTest } (US-28, BR-47). summary: revenue (tổng total_amount của đơn DELIVERED, theo ngày đặt), deliveredOrders, orders (mọi trạng thái), averageOrderValue (null khi chưa có đơn đã giao), newCustomers, goodsRevenue (tiền hàng đơn đã giao), recommendedRevenue (tiền hàng của sản phẩm khách bấm trong gợi ý trong 7 ngày trước khi đặt), recommendedShare (% của goodsRevenue, null khi goodsRevenue = 0). days: mỗi ngày trong khoảng 1 dòng (kể cả ngày 0). ordersByStatus: đủ 5 trạng thái. topProducts: 10 sản phẩm bán nhiều nhất trong đơn đã giao. recommendations: total, byPlacement, bySource (shown, clicked, ctr). abTest: thử nghiệm A/B đang chạy hoặc null. Ngày đầu sau ngày cuối hoặc dài hơn 366 ngày trả 400; token khách 403; không token 401."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Có tổng quan', () => pm.response.to.have.status(200));",
+                      "pm.test('Có số liệu theo ngày', () => pm.expect(pm.response.json().days).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "name": "Danh mục",
           "item": [
             {

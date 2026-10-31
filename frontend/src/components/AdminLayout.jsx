@@ -26,7 +26,7 @@ function AdminLayout() {
             <ul>
               {section.links.map((link) => (
                 <li key={link.to}>
-                  <NavLink to={link.to} className="admin-nav-link">
+                  <NavLink to={link.to} end={link.end} className="admin-nav-link">
                     <Icon name={link.icon} size={18} />
                     <span className="admin-nav-text">
                       {link.label}

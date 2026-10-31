@@ -6,6 +6,19 @@
  */
 export const ADMIN_SECTIONS = [
   {
+    key: 'tong-quan',
+    title: 'Tổng quan',
+    links: [
+      {
+        to: '/admin',
+        label: 'Bảng điều khiển',
+        hint: 'Doanh thu, đơn hàng, gợi ý',
+        icon: 'gauge',
+        end: true,
+      },
+    ],
+  },
+  {
     key: 'cua-hang',
     title: 'Cửa hàng',
     links: [
@@ -64,10 +77,16 @@ export const ADMIN_SECTIONS = [
   },
 ];
 
-/** Nhóm và mục quản trị của đường dẫn hiện tại (kể cả trang con như /admin/orders/5). */
+/**
+ * Nhóm và mục quản trị của đường dẫn hiện tại (kể cả trang con như /admin/orders/5). Mục có
+ * end: true (Bảng điều khiển ở /admin) chỉ khớp đúng đường dẫn của nó, không khớp trang con.
+ */
 export function findAdminLocation(pathname) {
+  const path = pathname.length > 1 ? pathname.replace(/\/$/, '') : pathname;
   for (const section of ADMIN_SECTIONS) {
-    const link = section.links.find((l) => pathname === l.to || pathname.startsWith(`${l.to}/`));
+    const link = section.links.find(
+      (l) => path === l.to || (!l.end && path.startsWith(`${l.to}/`))
+    );
     if (link) return { section, link };
   }
   return null;

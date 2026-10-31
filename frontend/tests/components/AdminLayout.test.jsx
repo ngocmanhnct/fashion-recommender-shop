@@ -26,8 +26,23 @@ describe('AdminLayout', () => {
     expect(breadcrumb).toHaveTextContent('Khách hàngPhân nhóm khách hàng');
   });
 
-  it('đường dẫn không thuộc mục nào thì không hiện vị trí', () => {
+  it('Bảng điều khiển ở /admin chỉ sáng khi đứng đúng /admin, không sáng ở trang con', () => {
     renderWithContext(<AdminLayout />, { path: '/admin', route: '/admin/*' });
+    const dashboard = screen.getByRole('link', { name: /Bảng điều khiển/ });
+    expect(dashboard).toHaveAttribute('href', '/admin');
+    expect(dashboard).toHaveClass('active');
+    const breadcrumb = screen.getByRole('navigation', { name: 'Vị trí trong trang quản trị' });
+    expect(breadcrumb).toHaveTextContent('Tổng quanBảng điều khiển');
+  });
+
+  it('trang con của mục khác không đánh dấu Bảng điều khiển', () => {
+    renderWithContext(<AdminLayout />, { path: '/admin/orders/5', route: '/admin/*' });
+    expect(screen.getByRole('link', { name: /Bảng điều khiển/ })).not.toHaveClass('active');
+    expect(screen.getByRole('link', { name: /Đơn hàng/ })).toHaveClass('active');
+  });
+
+  it('đường dẫn không thuộc mục nào thì không hiện vị trí', () => {
+    renderWithContext(<AdminLayout />, { path: '/admin/khong-co', route: '/admin/*' });
     expect(screen.queryByRole('navigation', { name: 'Vị trí trong trang quản trị' })).toBeNull();
   });
 });
