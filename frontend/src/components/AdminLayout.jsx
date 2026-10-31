@@ -1,47 +1,53 @@
 import { NavLink, Outlet, useLocation } from 'react-router';
-
-/** Các mục quản trị, chia theo nhóm công việc. */
-const SECTIONS = [
-  {
-    title: 'Cửa hàng',
-    links: [
-      { to: '/admin/products', label: 'Sản phẩm' },
-      { to: '/admin/categories', label: 'Danh mục' },
-      { to: '/admin/brands', label: 'Thương hiệu' },
-    ],
-  },
-  { title: 'Bán hàng', links: [{ to: '/admin/orders', label: 'Đơn hàng' }] },
-  {
-    title: 'Khách hàng',
-    links: [
-      { to: '/admin/customers', label: 'Khách hàng' },
-      { to: '/admin/segments', label: 'Phân nhóm' },
-    ],
-  },
-];
+import { ADMIN_SECTIONS, findAdminLocation } from '../services/adminMenu';
+import Icon from './Icon';
 
 /**
- * Khung trang quản trị: menu bên trái chia nhóm, nội dung từng mục bên phải. Chỉ phần nội dung
- * hiện dần khi đổi mục, menu đứng yên.
+ * Khung trang quản trị: menu bên trái chia nhóm (mỗi nhóm 1 khối riêng, mục có biểu tượng và
+ * dòng mô tả), nội dung bên phải có dòng "đang ở đâu" (nhóm › mục). Chỉ phần nội dung hiện dần
+ * khi đổi mục, menu đứng yên.
  */
 function AdminLayout() {
   const { pathname } = useLocation();
+  const current = findAdminLocation(pathname);
   return (
     <div className="admin">
       <aside className="admin-nav" aria-label="Menu quản trị">
         <p className="admin-nav-heading">Quản trị</p>
-        {SECTIONS.map((section) => (
-          <div key={section.title} className="admin-nav-section">
-            <p className="admin-nav-title">{section.title}</p>
-            {section.links.map((link) => (
-              <NavLink key={link.to} to={link.to}>
-                {link.label}
-              </NavLink>
-            ))}
-          </div>
+        {ADMIN_SECTIONS.map((section) => (
+          <section
+            key={section.key}
+            className="admin-nav-section"
+            aria-labelledby={`admin-nav-${section.key}`}
+          >
+            <h2 id={`admin-nav-${section.key}`} className="admin-nav-title">
+              {section.title}
+            </h2>
+            <ul>
+              {section.links.map((link) => (
+                <li key={link.to}>
+                  <NavLink to={link.to} className="admin-nav-link">
+                    <Icon name={link.icon} size={18} />
+                    <span className="admin-nav-text">
+                      {link.label}
+                      <small>{link.hint}</small>
+                    </span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
       </aside>
       <section key={pathname} className="admin-content page-transition">
+        {current && (
+          <nav className="admin-breadcrumb" aria-label="Vị trí trong trang quản trị">
+            <ol>
+              <li>{current.section.title}</li>
+              <li aria-current="page">{current.link.label}</li>
+            </ol>
+          </nav>
+        )}
         <Outlet />
       </section>
     </div>

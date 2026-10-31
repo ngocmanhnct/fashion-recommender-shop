@@ -168,9 +168,16 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 - Xem được một khách hàng cụ thể thuộc nhóm nào (qua trang chi tiết khách hàng ở US-18)  
 - Kết quả phân nhóm giải thích được khi được hỏi, không phải hộp đen
 
+**US-25: Xem hồ sơ một nhóm khách hàng** *(bổ sung 31/10/2026)* Là admin, tôi muốn mở từng nhóm khách hàng để xem nhóm đó mang lại bao nhiêu doanh thu, mua theo nhịp nào, mua gì, gồm những ai, và khách nào trong nhóm đã lâu chưa quay lại, để biết nhóm nào cần chăm sóc và chăm sóc ai trước. Tiêu chí chấp nhận:
+
+- Trang tổng quan phân nhóm hiện thêm doanh thu và tỷ lệ doanh thu của từng nhóm; mỗi nhóm mở được trang hồ sơ riêng  
+- Hồ sơ nhóm có: số khách và tỷ lệ, doanh thu và tỷ lệ, số đơn Đã giao, giá trị đơn trung bình, nhịp mua (số ngày trung bình giữa 2 đơn liên tiếp), thời gian gắn bó trung bình, 5 danh mục mua nhiều nhất, phân bố giới tính và nhóm tuổi (khách chưa khai hiện riêng là "Chưa khai")  
+- Hồ sơ có danh sách khách cần chăm sóc theo BR-43, mỗi khách mở được trang chi tiết khách hàng (US-18)  
+- Chỉ tính đơn Đã giao, như R, F, M (BR-23)
+
 ---
 
-**Tổng cộng: 22 user story, 100% có acceptance criteria.**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-25 (hồ sơ nhóm khách hàng).**
 
 ## 2\. Business rules
 
@@ -255,10 +262,11 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 - **BR-21**: Số lượng sản phẩm gợi ý trên trang chi tiết sản phẩm cố định là 4\. *(US-12)*  
 - **BR-22**: Nếu số sản phẩm tương tự còn hàng ít hơn 4 (US-12), lấp đầy phần còn thiếu bằng sản phẩm bán chạy nhất — cùng cơ chế dự phòng như BR-19.
 
-### 2.6 Phân nhóm khách hàng (ML, Admin — US-19)
+### 2.6 Phân nhóm khách hàng (ML, Admin — US-19, US-25)
 
 - **BR-23**: Mô hình phân nhóm (K-Means) được huấn luyện lại mỗi tuần trên toàn bộ khách hàng có ít nhất 1 đơn hoàn tất, vì K-Means cần chạy trên toàn bộ tập khách hàng cùng lúc. Khi một đơn chuyển sang Đã giao, R, F, M của khách đó được tính lại và khách được gán ngay vào nhóm có tâm gần nhất của mô hình hiện tại, không huấn luyện lại; việc gán chạy nền qua `recompute_request` (loại việc `SEGMENT_ASSIGN`) như BR-20. Mỗi đêm, nếu chưa đến hạn huấn luyện lại, mọi khách được gán lại vào nhóm có tâm gần nhất theo R, F, M tại thời điểm đó (R tăng theo ngày dù khách không mua). **\[Giả định\]** tần suất huấn luyện lại.  
-- **BR-24**: Khách hàng chưa có đơn hàng hoàn tất nào không được đưa vào phân cụm — hiển thị riêng là "Khách hàng mới / chưa đủ dữ liệu" thay vì gán cưỡng vào một cụm gây sai lệch tâm cụm. *(US-19)*
+- **BR-24**: Khách hàng chưa có đơn hàng hoàn tất nào không được đưa vào phân cụm — hiển thị riêng là "Khách hàng mới / chưa đủ dữ liệu" thay vì gán cưỡng vào một cụm gây sai lệch tâm cụm. *(US-19)*  
+- **BR-43 — Khách cần chăm sóc:** khách mua từ 2 đơn Đã giao trở lên có nhịp mua riêng = (ngày đơn Đã giao gần nhất − ngày đơn Đã giao đầu tiên) ÷ (số đơn − 1). Khách cần chăm sóc khi số ngày từ đơn Đã giao gần nhất đến hôm nay vượt **cả** 1,5 lần nhịp mua riêng **và** 30 ngày (ngưỡng 30 ngày để khách mua dồn nhiều đơn trong vài ngày không bị báo ngay). Danh sách xếp theo số lần quá nhịp (số ngày chưa mua ÷ nhịp mua), lâu nhất trước. Khách mới mua 1 đơn chưa có nhịp nên không xét. **\[Giả định\]** hệ số 1,5 và ngưỡng 30 ngày. *(US-25)*
 
 ### 2.7 Quy tắc chung
 

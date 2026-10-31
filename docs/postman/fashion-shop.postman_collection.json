@@ -2721,7 +2721,7 @@
                     "segments"
                   ]
                 },
-                "description": "Trả { model, segments, segmentedCount, unsegmentedCount }: model là lần huấn luyện gần nhất (K, K tại điểm gãy Elbow, số khách, Silhouette, thời điểm) hoặc null khi chưa huấn luyện; mỗi nhóm có số khách, tỷ lệ %, R/F/M trung bình hiện tại và mô tả."
+                "description": "Trả { model, segments, segmentedCount, unsegmentedCount }: model là lần huấn luyện gần nhất (K, K tại điểm gãy Elbow, số khách, Silhouette, thời điểm) hoặc null khi chưa huấn luyện; mỗi nhóm có số khách, tỷ lệ %, R/F/M trung bình hiện tại và mô tả. Mỗi nhóm có thêm revenue (tổng tiền đơn Đã giao của khách trong nhóm, VNĐ) và revenueShare (% doanh thu các nhóm); xem chi tiết ở \"Hồ sơ nhóm khách hàng\"."
               },
               "event": [
                 {
@@ -2735,6 +2735,26 @@
                   }
                 }
               ]
+            },
+            {
+              "name": "Hồ sơ nhóm khách hàng",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/segments/LOYAL",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "segments",
+                    "LOYAL"
+                  ]
+                },
+                "description": "US-25. Hồ sơ 1 nhóm theo mã (VIP, LOYAL, SAVER, NEW, AT_RISK, LOST): số khách và % khách đã phân nhóm, doanh thu và % doanh thu các nhóm, số đơn Đã giao, giá trị đơn trung bình, nhịp mua (số ngày trung bình giữa 2 đơn liên tiếp, null nếu chưa ai mua từ 2 đơn), số ngày gắn bó trung bình, 5 danh mục mua nhiều nhất, số khách theo giới tính (MALE, FEMALE, OTHER, UNKNOWN) và nhóm tuổi (UNDER_18 … 55_PLUS, UNKNOWN), khách cần chăm sóc (BR-43: mua từ 2 đơn, số ngày chưa mua vượt 1,5 lần nhịp riêng và quá 30 ngày; trả tối đa 20, quá nhịp lâu nhất trước, careCount là tổng số). Chỉ tính đơn Đã giao. Mã không có trả 404."
+              }
             }
           ]
         },

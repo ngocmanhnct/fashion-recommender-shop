@@ -5,7 +5,9 @@ import com.manhdn.fashionshop.dto.CustomerSummaryResponse;
 import com.manhdn.fashionshop.dto.OrderSummaryResponse;
 import com.manhdn.fashionshop.dto.PageResponse;
 import com.manhdn.fashionshop.dto.SegmentOverviewResponse;
+import com.manhdn.fashionshop.dto.SegmentProfileResponse;
 import com.manhdn.fashionshop.service.CustomerAdminService;
+import com.manhdn.fashionshop.service.SegmentProfileService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,10 +23,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class CustomerAdminController {
 
   private final CustomerAdminService customerAdminService;
+  private final SegmentProfileService segmentProfileService;
 
-  /** Nhận CustomerAdminService qua constructor. */
-  public CustomerAdminController(CustomerAdminService customerAdminService) {
+  /** Nhận CustomerAdminService, SegmentProfileService qua constructor. */
+  public CustomerAdminController(
+      CustomerAdminService customerAdminService, SegmentProfileService segmentProfileService) {
     this.customerAdminService = customerAdminService;
+    this.segmentProfileService = segmentProfileService;
   }
 
   /**
@@ -81,5 +86,17 @@ public class CustomerAdminController {
   @GetMapping("/segments")
   public SegmentOverviewResponse segments() {
     return customerAdminService.segments();
+  }
+
+  /**
+   * Hồ sơ một nhóm khách hàng (US-25): doanh thu, giá trị mỗi đơn, nhịp mua, thời gian gắn bó, danh
+   * mục mua nhiều, giới tính, độ tuổi và khách cần chăm sóc (BR-43).
+   *
+   * @param code mã nhóm, vd VIP
+   * @return 200 kèm hồ sơ nhóm, 404 nếu không có nhóm này
+   */
+  @GetMapping("/segments/{code}")
+  public SegmentProfileResponse segmentProfile(@PathVariable String code) {
+    return segmentProfileService.profile(code);
   }
 }

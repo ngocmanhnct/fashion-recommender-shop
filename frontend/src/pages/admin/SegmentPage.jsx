@@ -14,7 +14,8 @@ const SILHOUETTE = new Intl.NumberFormat('vi-VN', {
 
 /**
  * Trang quản trị /admin/segments (US-19): các nhóm khách hàng do K-Means trên R, F, M tạo ra,
- * số khách và số liệu trung bình của từng nhóm, cùng thông tin lần huấn luyện để giải thích kết quả.
+ * số khách, doanh thu và số liệu trung bình của từng nhóm (mỗi nhóm mở được hồ sơ chi tiết, US-25),
+ * cùng thông tin lần huấn luyện để giải thích kết quả.
  */
 function SegmentPage() {
   const { data, error, loading, reload } = useApiData('segments', getSegments);
@@ -36,7 +37,7 @@ function SegmentPage() {
   return (
     <div>
       <div className="page-header">
-        <h1>Phân nhóm khách hàng</h1>
+        <h1>Các nhóm khách hàng</h1>
         <Link to="/admin/customers" className="btn btn-ghost">
           Danh sách khách hàng
         </Link>
@@ -63,9 +64,13 @@ function SegmentPage() {
           <article key={s.code} className="segment-card">
             <div className="segment-card-head">
               <SegmentBadge segment={s} />
-              <span className="muted small">{DECIMAL.format(s.share)}%</span>
+              <span className="muted small">{DECIMAL.format(s.share)}% khách</span>
             </div>
             <p className="segment-count">{formatNumber(s.customerCount)} khách</p>
+            <p className="small">
+              Doanh thu <strong>{formatPrice(s.revenue)}</strong>{' '}
+              <span className="muted">({DECIMAL.format(s.revenueShare)}% tổng)</span>
+            </p>
             <p className="muted small">Trung bình mỗi khách trong nhóm:</p>
             <div className="rfm-grid">
               <div className="rfm-cell">
@@ -82,9 +87,14 @@ function SegmentPage() {
               </div>
             </div>
             {s.description && <p className="small">{s.description}</p>}
-            <Link to={`/admin/customers?segment=${s.code}`} className="small">
-              Xem khách trong nhóm ›
-            </Link>
+            <div className="segment-card-links">
+              <Link to={`/admin/segments/${s.code}`} className="btn btn-primary">
+                Hồ sơ nhóm
+              </Link>
+              <Link to={`/admin/customers?segment=${s.code}`} className="small">
+                Xem khách trong nhóm ›
+              </Link>
+            </div>
           </article>
         ))}
 
