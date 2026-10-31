@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ProductDetailPage from '../../src/pages/ProductDetailPage';
@@ -72,7 +72,8 @@ describe('ProductDetailPage', () => {
     expect(screen.getByRole('link', { name: 'Adidas' })).toBeInTheDocument();
     expect(screen.getByText('Đế êm, nhẹ')).toBeInTheDocument();
     expect(screen.getByText(/10 đánh giá/)).toBeInTheDocument();
-    expect(productApi.recordProductView).toHaveBeenCalledTimes(1);
+    // Lượt xem được ghi trong useEffect, có thể chạy sau khi DOM đã cập nhật.
+    await waitFor(() => expect(productApi.recordProductView).toHaveBeenCalledTimes(1));
     expect(productApi.recordProductView).toHaveBeenCalledWith(3);
     expect(await screen.findByRole('link', { name: /Vớ thể thao/ })).toBeInTheDocument();
   });
