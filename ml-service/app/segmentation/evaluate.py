@@ -6,7 +6,8 @@ bình. Với khách mô phỏng (@mophong.test), so nhóm tìm được với ki
 
 Chạy: `uv run python -m app.segmentation.evaluate` (trong ml-service/, cần MySQL như khi chạy
 ml-service). Mặc định chỉ in, không ghi gì; thêm `--save` để ghi mô hình vào CSDL ngay thay vì
-chờ lần huấn luyện hằng tuần (vd sau khi chạy lại dữ liệu mô phỏng).
+chờ lần huấn luyện hằng tuần (vd sau khi chạy lại dữ liệu mô phỏng); `--features` để so các bộ
+đặc trưng ngoài R, F, M (module `features`, không ghi gì).
 """
 
 import argparse
@@ -22,6 +23,7 @@ from sqlalchemy import Connection, Engine, text
 from app.config import Settings
 from app.db import create_db_engine
 from app.recommendation.store import local_now
+from app.segmentation import features
 from app.segmentation.model import SegmentModel, format_money, train
 from app.segmentation.rfm import Rfm, load_rfm
 from app.segmentation.store import save_model
@@ -114,6 +116,19 @@ def run(engine: Engine, seed: int, save: bool, now: datetime | None = None) -> s
     return result
 
 
+def run_features(engine: Engine, seed: int, now: datetime | None = None) -> str:
+    """So các bộ đặc trưng (R, F, M và thêm đặc trưng khác) theo ARI với kiểu khách mô phỏng."""
+    now = now or local_now()
+    with engine.connect() as conn:
+        rows = features.load_features(conn, now)
+        personas = true_personas(conn, seed)
+    results = features.compare(rows, personas)
+    if not results:
+        return f"Chưa đủ dữ liệu để so: {len(rows)} khách có đơn Đã giao."
+    labelled = sum(1 for r in rows if r.account_id in personas)
+    return f"So các bộ đặc trưng trên {labelled} khách mô phỏng:\n\n" + features.report(results)
+
+
 def main(argv: list[str] | None = None, engine: Engine | None = None) -> int:
     """Điểm vào dòng lệnh."""
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -121,8 +136,15 @@ def main(argv: list[str] | None = None, engine: Engine | None = None) -> int:
     parser.add_argument(
         "--seed", type=int, default=DEFAULT_SEED, help="seed lúc sinh dữ liệu mô phỏng"
     )
+    parser.add_argument(
+        "--features", action="store_true", help="so các bộ đặc trưng ngoài R, F, M (không ghi gì)"
+    )
     args = parser.parse_args(argv)
-    print(run(engine or create_db_engine(Settings.from_env()), args.seed, args.save))
+    engine = engine or create_db_engine(Settings.from_env())
+    if args.features:
+        print(run_features(engine, args.seed))
+    else:
+        print(run(engine, args.seed, args.save))
     return 0
 
 
