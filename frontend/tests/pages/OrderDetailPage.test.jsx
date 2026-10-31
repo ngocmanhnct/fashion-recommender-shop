@@ -115,4 +115,22 @@ describe('OrderDetailPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Thử lại' }));
     expect(await screen.findByRole('heading', { name: 'Đơn #55' })).toBeInTheDocument();
   });
+
+  it('đơn Đã giao có link đánh giá từng sản phẩm, đơn chưa giao thì không', async () => {
+    vi.mocked(orderApi.getOrder).mockResolvedValueOnce({
+      ...ORDER,
+      status: 'DELIVERED',
+      cancellable: false,
+    });
+    const { unmount } = renderPage();
+    expect(await screen.findByRole('link', { name: 'Đánh giá sản phẩm' })).toHaveAttribute(
+      'href',
+      '/products/3#danh-gia'
+    );
+    unmount();
+
+    renderPage();
+    expect(await screen.findByRole('link', { name: 'Balo du lịch' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Đánh giá sản phẩm' })).not.toBeInTheDocument();
+  });
 });

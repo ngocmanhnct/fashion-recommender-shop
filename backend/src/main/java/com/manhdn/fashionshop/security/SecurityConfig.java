@@ -30,8 +30,9 @@ import org.springframework.security.web.SecurityFilterChain;
  *       gọi thẳng API mà không qua giao diện cũng bị chặn (403).
  *   <li>API đọc sản phẩm, danh mục, thương hiệu công khai (US-01, US-02, US-03); ghi lượt xem sản
  *       phẩm chỉ cho CUSTOMER (US-03). Giỏ hàng chỉ cho CUSTOMER, trừ xem trước giỏ hàng của khách
- *       chưa đăng nhập (US-06, BR-06). Danh sách yêu thích chỉ cho CUSTOMER (US-14). Token sai hoặc
- *       hết hạn vẫn bị 401 kể cả ở API công khai.
+ *       chưa đăng nhập (US-06, BR-06). Danh sách yêu thích chỉ cho CUSTOMER (US-14). Xem đánh giá
+ *       công khai, gửi đánh giá chỉ cho CUSTOMER (US-15). Token sai hoặc hết hạn vẫn bị 401 kể cả ở
+ *       API công khai.
  *   <li>CSRF tắt vì không dùng cookie phiên; CORS dùng cấu hình ở WebConfig.
  * </ul>
  */
@@ -58,6 +59,10 @@ public class SecurityConfig {
                     .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/products/*/views")
                     .hasRole("CUSTOMER")
+                    .requestMatchers("/api/products/*/reviews/me")
+                    .hasRole("CUSTOMER")
+                    .requestMatchers(HttpMethod.GET, "/api/products/*/reviews")
+                    .permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/cart/preview")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/survey")
