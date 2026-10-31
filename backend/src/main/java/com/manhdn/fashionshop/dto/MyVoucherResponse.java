@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
  * @param discountValue phần trăm hoặc số tiền giảm
  * @param maxDiscountAmount trần giảm của mã phần trăm, null nếu không trần
  * @param minOrderAmount đơn tối thiểu, null nếu không yêu cầu
- * @param validUntil hạn dùng (giờ Việt Nam)
+ * @param validUntil hạn dùng của khách (giờ Việt Nam): hạn của mã, hoặc hạn riêng tính từ lúc nhận
+ *     nếu sớm hơn (US-24)
  */
 public record MyVoucherResponse(
     String code,
@@ -22,14 +23,14 @@ public record MyVoucherResponse(
     Long minOrderAmount,
     LocalDateTime validUntil) {
 
-  /** Tạo từ entity. */
-  public static MyVoucherResponse from(Voucher v) {
+  /** Tạo từ entity, với hạn dùng riêng của khách. */
+  public static MyVoucherResponse from(Voucher v, LocalDateTime validUntil) {
     return new MyVoucherResponse(
         v.getCode(),
         v.getDiscountType(),
         v.getDiscountValue(),
         v.getMaxDiscountAmount(),
         v.getMinOrderAmount(),
-        v.getValidUntil());
+        validUntil);
   }
 }

@@ -12,10 +12,12 @@ import com.manhdn.fashionshop.exception.InvalidRequestException;
 import com.manhdn.fashionshop.repository.CustomerSegmentRepository;
 import com.manhdn.fashionshop.repository.SegmentCampaignRepository;
 import com.manhdn.fashionshop.repository.SegmentCampaignRepository.Outcome;
+import com.manhdn.fashionshop.repository.SegmentEntryRepository;
 import com.manhdn.fashionshop.repository.SegmentProfileRepository;
 import com.manhdn.fashionshop.repository.VoucherRecipientRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -29,6 +31,10 @@ import org.springframework.transaction.annotation.Transactional;
  * Chiến dịch ưu đãi theo nhóm khách hàng (US-26): Quản trị viên tặng mã giảm giá riêng cho cả một
  * nhóm hoặc cho khách cần chăm sóc của nhóm (BR-43), chỉ những khách đó dùng được mã (BR-44); sau
  * đó đo kết quả bằng đơn hàng dùng mã: bao nhiêu khách quay lại mua, doanh thu, tiền đã giảm.
+ *
+ * <p>Chương trình tự tặng (US-24, BR-45) là chiến dịch AUTO: chưa ai nhận lúc bật; mỗi lượt của
+ * {@link #grantAutoOffers()} thêm các khách vừa vào nhóm vào danh sách nhận, mỗi khách dùng mã
+ * trong số ngày đã đặt kể từ lúc nhận.
  */
 @Service
 public class CampaignService {
@@ -41,6 +47,7 @@ public class CampaignService {
   private final SegmentProfileService segmentProfileService;
   private final SegmentCampaignRepository campaignRepository;
   private final VoucherRecipientRepository recipientRepository;
+  private final SegmentEntryRepository entryRepository;
   private final VoucherService voucherService;
   private final Clock clock;
 
@@ -51,6 +58,7 @@ public class CampaignService {
       SegmentProfileService segmentProfileService,
       SegmentCampaignRepository campaignRepository,
       VoucherRecipientRepository recipientRepository,
+      SegmentEntryRepository entryRepository,
       VoucherService voucherService,
       Clock clock) {
     this.customerSegmentRepository = customerSegmentRepository;
@@ -58,6 +66,7 @@ public class CampaignService {
     this.segmentProfileService = segmentProfileService;
     this.campaignRepository = campaignRepository;
     this.recipientRepository = recipientRepository;
+    this.entryRepository = entryRepository;
     this.voucherService = voucherService;
     this.clock = clock;
   }
@@ -70,12 +79,16 @@ public class CampaignService {
    * @param request đối tượng và điều kiện của mã
    * @return chiến dịch vừa tạo, kết quả bằng 0
    * @throws NoSuchElementException nếu không có nhóm này
-   * @throws ConflictException nếu không có khách nào để tặng hoặc trùng mã
-   * @throws InvalidRequestException nếu điều kiện của mã mâu thuẫn
+   * @throws ConflictException nếu không có khách nào để tặng, trùng mã, hoặc nhóm đã có chương
+   *     trình tự tặng đang chạy
+   * @throws InvalidRequestException nếu điều kiện của mã mâu thuẫn hoặc tự tặng thiếu số ngày
    */
   @Transactional
   public CampaignResponse create(String segmentCode, CampaignRequest request) {
     CustomerSegment segment = segment(segmentCode);
+    if (request.target() == CampaignTarget.AUTO) {
+      return createAuto(segment, request);
+    }
     List<Long> recipients =
         request.target() == CampaignTarget.ALL
             ? profileRepository.memberIds(segment.getId())
@@ -98,6 +111,79 @@ public class CampaignService {
                 recipients.size(),
                 LocalDateTime.now(clock)));
     return response(campaign, null);
+  }
+
+  /**
+   * Bật tự tặng: ghi trước nhóm hiện tại của mọi khách, để khách đang ở trong nhóm lúc bật không bị
+   * coi là khách mới vào (chỉ khách vào sau lúc bật mới nhận mã).
+   */
+  private CampaignResponse createAuto(CustomerSegment segment, CampaignRequest request) {
+    if (request.validDays() == null) {
+      throw new InvalidRequestException("Chưa nhập số ngày khách được dùng mã");
+    }
+    if (campaignRepository.existsBySegmentCodeAndAutoEnabledTrue(segment.getCode())) {
+      throw new ConflictException(
+          "Nhóm đang có chương trình tự tặng mã. Dừng chương trình đó trước khi bật chương trình"
+              + " mới");
+    }
+    LocalDateTime now = LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
+    entryRepository.sync(now);
+    Voucher voucher = voucherService.createVoucher(request.voucher(), true);
+    SegmentCampaign campaign =
+        campaignRepository.save(
+            new SegmentCampaign(
+                segment.getCode(),
+                segment.getName(),
+                CampaignTarget.AUTO,
+                voucher,
+                0,
+                now,
+                request.validDays()));
+    return response(campaign, null);
+  }
+
+  /**
+   * Dừng chương trình tự tặng (US-24): khách vào nhóm sau đó không nhận mã nữa, khách đã nhận vẫn
+   * dùng được đến hạn riêng. Gọi lại nhiều lần vẫn đúng.
+   *
+   * @param id mã số chiến dịch
+   * @return chiến dịch sau khi dừng, kèm kết quả
+   * @throws NoSuchElementException nếu không có chiến dịch này
+   * @throws InvalidRequestException nếu đây không phải chương trình tự tặng
+   */
+  @Transactional
+  public CampaignResponse stopAuto(long id) {
+    SegmentCampaign campaign =
+        campaignRepository
+            .findById(id)
+            .orElseThrow(() -> new NoSuchElementException("Không tìm thấy chiến dịch"));
+    if (campaign.getTarget() != CampaignTarget.AUTO) {
+      throw new InvalidRequestException("Chỉ dừng được chương trình tự tặng mã");
+    }
+    campaign.stopAuto();
+    Outcome outcome =
+        campaignRepository.outcomes(List.of(campaign.getVoucher().getId())).stream()
+            .findFirst()
+            .orElse(null);
+    return response(campaign, outcome);
+  }
+
+  /**
+   * Một lượt tự tặng (US-24, BR-45): ghi lúc vào nhóm của khách vừa được phân nhóm hoặc đổi nhóm,
+   * rồi tặng mã của các chương trình đang chạy cho khách vào nhóm sau lúc bật chương trình.
+   *
+   * @return số khách vừa được tặng
+   */
+  @Transactional
+  public int grantAutoOffers() {
+    entryRepository.sync(LocalDateTime.now(clock).truncatedTo(ChronoUnit.SECONDS));
+    int granted =
+        entryRepository.grantAutoOffers(
+            LocalDateTime.now(clock.withZone(VoucherService.ZONE)).truncatedTo(ChronoUnit.SECONDS));
+    if (granted > 0) {
+      entryRepository.refreshAutoRecipientCounts();
+    }
+    return granted;
   }
 
   /**
@@ -134,6 +220,8 @@ public class CampaignService {
         c.getSegmentCode(),
         c.getSegmentName(),
         c.getTarget(),
+        c.getValidDays(),
+        c.isAutoEnabled(),
         c.getCreatedAt(),
         c.getRecipientCount(),
         VoucherResponse.from(

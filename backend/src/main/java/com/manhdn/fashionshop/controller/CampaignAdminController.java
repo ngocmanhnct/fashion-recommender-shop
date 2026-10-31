@@ -28,18 +28,30 @@ public class CampaignAdminController {
   }
 
   /**
-   * Tặng mã giảm giá riêng cho cả nhóm hoặc khách cần chăm sóc của nhóm.
+   * Tặng mã giảm giá riêng cho cả nhóm hoặc khách cần chăm sóc của nhóm (US-26), hoặc bật tự tặng
+   * cho khách mới vào nhóm (AUTO, US-24).
    *
    * @param code mã nhóm, vd AT_RISK
-   * @param request đối tượng (ALL, CARE) và điều kiện của mã
-   * @return 201 kèm chiến dịch; 404 nếu không có nhóm; 409 nếu không có khách để tặng hoặc trùng
-   *     mã; 400 nếu điều kiện mã sai
+   * @param request đối tượng (ALL, CARE, AUTO), điều kiện của mã và số ngày dùng mã (AUTO)
+   * @return 201 kèm chiến dịch; 404 nếu không có nhóm; 409 nếu không có khách để tặng, trùng mã
+   *     hoặc nhóm đã có chương trình tự tặng đang chạy; 400 nếu điều kiện mã sai
    */
   @PostMapping("/segments/{code}/campaigns")
   @ResponseStatus(HttpStatus.CREATED)
   public CampaignResponse create(
       @PathVariable String code, @Valid @RequestBody CampaignRequest request) {
     return campaignService.create(code, request);
+  }
+
+  /**
+   * Dừng chương trình tự tặng mã (US-24); khách đã nhận vẫn dùng được mã.
+   *
+   * @param id mã số chiến dịch
+   * @return 200 kèm chiến dịch; 404 nếu không có; 400 nếu không phải chương trình tự tặng
+   */
+  @PostMapping("/campaigns/{id}/stop")
+  public CampaignResponse stop(@PathVariable long id) {
+    return campaignService.stopAuto(id);
   }
 
   /**

@@ -2,11 +2,16 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import VoucherForm from '../../components/VoucherForm';
 import { useApiData } from '../../hooks/useApiData';
-import { createCampaign, getCampaigns, getSegmentProfile } from '../../services/customerAdminApi';
+import {
+  createCampaign,
+  getCampaigns,
+  getSegmentProfile,
+  stopCampaign,
+} from '../../services/customerAdminApi';
 import { getErrorMessage } from '../../services/errorMessage';
 import { formatNumber, formatPrice } from '../../services/format';
 import { formatDateTime } from '../../services/orderLabels';
-import { suggestedVoucherForm } from '../../services/voucherForm';
+import { autoVoucherForm, suggestedVoucherForm } from '../../services/voucherForm';
 import { describeDiscount, VOUCHER_STATUS_LABELS } from '../../services/voucherLabels';
 
 const DECIMAL = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 1 });
@@ -23,7 +28,11 @@ const AGE_LABELS = {
   UNKNOWN: 'Chưa khai',
 };
 
-const TARGET_LABELS = { ALL: 'Cả nhóm', CARE: 'Khách cần chăm sóc' };
+const TARGET_LABELS = {
+  ALL: 'Cả nhóm',
+  CARE: 'Khách cần chăm sóc',
+  AUTO: 'Khách mới vào nhóm (tự động)',
+};
 
 /**
  * Trang quản trị /admin/segments/:code (US-25): hồ sơ 1 nhóm khách hàng. Tóm tắt nhóm bằng doanh
@@ -170,22 +179,49 @@ function NextAction({ profile, campaigns }) {
   const { suggestion, customerCount, careCount } = profile;
   const [target, setTarget] = useState(null);
   const [message, setMessage] = useState('');
+  const [autoDays, setAutoDays] = useState(String(suggestion.validDays));
+  const [stopError, setStopError] = useState('');
   const recipients = target === 'CARE' ? careCount : customerCount;
-  const latest = campaigns.data?.[0];
+  const latest = campaigns.data?.find((c) => c.target !== 'AUTO');
+  const running = campaigns.data?.find((c) => c.target === 'AUTO' && c.autoEnabled);
 
   const open = (next) => {
     setMessage('');
+    setStopError('');
     setTarget(next);
   };
 
   const handleSubmit = async (voucher) => {
-    const campaign = await createCampaign(profile.code, { target, voucher });
+    const auto = target === 'AUTO';
+    const campaign = await createCampaign(profile.code, {
+      target,
+      voucher,
+      validDays: auto ? Number(autoDays) : undefined,
+    });
     setTarget(null);
     setMessage(
-      `Đã tặng mã ${campaign.voucher.code} cho ${formatNumber(campaign.recipientCount)} khách. ` +
-        'Khách thấy mã ở mục "Ưu đãi của bạn" và khi thanh toán.'
+      auto
+        ? `Đã bật tự tặng mã ${campaign.voucher.code}: khách vào nhóm từ bây giờ nhận mã trong ` +
+            'vòng 1 phút, thấy ở mục "Ưu đãi của bạn" và khi thanh toán.'
+        : `Đã tặng mã ${campaign.voucher.code} cho ${formatNumber(campaign.recipientCount)} ` +
+            'khách. Khách thấy mã ở mục "Ưu đãi của bạn" và khi thanh toán.'
     );
     campaigns.reload();
+  };
+
+  const handleStop = async () => {
+    if (!window.confirm(`Dừng tự tặng mã ${running.voucher.code}? Khách đã nhận vẫn dùng được.`)) {
+      return;
+    }
+    setMessage('');
+    setStopError('');
+    try {
+      await stopCampaign(running.id);
+      setMessage(`Đã dừng tự tặng mã ${running.voucher.code}`);
+      campaigns.reload();
+    } catch (err) {
+      setStopError(getErrorMessage(err, 'Không dừng được chương trình'));
+    }
   };
 
   const giftButton = (value, label, count) => (
@@ -214,6 +250,43 @@ function NextAction({ profile, campaigns }) {
         {giftButton('CARE', 'Tặng mã cho khách cần chăm sóc', careCount)}
         {giftButton('ALL', 'Tặng mã cho cả nhóm', customerCount)}
       </div>
+      <div className="next-action-auto">
+        <h3>Tự tặng cho khách mới vào nhóm</h3>
+        {running ? (
+          <>
+            <p className="small">
+              <span className="status status-delivered">Đang chạy</span> Mã{' '}
+              <strong className="voucher-code">{running.voucher.code}</strong> (
+              {describeDiscount(running.voucher)}), mỗi khách dùng trong {running.validDays} ngày kể
+              từ khi nhận. Đã tặng {formatNumber(running.recipientCount)} khách, hết chương trình
+              lúc {formatDateTime(running.voucher.validUntil)}.
+            </p>
+            <button type="button" className="btn btn-ghost" onClick={handleStop}>
+              Dừng tự tặng
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="muted small">
+              Khách vừa được xếp vào nhóm (sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm) tự nhận mã
+              riêng, không cần admin bấm mỗi lần. Khách đang ở trong nhóm lúc bật không nhận.
+            </p>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={target !== null}
+              onClick={() => open('AUTO')}
+            >
+              Bật tự tặng mã
+            </button>
+          </>
+        )}
+        {stopError && (
+          <p className="alert alert-error" role="alert">
+            {stopError}
+          </p>
+        )}
+      </div>
       {latest && target === null && (
         <p className="muted small">
           Lần tặng gần nhất: {formatDateTime(latest.createdAt)}, {formatNumber(latest.buyers)}/
@@ -226,7 +299,36 @@ function NextAction({ profile, campaigns }) {
           {message}
         </p>
       )}
-      {target !== null && (
+      {target === 'AUTO' && (
+        <VoucherForm
+          key="AUTO"
+          title="Bật tự tặng mã cho khách mới vào nhóm"
+          submitLabel="Bật tự tặng"
+          initialForm={autoVoucherForm(profile.code, suggestion)}
+          onSubmit={handleSubmit}
+          onCancel={() => setTarget(null)}
+        >
+          <p className="muted small">
+            Thời hạn của mã là thời gian chạy chương trình. Mỗi khách nhận mã khi vào nhóm và dùng
+            trong số ngày dưới đây kể từ lúc nhận (không quá hạn của mã).
+          </p>
+          <div className="field">
+            <label className="field-label" htmlFor="auto-valid-days">
+              Mỗi khách dùng trong (ngày)
+            </label>
+            <input
+              id="auto-valid-days"
+              type="number"
+              min={1}
+              max={90}
+              required
+              value={autoDays}
+              onChange={(event) => setAutoDays(event.target.value)}
+            />
+          </div>
+        </VoucherForm>
+      )}
+      {(target === 'ALL' || target === 'CARE') && (
         <VoucherForm
           key={target}
           title={
@@ -297,6 +399,11 @@ function CampaignResults({ campaigns }) {
                   <td>
                     {formatNumber(c.recipientCount)} khách
                     <div className="muted small">{TARGET_LABELS[c.target] ?? c.target}</div>
+                    {c.target === 'AUTO' && (
+                      <div className="muted small">
+                        {c.autoEnabled ? 'Đang chạy' : 'Đã dừng'}, mỗi khách {c.validDays} ngày
+                      </div>
+                    )}
                   </td>
                   <td>
                     <strong>{formatNumber(c.buyers)} khách</strong>

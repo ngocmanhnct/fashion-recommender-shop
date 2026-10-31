@@ -41,13 +41,19 @@ export function getSegmentProfile(code) {
 }
 
 /**
- * Tặng mã giảm giá riêng cho một nhóm (US-26): target ALL = cả nhóm, CARE = khách cần chăm sóc;
+ * Tặng mã giảm giá riêng cho một nhóm (US-26): target ALL = cả nhóm, CARE = khách cần chăm sóc,
+ * AUTO = tự tặng cho khách mới vào nhóm (US-24, kèm validDays: số ngày mỗi khách được dùng mã);
  * voucher là điều kiện mã như khi tạo mã thường. Trả về chiến dịch vừa tạo.
  */
-export function createCampaign(code, { target, voucher }) {
+export function createCampaign(code, { target, voucher, validDays }) {
   return apiClient
-    .post(`${BASE}/segments/${encodeURIComponent(code)}/campaigns`, { target, voucher })
+    .post(`${BASE}/segments/${encodeURIComponent(code)}/campaigns`, { target, voucher, validDays })
     .then((res) => res.data);
+}
+
+/** Dừng chương trình tự tặng (US-24); khách đã nhận vẫn dùng được mã. */
+export function stopCampaign(id) {
+  return apiClient.post(`${BASE}/campaigns/${id}/stop`).then((res) => res.data);
 }
 
 /** Các chiến dịch đã tặng, mới nhất trước, kèm kết quả; segment bỏ trống là mọi nhóm. */

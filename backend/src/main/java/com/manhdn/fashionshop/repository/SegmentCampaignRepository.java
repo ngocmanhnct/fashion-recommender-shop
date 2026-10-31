@@ -12,6 +12,9 @@ import org.springframework.data.repository.query.Param;
 /** Truy vấn chiến dịch ưu đãi theo nhóm (US-26). */
 public interface SegmentCampaignRepository extends JpaRepository<SegmentCampaign, Long> {
 
+  /** Nhóm segmentCode có chương trình tự tặng đang chạy không (mỗi nhóm tối đa 1, US-24). */
+  boolean existsBySegmentCodeAndAutoEnabledTrue(String segmentCode);
+
   /** Chiến dịch mới nhất trước; segmentCode rỗng là mọi nhóm. */
   @EntityGraph(attributePaths = "voucher")
   @Query(

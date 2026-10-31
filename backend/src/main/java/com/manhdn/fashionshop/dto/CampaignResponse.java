@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
  * @param id mã số chiến dịch
  * @param segmentCode mã nhóm lúc tặng
  * @param segmentName tên nhóm lúc tặng
- * @param target cả nhóm hoặc khách cần chăm sóc
+ * @param target cả nhóm, khách cần chăm sóc, hoặc tự tặng khách mới vào nhóm (AUTO)
+ * @param validDays với AUTO: số ngày mỗi khách được dùng mã kể từ lúc nhận; null với lần tặng tay
+ * @param autoEnabled chương trình tự tặng đang chạy
  * @param createdAt lúc tặng
  * @param recipientCount số khách được tặng
  * @param voucher mã đã tặng
@@ -26,6 +28,8 @@ public record CampaignResponse(
     String segmentCode,
     String segmentName,
     CampaignTarget target,
+    Integer validDays,
+    boolean autoEnabled,
     LocalDateTime createdAt,
     int recipientCount,
     VoucherResponse voucher,

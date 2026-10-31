@@ -12,6 +12,7 @@ vi.mock('../../src/services/customerAdminApi', async (importOriginal) => ({
   getSegmentProfile: vi.fn(),
   getCampaigns: vi.fn(),
   createCampaign: vi.fn(),
+  stopCampaign: vi.fn(),
 }));
 
 const OVERVIEW = {
@@ -237,6 +238,79 @@ describe('SegmentDetailPage', () => {
     expect(rows[2]).toHaveTextContent('Đã hết hạn');
     expect(rows[2]).toHaveTextContent('Chưa có');
     expect(screen.getByText(/1\/3 khách đã quay lại mua/)).toBeInTheDocument();
+  });
+
+  it('bật tự tặng mã cho khách mới vào nhóm với số ngày dùng riêng (US-24)', async () => {
+    const user = userEvent.setup();
+    customerAdminApi.createCampaign.mockResolvedValue({
+      ...CAMPAIGN,
+      target: 'AUTO',
+      autoEnabled: true,
+      validDays: 10,
+      recipientCount: 0,
+      voucher: { ...CAMPAIGN.voucher, code: 'LOYAL-TUDONG-3110' },
+    });
+    renderProfile();
+    await user.click(await screen.findByRole('button', { name: 'Bật tự tặng mã' }));
+    expect(screen.getByLabelText('Mã').value).toMatch(/^LOYAL-TUDONG-\d{4}$/);
+    const days = screen.getByLabelText('Mỗi khách dùng trong (ngày)');
+    expect(days).toHaveValue(14);
+    await user.clear(days);
+    await user.type(days, '10');
+    await user.click(screen.getByRole('button', { name: 'Bật tự tặng' }));
+    const [code, request] = customerAdminApi.createCampaign.mock.calls[0];
+    expect(code).toBe('LOYAL');
+    expect(request).toMatchObject({ target: 'AUTO', validDays: 10 });
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Đã bật tự tặng mã LOYAL-TUDONG-3110'
+    );
+  });
+
+  it('chương trình tự tặng đang chạy thì hiện số khách đã nhận và dừng được', async () => {
+    const user = userEvent.setup();
+    const running = {
+      ...CAMPAIGN,
+      id: 8,
+      target: 'AUTO',
+      autoEnabled: true,
+      validDays: 7,
+      recipientCount: 4,
+      voucher: { ...CAMPAIGN.voucher, code: 'LOYAL-TUDONG', validUntil: '2027-01-29T09:00:00' },
+    };
+    customerAdminApi.getCampaigns.mockResolvedValue([running]);
+    customerAdminApi.stopCampaign.mockRejectedValueOnce({ response: { status: 500 } });
+    customerAdminApi.stopCampaign.mockResolvedValueOnce({ ...running, autoEnabled: false });
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderProfile();
+    const auto = (await screen.findByRole('heading', { name: 'Tự tặng cho khách mới vào nhóm' }))
+      .parentElement;
+    await within(auto).findByText('Đang chạy');
+    expect(auto).toHaveTextContent('mỗi khách dùng trong 7 ngày');
+    expect(auto).toHaveTextContent('Đã tặng 4 khách');
+    expect(screen.queryByText(/Lần tặng gần nhất/)).not.toBeInTheDocument();
+    const results = screen
+      .getByRole('heading', { name: 'Kết quả các lần tặng mã' })
+      .closest('section');
+    const rows = within(results).getAllByRole('row');
+    expect(rows[1]).toHaveTextContent('Khách mới vào nhóm (tự động)');
+    expect(rows[1]).toHaveTextContent('Đang chạy, mỗi khách 7 ngày');
+
+    await user.click(within(auto).getByRole('button', { name: 'Dừng tự tặng' }));
+    expect(await screen.findByText('Không dừng được chương trình')).toBeInTheDocument();
+    await user.click(within(auto).getByRole('button', { name: 'Dừng tự tặng' }));
+    expect(customerAdminApi.stopCampaign).toHaveBeenLastCalledWith(8);
+    expect(await screen.findByRole('status')).toHaveTextContent('Đã dừng tự tặng mã LOYAL-TUDONG');
+  });
+
+  it('bấm hủy khi được hỏi thì không dừng chương trình', async () => {
+    const user = userEvent.setup();
+    customerAdminApi.getCampaigns.mockResolvedValue([
+      { ...CAMPAIGN, target: 'AUTO', autoEnabled: true, validDays: 7 },
+    ]);
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderProfile();
+    await user.click(await screen.findByRole('button', { name: 'Dừng tự tặng' }));
+    expect(customerAdminApi.stopCampaign).not.toHaveBeenCalled();
   });
 
   it('không tải được kết quả tặng mã thì cho thử lại', async () => {

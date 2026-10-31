@@ -71,6 +71,7 @@ const CALLS = [
     { target: 'ALL', voucher: { code: 'X' } },
   ],
   [() => voucherApi.getMyVouchers(), 'get', '/api/vouchers/me'],
+  [() => customerAdminApi.stopCampaign(8), 'post', '/api/admin/campaigns/8/stop'],
   [() => healthApi.getHealth(), 'get', '/actuator/health'],
   [() => orderAdminApi.getAdminOrder(9), 'get', '/api/admin/orders/9'],
   [
