@@ -12,6 +12,7 @@ import com.manhdn.fashionshop.repository.SegmentProfileRepository.CustomerPurcha
 import java.time.Clock;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,7 @@ public class SegmentProfileService {
   private final AccountSegmentRepository accountSegmentRepository;
   private final SegmentProfileRepository profileRepository;
   private final Clock clock;
+  private final ZoneId zone;
 
   /** Nhận các repository và đồng hồ qua constructor. */
   public SegmentProfileService(
@@ -61,6 +63,7 @@ public class SegmentProfileService {
     this.accountSegmentRepository = accountSegmentRepository;
     this.profileRepository = profileRepository;
     this.clock = clock;
+    this.zone = clock.getZone();
   }
 
   /**
@@ -91,11 +94,7 @@ public class SegmentProfileService {
     Double avgInterval =
         repeat.isEmpty()
             ? null
-            : round1(
-                repeat.stream()
-                    .mapToDouble(SegmentProfileService::intervalDays)
-                    .average()
-                    .orElse(0));
+            : round1(repeat.stream().mapToDouble(this::intervalDays).average().orElse(0));
     double avgTenure =
         round1(
             purchases.stream().mapToDouble(p -> days(p.firstOrderAt(), now)).average().orElse(0));
@@ -137,21 +136,21 @@ public class SegmentProfileService {
   }
 
   /** Nhịp mua riêng của khách mua từ 2 đơn: số ngày trung bình giữa 2 đơn liên tiếp. */
-  static double intervalDays(CustomerPurchases p) {
+  private double intervalDays(CustomerPurchases p) {
     return days(p.firstOrderAt(), p.lastOrderAt()) / (p.orders() - 1);
   }
 
   /** BR-43: khách mua từ 2 đơn, chưa mua lại quá 1,5 lần nhịp riêng và quá 30 ngày. */
-  static boolean needsCare(CustomerPurchases p, LocalDateTime now) {
+  private boolean needsCare(CustomerPurchases p, LocalDateTime now) {
     double since = days(p.lastOrderAt(), now);
     return since > Math.max(CARE_FACTOR * intervalDays(p), CARE_MIN_DAYS);
   }
 
-  private static double overdueRatio(CustomerPurchases p, LocalDateTime now) {
+  private double overdueRatio(CustomerPurchases p, LocalDateTime now) {
     return days(p.lastOrderAt(), now) / Math.max(intervalDays(p), 1);
   }
 
-  private static CareCustomer careCustomer(CustomerPurchases p, LocalDateTime now) {
+  private CareCustomer careCustomer(CustomerPurchases p, LocalDateTime now) {
     return new CareCustomer(
         p.accountId(),
         p.fullName(),
@@ -172,8 +171,9 @@ public class SegmentProfileService {
         .toList();
   }
 
-  private static double days(LocalDateTime from, LocalDateTime to) {
-    return Duration.between(from, to).toSeconds() / SECONDS_PER_DAY;
+  /** Số ngày (có phần lẻ) giữa 2 mốc giờ địa phương, tính theo múi giờ của đồng hồ. */
+  private double days(LocalDateTime from, LocalDateTime to) {
+    return Duration.between(from.atZone(zone), to.atZone(zone)).toSeconds() / SECONDS_PER_DAY;
   }
 
   private static double percent(long part, long total) {
