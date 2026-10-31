@@ -39,6 +39,12 @@ public class SegmentCampaign {
   @JoinColumn(name = "voucher_id", nullable = false, updatable = false)
   private Voucher voucher;
 
+  @Column(updatable = false)
+  private Integer validDays;
+
+  @Column(nullable = false)
+  private boolean autoEnabled;
+
   @Column(nullable = false, updatable = false)
   private int recipientCount;
 
@@ -48,7 +54,7 @@ public class SegmentCampaign {
   /** Constructor rỗng cho JPA. */
   protected SegmentCampaign() {}
 
-  /** Ghi lại một lần tặng mã. */
+  /** Ghi lại một lần tặng mã cho cả nhóm hoặc khách cần chăm sóc. */
   public SegmentCampaign(
       String segmentCode,
       String segmentName,
@@ -56,12 +62,34 @@ public class SegmentCampaign {
       Voucher voucher,
       int recipientCount,
       LocalDateTime createdAt) {
+    this(segmentCode, segmentName, target, voucher, recipientCount, createdAt, null);
+  }
+
+  /**
+   * Ghi lại một chiến dịch; validDays khác null là chương trình tự tặng (US-24), bật ngay: mỗi
+   * khách dùng mã trong validDays ngày kể từ khi nhận.
+   */
+  public SegmentCampaign(
+      String segmentCode,
+      String segmentName,
+      CampaignTarget target,
+      Voucher voucher,
+      int recipientCount,
+      LocalDateTime createdAt,
+      Integer validDays) {
     this.segmentCode = segmentCode;
     this.segmentName = segmentName;
     this.target = target;
     this.voucher = voucher;
     this.recipientCount = recipientCount;
     this.createdAt = createdAt;
+    this.validDays = validDays;
+    this.autoEnabled = validDays != null;
+  }
+
+  /** Dừng tự tặng: khách vào nhóm sau đó không nhận mã nữa, khách đã nhận vẫn dùng được. */
+  public void stopAuto() {
+    this.autoEnabled = false;
   }
 
   public Long getId() {
@@ -90,5 +118,13 @@ public class SegmentCampaign {
 
   public LocalDateTime getCreatedAt() {
     return createdAt;
+  }
+
+  public Integer getValidDays() {
+    return validDays;
+  }
+
+  public boolean isAutoEnabled() {
+    return autoEnabled;
   }
 }

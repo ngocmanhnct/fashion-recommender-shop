@@ -3,10 +3,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import HomePage from '../../src/pages/HomePage';
 import * as catalogApi from '../../src/services/catalogApi';
 import * as productApi from '../../src/services/productApi';
+import { getMyVouchers } from '../../src/services/voucherApi';
 import { authValue, renderWithContext, users } from '../renderWithContext';
 
 vi.mock('../../src/services/productApi');
 vi.mock('../../src/services/catalogApi');
+vi.mock('../../src/services/voucherApi');
 // Khối gợi ý riêng có test riêng; ở đây chỉ cần biết nó được đặt vào trang.
 vi.mock('../../src/components/PersonalRecommendations', () => ({
   default: () => <p>Khối gợi ý cho bạn</p>,
@@ -69,6 +71,32 @@ describe('HomePage', () => {
       'href',
       '/products?categoryId=6'
     );
+  });
+
+  it('khách có mã được tặng thì thấy dải báo dẫn tới "Ưu đãi của bạn"', async () => {
+    vi.mocked(getMyVouchers).mockResolvedValue([
+      {
+        code: 'NEW-TUDONG-3110',
+        discountType: 'PERCENT',
+        discountValue: 15,
+        maxDiscountAmount: 50000,
+        validUntil: '2026-11-14T09:00:00',
+      },
+      { code: 'LOYAL-3110', discountType: 'FIXED', discountValue: 50000 },
+    ]);
+    renderWithContext(<HomePage />, { auth: authValue({ user: users.CUSTOMER }) });
+    const banner = await screen.findByRole('link', { name: /Bạn có 2 mã giảm giá/ });
+    expect(banner).toHaveAttribute('href', '/offers');
+    expect(banner).toHaveTextContent('NEW-TUDONG-3110: Giảm 15%');
+    expect(banner).toHaveTextContent('dùng đến 14/11/2026 09:00');
+  });
+
+  it('khách chưa có mã thì không có dải báo', async () => {
+    vi.mocked(getMyVouchers).mockResolvedValue([]);
+    renderWithContext(<HomePage />, { auth: authValue({ user: users.CUSTOMER }) });
+    expect(await screen.findByText(/1\.050 sản phẩm đang bán/)).toBeInTheDocument();
+    expect(getMyVouchers).toHaveBeenCalled();
+    expect(screen.queryByRole('link', { name: /mã giảm giá/ })).not.toBeInTheDocument();
   });
 
   it('các bước giải thích cách gợi ý được đánh số', () => {

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Fashion Shop API (Tuần 9)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR); danh sách khách hàng và kết quả phân nhóm (US-18, US-19); chiến dịch tặng mã theo nhóm và ưu đãi của khách (US-26).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR); danh sách khách hàng và kết quả phân nhóm (US-18, US-19); chiến dịch tặng mã theo nhóm và ưu đãi của khách (US-26); tự tặng mã cho khách mới vào nhóm (US-24).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -89,6 +89,10 @@
     },
     {
       "key": "voucherCode",
+      "value": ""
+    },
+    {
+      "key": "campaignId",
       "value": ""
     }
   ],
@@ -1698,7 +1702,7 @@
                 "me"
               ]
             },
-            "description": "US-26. Mã riêng khách được tặng qua chiến dịch theo nhóm và còn dùng được (đang bật, trong thời hạn, còn lượt, khách chưa dùng hết lượt của mình), hết hạn sớm nhất trước: [{ code, discountType, discountValue, maxDiscountAmount, minOrderAmount, validUntil }]. Chưa xét đơn tối thiểu. Token ADMIN trả 403."
+            "description": "US-26. Mã riêng khách được tặng qua chiến dịch theo nhóm và còn dùng được (đang bật, trong thời hạn, còn lượt, khách chưa dùng hết lượt của mình), hết hạn sớm nhất trước (validUntil là hạn của khách: hạn của mã, hoặc hạn riêng tính từ lúc nhận với mã tự tặng US-24 nếu sớm hơn): [{ code, discountType, discountValue, maxDiscountAmount, minOrderAmount, validUntil }]. Chưa xét đơn tối thiểu. Token ADMIN trả 403."
           },
           "event": [
             {
@@ -3172,6 +3176,53 @@
               ]
             },
             {
+              "name": "Bật tự tặng mã cho khách mới vào nhóm",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/segments/NEW/campaigns",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "segments",
+                    "NEW",
+                    "campaigns"
+                  ]
+                },
+                "description": "US-24, BR-45. target AUTO kèm validDays (1 đến 90): số ngày mỗi khách được dùng mã kể từ lúc nhận. Thời hạn của voucher là thời gian chạy chương trình. Lúc bật chưa ai nhận (recipientCount 0); mỗi phút backend ghi lúc khách vào nhóm (bảng segment_entry) và thêm khách vào nhóm sau lúc bật vào danh sách nhận mã, hạn riêng = min(lúc nhận + validDays, hạn của mã). Khách đang ở trong nhóm lúc bật không nhận. Mỗi nhóm tối đa 1 chương trình đang chạy (409); thiếu validDays 400. Lưu id vào biến campaignId.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target\": \"AUTO\",\n  \"validDays\": 14,\n  \"voucher\": {\n    \"code\": \"NEW-TUDONG-0111\",\n    \"discountType\": \"PERCENT\",\n    \"discountValue\": 15,\n    \"maxDiscountAmount\": 50000,\n    \"minOrderAmount\": null,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2027-01-30T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Bật tự tặng thành công', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('campaignId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
               "name": "Kết quả các lần tặng mã",
               "request": {
                 "method": "GET",
@@ -3195,7 +3246,7 @@
                     }
                   ]
                 },
-                "description": "US-26. Tối đa 50 chiến dịch, mới nhất trước: segmentCode, segmentName (tên lúc tặng), target, createdAt, recipientCount, voucher (như danh sách mã), buyers (số khách được tặng đã đặt đơn với mã), conversionRate (% buyers / recipientCount), orders, revenue (tổng tiền các đơn đó sau giảm), discount (tổng tiền đã giảm), revenuePerDiscount (revenue / discount, null khi chưa giảm đồng nào). Chỉ tính đơn chưa hủy."
+                "description": "US-26. Tối đa 50 chiến dịch, mới nhất trước: segmentCode, segmentName (tên lúc tặng), target, validDays và autoEnabled (chương trình tự tặng, US-24), createdAt, recipientCount, voucher (như danh sách mã), buyers (số khách được tặng đã đặt đơn với mã), conversionRate (% buyers / recipientCount), orders, revenue (tổng tiền các đơn đó sau giảm), discount (tổng tiền đã giảm), revenuePerDiscount (revenue / discount, null khi chưa giảm đồng nào). Chỉ tính đơn chưa hủy."
               },
               "event": [
                 {
@@ -3203,7 +3254,42 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test('Có kết quả', () => pm.response.to.have.status(200));"
+                      "pm.test('Có kết quả', () => pm.response.to.have.status(200));",
+                      "const auto = pm.response.json().find((c) => c.target === 'AUTO');",
+                      "if (auto) pm.collectionVariables.set('campaignId', auto.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Dừng tự tặng mã",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/campaigns/{{campaignId}}/stop",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "campaigns",
+                    "{{campaignId}}",
+                    "stop"
+                  ]
+                },
+                "description": "US-24. Dừng chương trình tự tặng: khách vào nhóm sau đó không nhận mã nữa, khách đã nhận vẫn dùng được đến hạn riêng. Gọi lại vẫn 200. Không phải chương trình tự tặng 400, không có 404."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Dừng thành công', () => pm.response.to.have.status(200));",
+                      "pm.test('Đã dừng', () => pm.expect(pm.response.json().autoEnabled).to.eql(false));"
                     ]
                   }
                 }

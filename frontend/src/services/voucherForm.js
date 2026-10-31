@@ -1,6 +1,8 @@
 // Chuyển đổi giữa mã giảm giá (API) và giá trị các ô của biểu mẫu mã (components/VoucherForm).
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+// Thời gian chạy mặc định của chương trình tự tặng (admin sửa được).
+const AUTO_PROGRAM_DAYS = 90;
 
 /** Giờ địa phương dạng "yyyy-MM-ddTHH:mm" cho ô datetime-local. */
 export function toInputTime(date) {
@@ -67,6 +69,20 @@ export function suggestedVoucherForm(segmentCode, suggestion) {
     validUntil: toInputTime(new Date(now.getTime() + suggestion.validDays * DAY_MS)),
     usageLimitTotal: '',
     usageLimitPerAccount: '1',
+  };
+}
+
+/**
+ * Biểu mẫu cho chương trình tự tặng khách mới vào nhóm (US-24): ưu đãi gợi ý, chương trình chạy
+ * 90 ngày (mỗi khách có hạn riêng tính từ lúc nhận), mỗi khách 1 lượt. Mã gợi ý vd NEW-TUDONG-3110.
+ */
+export function autoVoucherForm(segmentCode, suggestion) {
+  const form = suggestedVoucherForm(segmentCode, suggestion);
+  const start = new Date(form.validFrom);
+  return {
+    ...form,
+    code: form.code.replace(`${segmentCode}-`, `${segmentCode}-TUDONG-`),
+    validUntil: toInputTime(new Date(start.getTime() + AUTO_PROGRAM_DAYS * DAY_MS)),
   };
 }
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import Icon from '../components/Icon';
+import OffersBanner from '../components/OffersBanner';
 import PersonalRecommendations from '../components/PersonalRecommendations';
 import ProductArt from '../components/ProductArt';
 import ProductImage from '../components/ProductImage';
@@ -18,7 +19,8 @@ const POPULAR_KEY = new URLSearchParams({ sort: 'POPULAR', size: '8' }).toString
 const GROUP_PREVIEW = 4;
 
 /**
- * Trang chủ: phần mở đầu (lời giới thiệu + 3 sản phẩm bán chạy nhất xếp chồng), khối "Gợi ý cho
+ * Trang chủ: phần mở đầu (lời giới thiệu + 3 sản phẩm bán chạy nhất xếp chồng), dải báo mã giảm giá
+ * được tặng (nếu có), khối "Gợi ý cho
  * bạn" (US-13; chưa có gợi ý riêng thì lời mời làm khảo sát hoặc gợi ý theo khảo sát, US-23), các
  * nhóm danh mục, khối "Sản phẩm bán chạy" (BR-22) và phần giải thích cách gợi ý hoạt động.
  */
@@ -56,6 +58,7 @@ function HomePage() {
         <HeroCollage products={popular.data?.content?.slice(0, 3)} />
       </section>
 
+      <OffersBanner />
       <Reveal>
         <PersonalRecommendations />
       </Reveal>

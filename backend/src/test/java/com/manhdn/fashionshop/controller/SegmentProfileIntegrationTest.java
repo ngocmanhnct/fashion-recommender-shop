@@ -3,20 +3,24 @@ package com.manhdn.fashionshop.controller;
 import static com.manhdn.fashionshop.controller.OrderFixtures.insertOrder;
 import static com.manhdn.fashionshop.controller.OrderFixtures.insertOrderItem;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import com.manhdn.fashionshop.dto.ProductCreateRequest;
 import com.manhdn.fashionshop.dto.VariantRequest;
 import com.manhdn.fashionshop.entity.Account;
 import com.manhdn.fashionshop.entity.Role;
 import com.manhdn.fashionshop.repository.AccountRepository;
+import com.manhdn.fashionshop.service.CampaignService;
 import com.manhdn.fashionshop.service.CategoryService;
 import com.manhdn.fashionshop.service.ProductService;
 import com.manhdn.fashionshop.service.VoucherService;
+import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -53,15 +57,20 @@ class SegmentProfileIntegrationTest {
   @Autowired private ProductService productService;
   @Autowired private JdbcTemplate jdbcTemplate;
   @Autowired private VoucherService voucherService;
+  @Autowired private CampaignService campaignService;
+  @Autowired private EntityManager entityManager;
 
   private String marker;
   private long loyal;
   private long regular;
   private long silent;
+  private long other;
+  private long loyalSegment;
 
   @BeforeEach
   void setUp() {
     jdbcTemplate.update("DELETE FROM account_segment");
+    jdbcTemplate.update("DELETE FROM segment_entry");
     jdbcTemplate.update("DELETE FROM customer_segment");
     jdbcTemplate.update("DELETE FROM segment_model");
     marker = UUID.randomUUID().toString().substring(0, 8);
@@ -86,7 +95,7 @@ class SegmentProfileIntegrationTest {
     // Khách chưa mua, chưa khai giới tính, ngày sinh.
     silent = customer("Đỗ Im " + marker, "im", null, null);
     // Khách nhóm khác, để tính tỷ lệ doanh thu và tỷ lệ khách.
-    long other = customer("Khách nhóm khác " + marker, "khac", null, null);
+    other = customer("Khách nhóm khác " + marker, "khac", null, null);
     delivered(other, 500_000, now.minusDays(5));
 
     long model =
@@ -95,7 +104,7 @@ class SegmentProfileIntegrationTest {
                 + " silhouette, log_recency_mean, log_recency_std, log_frequency_mean,"
                 + " log_frequency_std, log_monetary_mean, log_monetary_std, trained_at)"
                 + " VALUES (2, 2, 40, 0.42, 3, 1, 1, 0.5, 13, 1, '2026-10-28 02:00:00')");
-    long loyalSegment = segment(model, "LOYAL", "Khách trung thành");
+    loyalSegment = segment(model, "LOYAL", "Khách trung thành");
     long newSegment = segment(model, "NEW", "Khách mới");
     assign(loyal, loyalSegment);
     assign(regular, loyalSegment);
@@ -264,7 +273,106 @@ class SegmentProfileIntegrationTest {
     admin("/api/admin/campaigns?segment=" + "X".repeat(21)).andExpect(status().isBadRequest());
   }
 
+  @Test
+  void autoOfferGoesOnlyToCustomersWhoEnterTheGroupAfterItStarts() throws Exception {
+    String code = ("CHAOMUNG-" + marker).toUpperCase();
+    long id =
+        idOf(
+            adminDo(autoCampaign("LOYAL", code, "7"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.target").value("AUTO"))
+                .andExpect(jsonPath("$.autoEnabled").value(true))
+                .andExpect(jsonPath("$.validDays").value(7))
+                .andExpect(jsonPath("$.recipientCount").value(0)));
+    startedAMinuteAgo(id);
+
+    // Khách đã ở trong nhóm lúc bật không phải khách mới vào.
+    assertThat(campaignService.grantAutoOffers()).isZero();
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ? WHERE account_id = ?", loyalSegment, other);
+    assertThat(campaignService.grantAutoOffers()).isEqualTo(1);
+    assertThat(campaignService.grantAutoOffers()).isZero();
+    // Các request thật chạy ở giao dịch riêng: bỏ bản entity cũ để đọc lại số khách đã nhận.
+    entityManager.clear();
+
+    assertThat(voucherService.check(other, code, 300_000).discount()).isEqualTo(50_000);
+    assertThat(voucherService.check(loyal, code, 300_000).error())
+        .isEqualTo("Mã này chỉ dành cho khách được tặng");
+    // Hạn riêng 7 ngày kể từ lúc nhận, sớm hơn hạn 14 ngày của mã.
+    String personalDay = LocalDate.now(VoucherService.ZONE).plusDays(7).toString();
+    customer(other, get("/api/vouchers/me"))
+        .andExpect(jsonPath("$[0].code").value(code))
+        .andExpect(jsonPath("$[0].validUntil").value(startsWith(personalDay)));
+    admin("/api/admin/campaigns?segment=LOYAL").andExpect(jsonPath("$[0].recipientCount").value(1));
+
+    // Quá hạn riêng thì không dùng được nữa, dù mã còn hạn.
+    jdbcTemplate.update(
+        "UPDATE voucher_recipient SET expires_at = ? WHERE account_id = ?",
+        LocalDateTime.now(VoucherService.ZONE).minusDays(1),
+        other);
+    assertThat(voucherService.check(other, code, 300_000).error())
+        .isEqualTo("Mã giảm giá đã hết hạn");
+    customer(other, get("/api/vouchers/me")).andExpect(jsonPath("$.length()").value(0));
+  }
+
+  @Test
+  void autoOfferNeedsDaysRunsOneAtATimeAndStops() throws Exception {
+    adminDo(autoCampaign("LOYAL", "THIEU-" + marker, null))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.detail").value("Chưa nhập số ngày khách được dùng mã"));
+    adminDo(autoCampaign("LOYAL", "KHONG-" + marker, "0")).andExpect(status().isBadRequest());
+    long id =
+        idOf(
+            adminDo(autoCampaign("LOYAL", "TUDONG-" + marker, "7"))
+                .andExpect(status().isCreated()));
+    adminDo(autoCampaign("LOYAL", "TUDONG2-" + marker, "7")).andExpect(status().isConflict());
+
+    adminDo(post("/api/admin/campaigns/" + id + "/stop"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.autoEnabled").value(false));
+    // Request dừng chạy ở giao dịch riêng: ghi xuống CSDL trước khi câu tặng mã (JDBC) đọc.
+    entityManager.flush();
+    startedAMinuteAgo(id);
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ? WHERE account_id = ?", loyalSegment, other);
+    assertThat(campaignService.grantAutoOffers()).isZero();
+
+    // Dừng rồi thì bật được chương trình mới; chỉ dừng được chương trình tự tặng.
+    adminDo(autoCampaign("LOYAL", "TUDONG3-" + marker, "7")).andExpect(status().isCreated());
+    long manual =
+        idOf(adminDo(campaign("LOYAL", "ALL", "TAY-" + marker)).andExpect(status().isCreated()));
+    adminDo(post("/api/admin/campaigns/" + manual + "/stop")).andExpect(status().isBadRequest());
+    adminDo(post("/api/admin/campaigns/0/stop")).andExpect(status().isNotFound());
+    customer(loyal, post("/api/admin/campaigns/" + id + "/stop")).andExpect(status().isForbidden());
+  }
+
   // ---------- Tiện ích ----------
+
+  /** Lùi lúc bật chương trình và lúc vào nhóm của khách hiện có, như thể đã bật 1 phút trước. */
+  private void startedAMinuteAgo(long campaignId) {
+    jdbcTemplate.update("UPDATE segment_entry SET entered_at = entered_at - INTERVAL 2 MINUTE");
+    jdbcTemplate.update(
+        "UPDATE segment_campaign SET created_at = created_at - INTERVAL 1 MINUTE WHERE id = ?",
+        campaignId);
+  }
+
+  private long idOf(ResultActions result) throws Exception {
+    String body = result.andReturn().getResponse().getContentAsString();
+    return ((Number) JsonPath.read(body, "$.id")).longValue();
+  }
+
+  private static MockHttpServletRequestBuilder autoCampaign(
+      String segment, String code, String validDays) {
+    LocalDateTime now = LocalDateTime.now(VoucherService.ZONE).truncatedTo(ChronoUnit.MINUTES);
+    return post(PROFILE + segment + "/campaigns")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(
+            ("{\"target\": \"AUTO\", \"validDays\": %s, \"voucher\": {\"code\": \"%s\","
+                    + " \"discountType\": \"FIXED\", \"discountValue\": 50000,"
+                    + " \"validFrom\": \"%s\", \"validUntil\": \"%s\","
+                    + " \"usageLimitPerAccount\": 1}}")
+                .formatted(validDays, code, now.minusDays(1), now.plusDays(14)));
+  }
 
   private static MockHttpServletRequestBuilder campaign(
       String segment, String target, String code) {

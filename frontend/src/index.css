@@ -3238,3 +3238,72 @@ legend {
 .table .voucher-code {
   white-space: nowrap;
 }
+
+/* Tự tặng mã cho khách mới vào nhóm (US-24) */
+.next-action-auto {
+  margin: 4px 0 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--accent);
+}
+
+.next-action-auto h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.next-action-auto .status {
+  margin-right: 4px;
+}
+
+/* Dải báo mã được tặng ở trang chủ */
+.offers-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.offers-banner > svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
+.offers-banner-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.offers-banner-link {
+  flex: 0 0 auto;
+  color: var(--primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.offers-banner:hover {
+  border-style: solid;
+}
+
+@media (max-width: 640px) {
+  .offers-banner {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .offers-banner-text {
+    flex: 1 1 calc(100% - 38px);
+  }
+
+  .offers-banner-link {
+    padding-left: 38px;
+  }
+}

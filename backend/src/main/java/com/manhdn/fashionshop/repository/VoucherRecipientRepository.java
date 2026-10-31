@@ -1,8 +1,13 @@
 package com.manhdn.fashionshop.repository;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
@@ -33,22 +38,42 @@ public class VoucherRecipientRepository {
         rows);
   }
 
-  /** Khách accountId có được tặng mã voucherId không. */
-  public boolean contains(long voucherId, long accountId) {
-    Integer found =
-        jdbc.queryForObject(
-            "SELECT COUNT(*) FROM voucher_recipient"
+  /**
+   * Lần tặng mã voucherId cho khách accountId; rỗng nếu khách không được tặng.
+   *
+   * @param voucherId mã số voucher
+   * @param accountId tài khoản khách
+   * @return hạn dùng riêng của khách (null nếu theo hạn của mã)
+   */
+  public Optional<Grant> find(long voucherId, long accountId) {
+    return jdbc
+        .query(
+            "SELECT voucher_id, expires_at FROM voucher_recipient"
                 + " WHERE voucher_id = :voucherId AND account_id = :accountId",
             Map.of("voucherId", voucherId, "accountId", accountId),
-            Integer.class);
-    return found != null && found > 0;
+            VoucherRecipientRepository::grant)
+        .stream()
+        .findFirst();
   }
 
-  /** Mã các voucher riêng đã tặng cho khách accountId. */
-  public List<Long> voucherIdsOf(long accountId) {
-    return jdbc.queryForList(
-        "SELECT voucher_id FROM voucher_recipient WHERE account_id = :accountId",
+  /** Các mã riêng đã tặng cho khách accountId, kèm hạn dùng riêng. */
+  public List<Grant> grantsOf(long accountId) {
+    return jdbc.query(
+        "SELECT voucher_id, expires_at FROM voucher_recipient WHERE account_id = :accountId",
         Map.of("accountId", accountId),
-        Long.class);
+        VoucherRecipientRepository::grant);
   }
+
+  private static Grant grant(ResultSet rs, int row) throws SQLException {
+    Timestamp expires = rs.getTimestamp("expires_at");
+    return new Grant(rs.getLong("voucher_id"), expires == null ? null : expires.toLocalDateTime());
+  }
+
+  /**
+   * Một mã khách được tặng.
+   *
+   * @param voucherId mã số voucher
+   * @param expiresAt hạn dùng riêng của khách (giờ Việt Nam), null nếu theo hạn của mã
+   */
+  public record Grant(long voucherId, LocalDateTime expiresAt) {}
 }

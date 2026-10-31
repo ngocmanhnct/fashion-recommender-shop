@@ -185,11 +185,19 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Admin tặng mã bằng biểu mẫu mã giảm giá đã điền sẵn ưu đãi gợi ý, sửa được trước khi tặng; danh sách khách được tặng chốt lúc tặng
 - Mã tặng là mã riêng: chỉ khách được tặng dùng được (BR-44); khách thấy mã ở trang "Ưu đãi của bạn" và chọn mã bằng 1 lần bấm ở trang thanh toán
 - Kết quả mỗi lần tặng: số khách được tặng, số khách đã đặt đơn với mã và tỷ lệ, số đơn, doanh thu, tổng tiền đã giảm, doanh thu trên mỗi đồng giảm (chỉ tính đơn chưa hủy)
-- Tự tặng mã khi khách mới vào nhóm: chưa làm (hướng mở rộng)
+- Tự tặng mã khi khách mới vào nhóm: xem US-24
+
+**US-24: Tự tặng mã giảm giá cho khách mới vào nhóm** *(bổ sung 31/10/2026)* Là admin, tôi muốn bật cho một nhóm khách một chương trình tự tặng mã, để mỗi khách vừa được xếp vào nhóm (vd khách vừa có đơn đầu tiên vào nhóm Khách mới) nhận ưu đãi đúng lúc mà tôi không phải bấm tặng mỗi lần. Tiêu chí chấp nhận:
+
+- Admin bật chương trình ở hồ sơ nhóm bằng biểu mẫu mã giảm giá điền sẵn ưu đãi gợi ý (US-26), kèm số ngày mỗi khách được dùng mã kể từ lúc nhận; thời hạn của mã là thời gian chạy chương trình
+- Chỉ khách vào nhóm **sau** lúc bật mới nhận mã (khách đang ở trong nhóm lúc bật thì dùng "Tặng mã cho cả nhóm"); mỗi khách nhận tối đa 1 lần cho mỗi chương trình (BR-45)
+- Khách nhận mã chậm nhất khoảng 1 phút sau khi được xếp vào nhóm; mã hiện ở "Ưu đãi của bạn", ở trang thanh toán và ở dải báo trên trang chủ
+- Mỗi nhóm có tối đa 1 chương trình đang chạy; admin dừng được, khách đã nhận vẫn dùng được đến hạn riêng
+- Kết quả của chương trình hiện cùng bảng kết quả các lần tặng mã (US-26), số khách được tặng tăng dần theo thời gian
 
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng).**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng).**
 
 ## 2\. Business rules
 
@@ -318,6 +326,8 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
   Cơ chế: `UPDATE voucher SET used_count = used_count - 1 WHERE id = :voucherId`, thực hiện cùng lúc với hoàn tồn kho (BR-16), tại đúng thời điểm đơn chuyển "Đã hủy".
 
 - **BR-44 — Mã tặng riêng** *(bổ sung 31/10/2026)*: mã tạo từ chiến dịch theo nhóm (US-26) có `recipients_only = TRUE` và chỉ dùng được bởi các tài khoản trong `voucher_recipient` của mã đó; khách khác nhập mã thì bước xem trước báo "Mã này chỉ dành cho khách được tặng" và bước xác nhận từ chối như các điều kiện khác của BR-30. Danh sách người nhận chốt lúc tặng: khách vào nhóm sau đó không nhận được, khách rời nhóm sau đó vẫn dùng được. Mã riêng mặc định mỗi khách 1 lượt, không giới hạn tổng. *(US-26)*
+
+- **BR-45 — Khách mới vào nhóm** *(bổ sung 31/10/2026)*: ml-service ghi đè `account_segment` mỗi lần xếp nhóm nên không giữ lúc khách vào nhóm; backend tự ghi nhóm hiện tại và lúc vào nhóm của mỗi khách vào `segment_entry` (khách mới được phân nhóm hoặc đổi sang nhóm khác thì lúc vào nhóm là thời điểm backend thấy thay đổi, khách vẫn ở nhóm cũ thì giữ nguyên). Mỗi phút, chương trình tự tặng đang chạy (mã còn bật và trong thời hạn) tặng mã cho khách đang thuộc nhóm có lúc vào nhóm **sau** lúc bật chương trình và chưa nhận mã đó; hạn dùng riêng của khách = min(lúc nhận + số ngày đã đặt, hạn của mã), tính theo giờ Việt Nam như BR-30. Khách rời nhóm rồi quay lại không nhận lần hai từ cùng chương trình. **\[Giả định\]** quét mỗi phút là đủ gần thời gian thực vì khách chỉ đổi nhóm sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm. *(US-24)*
 
 ---
 
@@ -698,7 +708,7 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 
 ---
 
-### 3.17 Chiến dịch tặng mã theo nhóm — `voucher_recipient`, `segment_campaign`
+### 3.17 Chiến dịch tặng mã theo nhóm — `voucher_recipient`, `segment_campaign`, `segment_entry`
 
 *Nguồn: US-26, BR-44. Migration V7 (31/10/2026), kèm cột mới `voucher.recipients_only` (BOOLEAN NOT NULL DEFAULT FALSE, Mục 3.11; không đổi được sau khi tạo mã).*
 
@@ -706,19 +716,27 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 | :---- | :---- | :---- | :---- | :---- |
 | voucher\_recipient | voucher\_id | BIGINT UNSIGNED | PK (cùng account\_id), FK → voucher.id | Mã riêng được tặng |
 | voucher\_recipient | account\_id | BIGINT UNSIGNED | PK, FK → account.id, INDEX | Khách được tặng; chỉ những khách này dùng được mã (BR-44) |
+| voucher\_recipient | granted\_at | DATETIME | NULLABLE | Lúc nhận mã tự tặng (giờ Việt Nam, V8); NULL ở lần tặng tay |
+| voucher\_recipient | expires\_at | DATETIME | NULLABLE | Hạn dùng riêng của khách (BR-45, giờ Việt Nam, V8); NULL \= theo hạn của mã |
 | segment\_campaign | id | BIGINT UNSIGNED | PK |  |
 | segment\_campaign | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng created\_at) | Mã nhóm lúc tặng (VIP, LOYAL...) |
 | segment\_campaign | segment\_name | VARCHAR(100) | NOT NULL | Tên nhóm lúc tặng: ml-service ghi đè `customer_segment` mỗi lần huấn luyện lại nên lưu bản sao, không dùng khóa ngoại |
-| segment\_campaign | target | ENUM('ALL','CARE') | NOT NULL | ALL \= cả nhóm, CARE \= khách cần chăm sóc (BR-43) |
+| segment\_campaign | target | ENUM('ALL','CARE','AUTO') | NOT NULL | ALL \= cả nhóm, CARE \= khách cần chăm sóc (BR-43), AUTO \= tự tặng khách mới vào nhóm (US-24, V8) |
+| segment\_campaign | valid\_days | INT | NULLABLE | AUTO: số ngày mỗi khách được dùng mã kể từ lúc nhận (V8) |
+| segment\_campaign | auto\_enabled | BOOLEAN | NOT NULL, DEFAULT FALSE | AUTO đang chạy; mỗi nhóm tối đa 1 (kiểm tra ở backend, V8) |
 | segment\_campaign | voucher\_id | BIGINT UNSIGNED | UNIQUE, NOT NULL, FK → voucher.id | Mỗi chiến dịch 1 mã riêng |
 | segment\_campaign | recipient\_count | INT | NOT NULL | Số khách được tặng |
 | segment\_campaign | created\_at | DATETIME | NOT NULL |  |
+
+| segment\_entry | account\_id | BIGINT UNSIGNED | PK, FK → account.id | Khách đã phân nhóm (V8, US-24) |
+| segment\_entry | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng entered\_at) | Nhóm hiện tại, backend chép từ `account_segment` mỗi phút |
+| segment\_entry | entered\_at | DATETIME | NOT NULL | Lúc backend thấy khách vào nhóm này (BR-45) |
 
 Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (các đơn chưa hủy có `voucher_id` của chiến dịch): số khách mua, số đơn, doanh thu (`total_amount`), tiền đã giảm (`discount_amount`).
 
 ---
 
-**Tổng cộng: 28 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10 và 2 bảng chiến dịch ở Mục 3.17), bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 29 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10 và 3 bảng chiến dịch ở Mục 3.17), bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 

@@ -10,15 +10,19 @@ import com.manhdn.fashionshop.exception.ConflictException;
 import com.manhdn.fashionshop.exception.InvalidRequestException;
 import com.manhdn.fashionshop.repository.OrderRepository;
 import com.manhdn.fashionshop.repository.VoucherRecipientRepository;
+import com.manhdn.fashionshop.repository.VoucherRecipientRepository.Grant;
 import com.manhdn.fashionshop.repository.VoucherRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -133,15 +137,22 @@ public class VoucherService {
    */
   @Transactional(readOnly = true)
   public List<MyVoucherResponse> myVouchers(long accountId) {
-    List<Long> ids = recipientRepository.voucherIdsOf(accountId);
-    if (ids.isEmpty()) {
+    Map<Long, LocalDateTime> expiries = new HashMap<>();
+    for (Grant grant : recipientRepository.grantsOf(accountId)) {
+      expiries.put(grant.voucherId(), grant.expiresAt());
+    }
+    if (expiries.isEmpty()) {
       return List.of();
     }
-    return voucherRepository.findAllById(ids).stream()
+    return voucherRepository.findAllById(expiries.keySet()).stream()
         .filter(v -> problemOf(v, accountId, Long.MAX_VALUE) == null)
-        .sorted(Comparator.comparing(Voucher::getValidUntil))
-        .map(MyVoucherResponse::from)
+        .map(v -> MyVoucherResponse.from(v, earlier(v.getValidUntil(), expiries.get(v.getId()))))
+        .sorted(Comparator.comparing(MyVoucherResponse::validUntil))
         .toList();
+  }
+
+  private static LocalDateTime earlier(LocalDateTime a, LocalDateTime b) {
+    return b == null || a.isBefore(b) ? a : b;
   }
 
   /**
@@ -217,10 +228,17 @@ public class VoucherService {
   }
 
   private String problemOf(Voucher voucher, long accountId, long subtotal) {
-    if (voucher.isRecipientsOnly() && !recipientRepository.contains(voucher.getId(), accountId)) {
-      return "Mã này chỉ dành cho khách được tặng";
-    }
     LocalDateTime now = now();
+    if (voucher.isRecipientsOnly()) {
+      Optional<Grant> grant = recipientRepository.find(voucher.getId(), accountId);
+      if (grant.isEmpty()) {
+        return "Mã này chỉ dành cho khách được tặng";
+      }
+      LocalDateTime expires = grant.get().expiresAt();
+      if (expires != null && now.isAfter(expires)) {
+        return "Mã giảm giá đã hết hạn";
+      }
+    }
     if (!voucher.isActive()) {
       return "Mã giảm giá đã ngừng áp dụng";
     }
