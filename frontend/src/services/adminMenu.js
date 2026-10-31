@@ -50,6 +50,18 @@ export const ADMIN_SECTIONS = [
       },
     ],
   },
+  {
+    key: 'goi-y',
+    title: 'Gợi ý sản phẩm',
+    links: [
+      {
+        to: '/admin/recommendations',
+        label: 'Hiệu quả gợi ý',
+        hint: 'Thử nghiệm A/B, tỷ lệ bấm',
+        icon: 'chart',
+      },
+    ],
+  },
 ];
 
 /** Nhóm và mục quản trị của đường dẫn hiện tại (kể cả trang con như /admin/orders/5). */

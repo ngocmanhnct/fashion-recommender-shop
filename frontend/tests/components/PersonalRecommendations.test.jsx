@@ -166,4 +166,21 @@ describe('PersonalRecommendations', () => {
     expect(getMyRecommendations).not.toHaveBeenCalled();
     expect(screen.getByText('Bạn đang tìm gì?')).toBeInTheDocument();
   });
+
+  it('khách nhóm bán chạy của thử nghiệm A/B thấy sản phẩm bán chạy ở khối "Gợi ý cho bạn"', async () => {
+    getMyRecommendations.mockResolvedValue(
+      response({
+        source: 'POPULAR',
+        abVariant: 'CONTROL',
+        updatedSecondsAgo: null,
+        products: [item(7, { source: 'POPULAR', reason: 'Sản phẩm bán chạy' })],
+      })
+    );
+    renderHome();
+
+    expect(await screen.findByRole('heading', { name: 'Gợi ý cho bạn' })).toBeInTheDocument();
+    expect(screen.getByText('Sản phẩm bán chạy nhất cửa hàng.')).toBeInTheDocument();
+    expect(card('Sản phẩm 7')).toHaveAttribute('href', '/products/7');
+    expect(screen.queryByText('Làm khảo sát')).not.toBeInTheDocument();
+  });
 });

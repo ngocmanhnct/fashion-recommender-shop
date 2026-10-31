@@ -18,11 +18,12 @@ const PATHS = {
     'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-6 9a6 6 0 0 1 12 0m1-17a4 4 0 0 1 0 8m5 9a6 6 0 0 0-4-5.7',
   pie: 'M12 3a9 9 0 1 0 9 9h-9V3Zm3 0.5A9 9 0 0 1 20.5 9H15V3.5Z',
   ticket: 'M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4V7Zm10 0v10',
+  chart: 'M4 4v16h16M8 16v-5m4 5V8m4 8v-3',
 };
 
 /**
  * Biểu tượng tên name: bag, eye, heart, receipt, user, menu, close, search, chevron, arrow; menu quản
- * trị dùng thêm box, grid, tag, users, pie, ticket.
+ * trị dùng thêm box, grid, tag, users, pie, ticket, chart.
  */
 function Icon({ name, size = 20, className = '' }) {
   return (

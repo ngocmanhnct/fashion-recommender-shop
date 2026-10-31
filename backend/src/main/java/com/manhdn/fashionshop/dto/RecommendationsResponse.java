@@ -13,10 +13,13 @@ import java.util.List;
  * @param updatedSecondsAgo danh sách được ml-service tính cách đây bao nhiêu giây (tính trên máy
  *     chủ, không phụ thuộc múi giờ của trình duyệt); null khi POPULAR
  * @param updating true khi tài khoản còn yêu cầu tính lại gợi ý chưa xử lý: danh sách sắp đổi
+ * @param abVariant nhóm của khách trong thử nghiệm A/B đang chạy (TREATMENT hoặc CONTROL, US-27);
+ *     null khi không tham gia
  */
 public record RecommendationsResponse(
     String source,
     List<RelatedProductResponse> products,
     RecentActivityResponse recent,
     Long updatedSecondsAgo,
-    boolean updating) {}
+    boolean updating,
+    String abVariant) {}

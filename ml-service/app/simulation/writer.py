@@ -26,6 +26,7 @@ RESET_STATEMENTS = (
     f"DELETE FROM wishlist_item WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM voucher_recipient WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM segment_entry WHERE account_id IN ({SIM_ACCOUNTS})",
+    f"DELETE FROM ab_assignment WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM product_view_log WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM product_event_log WHERE account_id IN ({SIM_ACCOUNTS})",
     f"DELETE FROM user_preference WHERE account_id IN ({SIM_ACCOUNTS})",

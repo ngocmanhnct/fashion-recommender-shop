@@ -28,6 +28,7 @@ import OrderListPage from './pages/admin/OrderListPage';
 import ProductCreatePage from './pages/admin/ProductCreatePage';
 import ProductEditPage from './pages/admin/ProductEditPage';
 import ProductListPage from './pages/admin/ProductListPage';
+import RecommendationStatsPage from './pages/admin/RecommendationStatsPage';
 import SegmentDetailPage from './pages/admin/SegmentDetailPage';
 import SegmentPage from './pages/admin/SegmentPage';
 import VoucherAdminPage from './pages/admin/VoucherAdminPage';
@@ -114,6 +115,7 @@ function App() {
           <Route path="segments" element={<SegmentPage />} />
           <Route path="segments/:code" element={<SegmentDetailPage />} />
           <Route path="vouchers" element={<VoucherAdminPage />} />
+          <Route path="recommendations" element={<RecommendationStatsPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
