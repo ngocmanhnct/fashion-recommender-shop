@@ -78,6 +78,13 @@ services:
       VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
       VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
       VNPAY_RETURN_URL: https://${STAGING_DOMAIN}/payment/vnpay-return
+      # Email đặt lại mật khẩu (Gmail SMTP); để trống MAIL_HOST thì không gửi.
+      FRONTEND_URL: https://${STAGING_DOMAIN}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
       # Đứng sau Caddy: lấy IP thật của khách từ X-Forwarded-For (VNPay cần vnp_IpAddr).
       SERVER_FORWARD_HEADERS_STRATEGY: framework
       # /actuator/health mở ra internet: chỉ trả UP/DOWN, không lộ chi tiết CSDL, ổ đĩa.

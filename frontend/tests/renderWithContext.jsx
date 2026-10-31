@@ -12,6 +12,7 @@ export function authValue(overrides = {}) {
     login: vi.fn(),
     register: vi.fn(),
     logout: vi.fn(),
+    updateUser: vi.fn(),
     ...overrides,
   };
 }

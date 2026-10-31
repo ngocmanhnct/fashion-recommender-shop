@@ -39,6 +39,11 @@ function LoginPage() {
   return (
     <div className="auth-card">
       <h1>Đăng nhập</h1>
+      {location.state?.notice && (
+        <p className="alert alert-success" role="status">
+          {location.state.notice}
+        </p>
+      )}
       <form onSubmit={handleSubmit} noValidate>
         <FormField label="Email" error={fieldErrors.email}>
           <input
@@ -58,6 +63,9 @@ function LoginPage() {
             required
           />
         </FormField>
+        <p className="auth-forgot">
+          <Link to="/forgot-password">Quên mật khẩu?</Link>
+        </p>
         {error && <p className="alert alert-error">{error}</p>}
         <button type="submit" className="btn btn-primary btn-block" disabled={submitting}>
           {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}

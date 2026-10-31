@@ -30,6 +30,30 @@ const CALLS = [
     { email: 'a@b.vn', password: 'x' },
   ],
   [() => authApi.getMe(), 'get', '/api/auth/me'],
+  [
+    () => authApi.updateProfile({ fullName: 'A', gender: null, birthdate: null }),
+    'put',
+    '/api/auth/me',
+    { fullName: 'A', gender: null, birthdate: null },
+  ],
+  [
+    () => authApi.changePassword('cu12345a', 'moi12345a'),
+    'put',
+    '/api/auth/me/password',
+    { currentPassword: 'cu12345a', newPassword: 'moi12345a' },
+  ],
+  [
+    () => authApi.requestPasswordReset('a@b.vn'),
+    'post',
+    '/api/auth/forgot-password',
+    { email: 'a@b.vn' },
+  ],
+  [
+    () => authApi.resetPassword('abc', 'moi12345a'),
+    'post',
+    '/api/auth/reset-password',
+    { token: 'abc', newPassword: 'moi12345a' },
+  ],
   [() => abTestApi.listAbTests(), 'get', '/api/admin/ab-tests'],
   [
     () => abTestApi.startAbTest({ name: 'A', treatmentPercent: 50 }),

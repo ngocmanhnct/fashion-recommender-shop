@@ -85,6 +85,14 @@ public class Account {
     return fullName;
   }
 
+  public void setPasswordHash(String passwordHash) {
+    this.passwordHash = passwordHash;
+  }
+
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
+  }
+
   public Gender getGender() {
     return gender;
   }

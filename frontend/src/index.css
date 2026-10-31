@@ -3598,3 +3598,28 @@ legend {
 .dash-recommendations {
   margin-top: 16px;
 }
+
+/* Hồ sơ cá nhân, quên mật khẩu (chức năng 21) */
+.auth-forgot {
+  margin: -4px 0 8px;
+  font-size: 0.9rem;
+  text-align: right;
+}
+
+.profile-forms {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.profile-forms .checkout-section {
+  margin: 0;
+}
+
+.profile-email {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 12px;
+}

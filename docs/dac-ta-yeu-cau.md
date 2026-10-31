@@ -46,9 +46,9 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 
 - Đăng nhập bằng email \+ mật khẩu  
 - Báo lỗi chung chung khi sai thông tin (không lộ email có tồn tại hay không, tránh dò tài khoản)  
-- Có chức năng "quên mật khẩu"  
+- Có chức năng "quên mật khẩu" (đặc tả ở US-29)  
 - Sau đăng nhập, quay lại đúng trang đang thao tác dở (vd đang ở giữa checkout)  
-- Thời hạn phiên đăng nhập (JWT): 24 giờ — xem NFR-03 (Mục 12\) **\[Giả định\]**. Riêng link đặt lại mật khẩu: thời hạn và cơ chế lưu token **chưa chốt**, để cùng lúc thiết kế trọn vẹn tính năng "quên mật khẩu"
+- Thời hạn phiên đăng nhập (JWT): 24 giờ — xem NFR-03 (Mục 12\) **\[Giả định\]**. Link đặt lại mật khẩu: hết hạn sau 30 phút, dùng 1 lần (BR-48)
 
 ### Epic 3 — Giỏ hàng & đặt hàng
 
@@ -212,9 +212,17 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Số đơn theo 5 trạng thái kèm tỷ lệ; 10 sản phẩm bán nhiều nhất trong đơn đã giao (số lượng, tiền hàng), bấm tên để mở trang sửa sản phẩm
 - Hiệu quả gợi ý: lượt hiện, lượt bấm, tỷ lệ bấm theo vị trí và theo nguồn, doanh thu từ gợi ý và tỷ lệ của nó trên tiền hàng (BR-47), tóm tắt thử nghiệm A/B đang chạy (US-27) với liên kết sang trang "Hiệu quả gợi ý"
 
+**US-29: Hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu** *(bổ sung 31/10/2026, mở rộng US-04, US-05)* Là người dùng đã có tài khoản, tôi muốn sửa thông tin cá nhân, đổi mật khẩu và lấy lại mật khẩu khi quên, để tự quản lý tài khoản mà không cần nhờ quản trị viên. Tiêu chí chấp nhận:
+
+- Trang `/profile` (liên kết "Hồ sơ" ở thanh trên cùng, cả Khách hàng lẫn Quản trị viên): sửa họ tên (bắt buộc), giới tính, ngày sinh (phải trước hôm nay); email chỉ xem, không đổi được
+- Đổi mật khẩu: nhập mật khẩu hiện tại, mật khẩu mới theo BR-02 và nhập lại; mật khẩu hiện tại sai thì báo lỗi và tính như 1 lần đăng nhập sai (NFR-03); mật khẩu mới trùng mật khẩu hiện tại thì báo lỗi; đổi xong thì mọi liên kết đặt lại mật khẩu chưa dùng mất hiệu lực
+- Trang đăng nhập có liên kết "Quên mật khẩu?" dẫn tới `/forgot-password`: nhập email, hệ thống gửi email có liên kết `/reset-password?token=…`; luôn báo "nếu email có tài khoản thì sẽ nhận được thư", kể cả email chưa đăng ký, để không lộ email nào có tài khoản (như US-05)
+- Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần (BR-48); liên kết sai, đã dùng hoặc hết hạn thì báo lỗi kèm nút xin liên kết mới
+- Đặt mật khẩu mới thành công thì chuyển về trang đăng nhập với thông báo, đồng thời gỡ khóa đăng nhập tạm thời (NFR-03) của tài khoản đó
+
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý), US-28 (bảng điều khiển của Quản trị viên).**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý), US-28 (bảng điều khiển của Quản trị viên), US-29 (hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu).**
 
 ## 2\. Business rules
 
@@ -349,9 +357,11 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 - **BR-46 — Thử nghiệm A/B gợi ý** *(bổ sung 31/10/2026, US-27)*: nhóm của khách chọn bằng băm, không bằng số ngẫu nhiên: lấy 4 byte đầu của SHA-256(`ab:{mã thử nghiệm}:{mã tài khoản}`) chia lấy dư 100, nhỏ hơn tỷ lệ nhóm gợi ý thì vào nhóm A (TREATMENT), còn lại nhóm B (CONTROL). Cách này ngẫu nhiên giữa các khách nhưng cố định với từng khách, và đổi giữa các lần thử nghiệm; nhóm được ghi vào `ab_assignment` kèm lúc chia ở lần đầu khách đủ điều kiện mở trang chủ. Chỉ số so sánh tính theo khách (mỗi khách là 1 quan sát độc lập): tỷ lệ khách bấm gợi ý trang chủ ít nhất 1 lần, tỷ lệ khách đặt ít nhất 1 đơn chưa hủy, tỷ lệ khách đặt đơn có sản phẩm đã bấm từ gợi ý trang chủ trước lúc đặt. Hai tỷ lệ x₁/n₁ (A) và x₂/n₂ (B) được so bằng kiểm định z hai tỷ lệ, hai phía: p̂ = (x₁ + x₂)/(n₁ + n₂), z = (x₁/n₁ − x₂/n₂) / √(p̂(1 − p̂)(1/n₁ + 1/n₂)), giá trị p = 2(1 − Φ(|z|)). Kết luận: nhóm nào dưới 30 khách thì "chưa đủ khách để kết luận"; p < 0,05 thì nhóm có tỷ lệ cao hơn "cao hơn rõ rệt"; còn lại "chưa thấy khác biệt có ý nghĩa". Tỷ lệ bấm theo lượt hiện chỉ để tham khảo, không kiểm định (các lượt hiện của cùng một khách không độc lập).
 - **BR-47 — Số liệu bảng điều khiển** *(bổ sung 31/10/2026, US-28)*: một đơn thuộc ngày nó được đặt (`orders.created_at`, đổi sang giờ Việt Nam), vì chưa lưu lúc giao. Doanh thu = tổng `total_amount` (đã gồm phí vận chuyển, đã trừ giảm giá) của đơn DELIVERED; giá trị đơn trung bình = doanh thu / số đơn DELIVERED; số đơn đặt tính mọi trạng thái; khách hàng mới = tài khoản CUSTOMER tạo trong khoảng. Sản phẩm bán chạy xếp theo tổng số lượng trong đơn DELIVERED, bằng nhau thì theo tiền hàng. Doanh thu từ gợi ý = tổng `line_total` của các dòng đơn DELIVERED mà cùng khách đã bấm sản phẩm đó trong một khối gợi ý (RECOMMENDATION_CLICKED, mọi vị trí) trong 7 ngày trước lúc đặt; tỷ lệ của nó tính trên tổng `subtotal_amount` (tiền hàng chưa trừ giảm giá) của đơn DELIVERED. Đây là số quy cho gợi ý, không phải bằng chứng gợi ý làm tăng doanh thu (khách có thể vẫn mua dù không có gợi ý); bằng chứng nhân quả là thử nghiệm A/B (BR-46).
 
+- **BR-48 — Liên kết đặt lại mật khẩu** *(bổ sung 31/10/2026, US-29)*: mã trong liên kết là 32 byte ngẫu nhiên (`SecureRandom`, mã hóa base64url); CSDL chỉ lưu SHA-256 của mã (`password_reset_token.token_hash`), nên người đọc được CSDL cũng không dựng lại được liên kết. Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần; đặt mật khẩu mới xong thì mọi liên kết khác của tài khoản cũng mất hiệu lực, đổi mật khẩu ở trang hồ sơ cũng vậy. Chống gửi thư liên tục: cùng 1 tài khoản không gửi thư mới trong 60 giây sau thư trước, tối đa 5 thư mỗi giờ; vượt giới hạn hoặc email không có tài khoản thì vẫn trả cùng một câu trả lời (202) và không gửi gì. Thư gửi sau khi giao dịch ghi xong, ở luồng nền, để thời gian phản hồi không lộ email có tài khoản hay không. **\[Giả định\]** JWT đã cấp không bị thu hồi khi đổi hoặc đặt lại mật khẩu (JWT không lưu trạng thái, hết hạn sau 24 giờ, NFR-03); thu hồi cần danh sách chặn hoặc phiên bản token, là hướng mở rộng.
+
 ---
 
-**Tổng cộng: 36 business rule gốc**, bao phủ toàn bộ 9 epic ở Mục 1\. Bổ sung sau: BR-37 đến BR-47. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
+**Tổng cộng: 36 business rule gốc**, bao phủ toàn bộ 9 epic ở Mục 1\. Bổ sung sau: BR-37 đến BR-48. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
 
 ## 3\. Từ điển dữ liệu
 
@@ -361,7 +371,7 @@ Từ điển dữ liệu dưới đây suy trực tiếp từ Mục 1-2 — mỗ
 - Toàn bộ số tiền: BIGINT, đơn vị VNĐ, số nguyên (BR-27).  
 - Các cột trạng thái (ENUM) lưu giá trị định danh tiếng Anh; nhãn tiếng Việt hiển thị cho người dùng là việc của tầng giao diện (i18n).  
 - PK \= khóa chính, FK \= khóa ngoại. Kiểu dữ liệu viết theo cú pháp MySQL.  
-- Những gì phụ thuộc quyết định kỹ thuật chưa chốt (vd bảng token đặt lại mật khẩu — xem ghi chú ở US-05) **không** đưa vào đây.
+- Những gì phụ thuộc quyết định kỹ thuật chưa chốt **không** đưa vào đây.
 
 ### 3.1 Tài khoản — `account`
 
@@ -771,9 +781,22 @@ Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (c�
 
 Kết quả thử nghiệm không lưu sẵn mà tính khi xem từ `product_event_log` (lượt hiện, lượt bấm ở vị trí HOME và HOME\_RECENT) và `orders` (đơn chưa hủy, kèm `order_item` để biết khách mua sản phẩm đã bấm).
 
+### 3.19 Đặt lại mật khẩu — `password_reset_token`
+
+*Nguồn: US-29, BR-48. Migration V10 (31/10/2026).*
+
+| Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- | :---- |
+| password\_reset\_token | id | BIGINT UNSIGNED | PK |  |
+| password\_reset\_token | account\_id | BIGINT UNSIGNED | FK → account.id, INDEX (cùng created\_at) | Đếm số thư đã gửi trong 60 giây và 1 giờ (BR-48) |
+| password\_reset\_token | token\_hash | CHAR(64) | NOT NULL, UNIQUE | SHA-256 (hex) của mã trong liên kết; không lưu mã gốc |
+| password\_reset\_token | created\_at | DATETIME | NOT NULL |  |
+| password\_reset\_token | expires\_at | DATETIME | NOT NULL | created\_at + 30 phút |
+| password\_reset\_token | used\_at | DATETIME | NULLABLE | NULL \= chưa dùng; đặt khi dùng liên kết, khi dùng liên kết khác hoặc khi đổi mật khẩu |
+
 ---
 
-**Tổng cộng: 31 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10, 3 bảng chiến dịch ở Mục 3.17 và 2 bảng thử nghiệm A/B ở Mục 3.18), bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 32 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10, 3 bảng chiến dịch ở Mục 3.17, 2 bảng thử nghiệm A/B ở Mục 3.18 và `password_reset_token` ở Mục 3.19), bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 
@@ -901,7 +924,7 @@ Luồng đơn giản nhất trong 3 luồng, nhưng là ví dụ "sạch" nhất
 Vài điểm đáng chú ý, bám sát acceptance criteria đã chốt ở US-05 (Mục 1):
 
 - **Lỗi trả về chung chung** khi sai email hoặc sai mật khẩu (không phân biệt 2 trường hợp) — tránh lộ email nào đã có tài khoản (user enumeration).  
-- **Không vẽ nhánh "quên mật khẩu"** — US-05 ghi rõ đây là phần chưa chốt (bảng token đặt lại mật khẩu phụ thuộc quyết định bảo mật chưa làm) — sơ đồ chỉ vẽ đúng phần đã chốt.  
+- **Không vẽ nhánh "quên mật khẩu"** — sơ đồ vẽ lúc tính năng này chưa chốt; nay đã đặc tả ở US-29 và BR-48 (bổ sung 31/10/2026), là luồng riêng, không thuộc luồng đăng nhập.  
 - **Thời hạn JWT: 24 giờ** — xem NFR-03 (Mục 12\) để biết lý do chọn con số này.
 
 ![][image6]
@@ -984,7 +1007,7 @@ Hệ thống chịu được **≥50 người dùng đồng thời** mà thời 
 - **JWT hết hạn sau 24 giờ** kể từ lúc đăng nhập. **\[Giả định\]** Vì sao 24 giờ: chưa thiết kế refresh token (giữ đơn giản cho dự án 1 người/15 tuần), nên thời hạn cần đủ dài để không ngắt quãng phiên mua sắm (US-05 — quay lại đúng trang đang thao tác dở), nhưng vẫn có giới hạn rõ ràng thay vì token sống vĩnh viễn nếu bị lộ; 24 giờ khớp chu kỳ quay lại phổ biến của người mua sắm thật (khác ứng dụng ngân hàng cần thời hạn ngắn hơn nhiều).  
 - **Mật khẩu hash bằng BCrypt**, cost factor giữ mặc định của `BCryptPasswordEncoder` trong Spring Security (10) — không tự ý đổi nếu chưa đo tải thực tế: cao hơn làm chậm cả đăng nhập lẫn đăng ký, thấp hơn làm yếu khả năng chống brute-force nếu CSDL rò rỉ.  
 - **Giới hạn đăng nhập sai: tối đa 5 lần/15 phút cho cùng 1 email**, vượt ngưỡng thì khóa tạm 15 phút (không khóa vĩnh viễn — tránh bị lợi dụng để khóa tài khoản người khác bằng cách cố tình đăng nhập sai nhiều lần). **\[Giả định\]** Đếm bằng bộ nhớ đệm tự hết hạn (vd Caffeine), không cần bảng CSDL riêng.  
-- Thời hạn token đặt lại mật khẩu: **chưa chốt** — phụ thuộc thiết kế trọn vẹn tính năng "quên mật khẩu" (bảng token riêng), chưa làm bây giờ (xem US-05, Mục 1).
+- **Liên kết đặt lại mật khẩu hết hạn sau 30 phút, dùng 1 lần**, CSDL chỉ lưu SHA-256 của mã (BR-48, bổ sung 31/10/2026). 30 phút đủ để mở hộp thư và đặt mật khẩu, mà vẫn ngắn nếu thư bị người khác đọc được.
 
 ### NFR-04 — Tính sẵn sàng hệ thống
 

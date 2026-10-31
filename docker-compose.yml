@@ -66,6 +66,14 @@ services:
       VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
       VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
       VNPAY_RETURN_URL: http://localhost:3000/payment/vnpay-return
+      # Chức năng 21: email đặt lại mật khẩu (Gmail SMTP), để trống MAIL_HOST thì không gửi
+      FRONTEND_URL: http://localhost:3000
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_LOG_LINKS: ${MAIL_LOG_LINKS:-false}
     ports:
       - "8080:8080"
     depends_on:

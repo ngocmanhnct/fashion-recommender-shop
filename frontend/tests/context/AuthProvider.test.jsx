@@ -71,3 +71,14 @@ describe('AuthProvider', () => {
     expect(result.current.user).toBeNull();
   });
 });
+
+describe('AuthProvider.updateUser', () => {
+  it('thay thông tin tài khoản đang hiện sau khi sửa hồ sơ, giữ token', async () => {
+    saveToken('token-cu', 3600);
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.updateUser({ ...ACCOUNT, fullName: 'Tên mới' }));
+    expect(result.current.user.fullName).toBe('Tên mới');
+    expect(getToken()).toBe('token-cu');
+  });
+});
