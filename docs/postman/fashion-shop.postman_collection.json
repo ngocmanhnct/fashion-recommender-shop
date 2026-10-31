@@ -897,7 +897,7 @@
     },
     {
       "name": "3. Khách hàng (cần token tài khoản khách)",
-      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm, giỏ hàng, sổ địa chỉ, đặt hàng COD, đơn hàng (Tuần 6). Thanh toán online, khảo sát, đánh giá sẽ thêm sau. Đặt hàng: chạy lần lượt Thêm địa chỉ, Gộp giỏ hàng (để giỏ có sản phẩm), Xem trước đơn hàng rồi Đặt hàng. Mọi API giỏ hàng trả về cả giỏ: items, notices (dòng hệ thống vừa tự loại hoặc giảm số lượng, BR-11), totalQuantity, subtotal.",
+      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm, giỏ hàng, danh sách yêu thích (US-14), sổ địa chỉ, đặt hàng COD, đơn hàng (Tuần 6). Thanh toán online, khảo sát, đánh giá sẽ thêm sau. Đặt hàng: chạy lần lượt Thêm địa chỉ, Gộp giỏ hàng (để giỏ có sản phẩm), Xem trước đơn hàng rồi Đặt hàng. Mọi API giỏ hàng trả về cả giỏ: items, notices (dòng hệ thống vừa tự loại hoặc giảm số lượng, BR-11), totalQuantity, subtotal.",
       "item": [
         {
           "name": "Ghi lượt xem sản phẩm",
@@ -1253,6 +1253,127 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Gộp giỏ hàng thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Thêm vào danh sách yêu thích",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlist/{{publicProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wishlist",
+                "{{publicProductId}}"
+              ]
+            },
+            "description": "Thêm sản phẩm vào danh sách yêu thích (US-14), ghi ở cấp sản phẩm. Đã có thì không làm gì, vẫn 200. Trả về mã các sản phẩm còn bán trong danh sách. Sản phẩm không có hoặc đã ngừng bán 404; đủ 100 sản phẩm 409. Danh sách thật sự đổi thì yêu cầu tính lại gợi ý sau 3 giây (BR-20)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Thêm vào yêu thích thành công', () => pm.response.to.have.status(200));",
+                  "pm.test('Có sản phẩm vừa thêm', () => pm.expect(pm.response.json()).to.include(Number(pm.collectionVariables.get('publicProductId'))));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Danh sách yêu thích",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlist",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wishlist"
+              ]
+            },
+            "description": "Các sản phẩm còn bán trong danh sách yêu thích, thêm sau đứng trước: [{ product (thẻ sản phẩm như trang danh sách), addedAt }]. Sản phẩm hết hàng vẫn có (product.inStock = false), sản phẩm đã ngừng bán thì không."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem danh sách yêu thích thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mã sản phẩm yêu thích",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlist/ids",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wishlist",
+                "ids"
+              ]
+            },
+            "description": "Mã các sản phẩm còn bán trong danh sách yêu thích, tăng dần; giao diện dùng để tô nút Yêu thích ở trang sản phẩm."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Lấy mã yêu thích thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Bỏ khỏi danh sách yêu thích",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wishlist/{{publicProductId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "wishlist",
+                "{{publicProductId}}"
+              ]
+            },
+            "description": "Bỏ sản phẩm khỏi danh sách yêu thích. Không có trong danh sách thì không làm gì, vẫn 200. Trả về mã các sản phẩm còn lại."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Bỏ yêu thích thành công', () => pm.response.to.have.status(200));",
+                  "pm.test('Không còn sản phẩm vừa bỏ', () => pm.expect(pm.response.json()).to.not.include(Number(pm.collectionVariables.get('publicProductId'))));"
                 ]
               }
             }
