@@ -10,6 +10,7 @@ import HealthCheckPage from './pages/HealthCheckPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import NotFoundPage from './pages/NotFoundPage';
+import OffersPage from './pages/OffersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import OrdersPage from './pages/OrdersPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -76,6 +77,14 @@ function App() {
           element={
             <RequireCustomer>
               <WishlistPage />
+            </RequireCustomer>
+          }
+        />
+        <Route
+          path="offers"
+          element={
+            <RequireCustomer>
+              <OffersPage />
             </RequireCustomer>
           }
         />

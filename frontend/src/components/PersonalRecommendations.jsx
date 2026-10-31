@@ -5,6 +5,8 @@ import { useAuth } from '../hooks/useAuth';
 import { formatSecondsAgo } from '../services/format';
 import { getMyRecommendations } from '../services/recommendationApi';
 import { loadSeenProducts, saveSeenProducts } from '../services/recommendationSeen';
+import Icon from './Icon';
+import ProductImage from './ProductImage';
 import RecommendationGrid from './RecommendationGrid';
 import SurveyHome from './SurveyHome';
 
@@ -103,22 +105,51 @@ function PersonalRecommendations() {
   );
 }
 
-const RECENT_TITLES = {
-  VIEW: 'Vì bạn vừa xem',
-  CART: 'Vì bạn vừa thêm vào giỏ',
+const RECENT_KINDS = {
+  VIEW: { title: 'Vì bạn vừa xem', icon: 'eye', again: 'Xem lại sản phẩm' },
+  CART: { title: 'Vì bạn vừa thêm vào giỏ', icon: 'bag', again: 'Xem sản phẩm trong giỏ' },
 };
 
-/** Hàng "Vì bạn vừa xem / vừa thêm vào giỏ <tên sản phẩm>" kèm sản phẩm liên quan. */
+/**
+ * Hàng "Vì bạn vừa xem / vừa thêm vào giỏ <tên sản phẩm>" kèm sản phẩm liên quan. Đầu hàng là thẻ
+ * nhỏ của sản phẩm vừa tương tác (ảnh, nhãn hành động, tên, danh mục), để khách thấy ngay gợi ý dựa
+ * trên sản phẩm nào.
+ */
 function RecentActivity({ recent }) {
+  const kind = RECENT_KINDS[recent.kind] ?? RECENT_KINDS.VIEW;
+  const { product, products } = recent;
+  const href = `/products/${product.id}`;
+  const meta = [product.categoryName, product.brandName].filter(Boolean).join(' · ');
   return (
-    <section className="product-section">
-      <div className="section-header">
-        <h2>
-          {RECENT_TITLES[recent.kind] ?? RECENT_TITLES.VIEW}{' '}
-          <Link to={`/products/${recent.product.id}`}>{recent.product.name}</Link>
-        </h2>
+    <section className="product-section recent-activity">
+      <div className="recent-anchor">
+        <Link to={href} className="recent-anchor-image" tabIndex={-1} aria-hidden="true">
+          <ProductImage
+            src={product.thumbnailUrl}
+            productId={product.id}
+            categoryName={product.categoryName}
+          />
+        </Link>
+        <div className="recent-anchor-text">
+          <h2>
+            <span className="recent-kind">
+              <Icon name={kind.icon} size={16} />
+              {kind.title}
+            </span>{' '}
+            <Link to={href} className="recent-anchor-name" title={product.name}>
+              {product.name}
+            </Link>
+          </h2>
+          <p className="muted small">
+            {meta && `${meta} · `}
+            {products.length} sản phẩm tương tự bạn có thể thích
+          </p>
+        </div>
+        <Link to={href} className="recent-anchor-again small">
+          {kind.again} ›
+        </Link>
       </div>
-      <RecommendationGrid items={recent.products} placement="HOME_RECENT" />
+      <RecommendationGrid items={products} placement="HOME_RECENT" />
     </section>
   );
 }

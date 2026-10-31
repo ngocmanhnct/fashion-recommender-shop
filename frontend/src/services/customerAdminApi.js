@@ -39,3 +39,20 @@ export function getSegments() {
 export function getSegmentProfile(code) {
   return apiClient.get(`${BASE}/segments/${encodeURIComponent(code)}`).then((res) => res.data);
 }
+
+/**
+ * Tặng mã giảm giá riêng cho một nhóm (US-26): target ALL = cả nhóm, CARE = khách cần chăm sóc;
+ * voucher là điều kiện mã như khi tạo mã thường. Trả về chiến dịch vừa tạo.
+ */
+export function createCampaign(code, { target, voucher }) {
+  return apiClient
+    .post(`${BASE}/segments/${encodeURIComponent(code)}/campaigns`, { target, voucher })
+    .then((res) => res.data);
+}
+
+/** Các chiến dịch đã tặng, mới nhất trước, kèm kết quả; segment bỏ trống là mọi nhóm. */
+export function getCampaigns(segment) {
+  return apiClient
+    .get(`${BASE}/campaigns`, { params: { segment: segment || undefined } })
+    .then((res) => res.data);
+}

@@ -179,9 +179,17 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Hồ sơ có danh sách khách cần chăm sóc theo BR-43, mỗi khách mở được trang chi tiết khách hàng (US-18)  
 - Chỉ tính đơn Đã giao, như R, F, M (BR-23)
 
+**US-26: Tặng mã giảm giá theo nhóm khách hàng và xem kết quả** *(bổ sung 31/10/2026)* Là admin, tôi muốn hệ thống gợi ý việc nên làm với từng nhóm khách và tặng mã giảm giá riêng cho cả nhóm hoặc cho khách cần chăm sóc trong nhóm, rồi xem bao nhiêu khách quay lại mua, để biết ưu đãi có đáng tiền giảm hay không. Tiêu chí chấp nhận:
+
+- Mỗi nhóm có mục tiêu chăm sóc (hiện ở trang tổng quan phân nhóm) và ưu đãi gợi ý tính theo thói quen của chính nhóm (vd đơn tối thiểu theo giá trị đơn trung bình của nhóm), kèm đối tượng gợi ý: cả nhóm hoặc khách cần chăm sóc (BR-43)
+- Admin tặng mã bằng biểu mẫu mã giảm giá đã điền sẵn ưu đãi gợi ý, sửa được trước khi tặng; danh sách khách được tặng chốt lúc tặng
+- Mã tặng là mã riêng: chỉ khách được tặng dùng được (BR-44); khách thấy mã ở trang "Ưu đãi của bạn" và chọn mã bằng 1 lần bấm ở trang thanh toán
+- Kết quả mỗi lần tặng: số khách được tặng, số khách đã đặt đơn với mã và tỷ lệ, số đơn, doanh thu, tổng tiền đã giảm, doanh thu trên mỗi đồng giảm (chỉ tính đơn chưa hủy)
+- Tự tặng mã khi khách mới vào nhóm: chưa làm (hướng mở rộng)
+
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-25 (hồ sơ nhóm khách hàng).**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng).**
 
 ## 2\. Business rules
 
@@ -308,6 +316,8 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 - **BR-33**: Nếu đơn hàng có áp dụng mã giảm giá bị hủy, lượt dùng mã giảm giá đó được **hoàn lại** cho tài khoản (không tính là đã dùng) — cùng nguyên tắc với BR-16 (hoàn tồn kho) và BR-28 (hoàn tiền). Nếu đơn đã thanh toán online, số tiền hoàn lại theo BR-28 là số tiền **thực tế đã thanh toán** (đã trừ giảm giá). *(US-20, US-17)*
 
   Cơ chế: `UPDATE voucher SET used_count = used_count - 1 WHERE id = :voucherId`, thực hiện cùng lúc với hoàn tồn kho (BR-16), tại đúng thời điểm đơn chuyển "Đã hủy".
+
+- **BR-44 — Mã tặng riêng** *(bổ sung 31/10/2026)*: mã tạo từ chiến dịch theo nhóm (US-26) có `recipients_only = TRUE` và chỉ dùng được bởi các tài khoản trong `voucher_recipient` của mã đó; khách khác nhập mã thì bước xem trước báo "Mã này chỉ dành cho khách được tặng" và bước xác nhận từ chối như các điều kiện khác của BR-30. Danh sách người nhận chốt lúc tặng: khách vào nhóm sau đó không nhận được, khách rời nhóm sau đó vẫn dùng được. Mã riêng mặc định mỗi khách 1 lượt, không giới hạn tổng. *(US-26)*
 
 ---
 
@@ -564,6 +574,7 @@ UNIQUE(account\_id, product\_id).
 | max\_discount\_amount | BIGINT UNSIGNED | NULLABLE | Trần số tiền giảm cho mã PERCENT, NULL \= không giới hạn; mã FIXED để NULL (bổ sung 14/10/2026, migration V2) |
 | used\_count | INT UNSIGNED | NOT NULL, DEFAULT 0 | Bộ đếm tổng lượt đã dùng, tăng/giảm bằng UPDATE có điều kiện (BR-30) — không suy ra bằng COUNT, vì COUNT không chặn được 2 request đồng thời cùng lọt qua điều kiện |
 | is\_active | BOOLEAN | NOT NULL, DEFAULT TRUE | US-22: cho phép admin vô hiệu hóa mã thủ công trước hạn |
+| recipients\_only | BOOLEAN | NOT NULL, DEFAULT FALSE | TRUE \= mã tặng riêng, chỉ khách trong `voucher_recipient` dùng được (BR-44, US-26, migration V7) |
 | created\_at | DATETIME | NOT NULL |  |
 
 *Không có bảng `voucher_usage` riêng: giới hạn **tổng** dùng cột `used_count` ở trên (an toàn với race condition). Giới hạn **theo tài khoản** vẫn dùng truy vấn đếm trên `order` (`WHERE voucher_id = :id AND account_id = :accountId AND status != 'CANCELLED'`) — rủi ro race condition ở đây thấp hơn nhiều, không đáng thêm cơ chế riêng.*
@@ -687,7 +698,27 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 
 ---
 
-**Tổng cộng: 26 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16 và `segment_model` ở Mục 3.10), bao phủ toàn bộ Mục 1-2.
+### 3.17 Chiến dịch tặng mã theo nhóm — `voucher_recipient`, `segment_campaign`
+
+*Nguồn: US-26, BR-44. Migration V7 (31/10/2026), kèm cột mới `voucher.recipients_only` (BOOLEAN NOT NULL DEFAULT FALSE, Mục 3.11; không đổi được sau khi tạo mã).*
+
+| Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- | :---- |
+| voucher\_recipient | voucher\_id | BIGINT UNSIGNED | PK (cùng account\_id), FK → voucher.id | Mã riêng được tặng |
+| voucher\_recipient | account\_id | BIGINT UNSIGNED | PK, FK → account.id, INDEX | Khách được tặng; chỉ những khách này dùng được mã (BR-44) |
+| segment\_campaign | id | BIGINT UNSIGNED | PK |  |
+| segment\_campaign | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng created\_at) | Mã nhóm lúc tặng (VIP, LOYAL...) |
+| segment\_campaign | segment\_name | VARCHAR(100) | NOT NULL | Tên nhóm lúc tặng: ml-service ghi đè `customer_segment` mỗi lần huấn luyện lại nên lưu bản sao, không dùng khóa ngoại |
+| segment\_campaign | target | ENUM('ALL','CARE') | NOT NULL | ALL \= cả nhóm, CARE \= khách cần chăm sóc (BR-43) |
+| segment\_campaign | voucher\_id | BIGINT UNSIGNED | UNIQUE, NOT NULL, FK → voucher.id | Mỗi chiến dịch 1 mã riêng |
+| segment\_campaign | recipient\_count | INT | NOT NULL | Số khách được tặng |
+| segment\_campaign | created\_at | DATETIME | NOT NULL |  |
+
+Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (các đơn chưa hủy có `voucher_id` của chiến dịch): số khách mua, số đơn, doanh thu (`total_amount`), tiền đã giảm (`discount_amount`).
+
+---
+
+**Tổng cộng: 28 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10 và 2 bảng chiến dịch ở Mục 3.17), bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 

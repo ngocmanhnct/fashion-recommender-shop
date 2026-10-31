@@ -54,13 +54,26 @@ public class Voucher {
   private boolean active;
 
   @Column(nullable = false, updatable = false)
+  private boolean recipientsOnly;
+
+  @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
   /** Constructor rỗng cho JPA. */
   protected Voucher() {}
 
-  /** Tạo mã mới đang bật, chưa ai dùng. */
+  /** Tạo mã công khai mới đang bật, chưa ai dùng. */
   public Voucher(String code, LocalDateTime createdAt) {
+    this(code, createdAt, false);
+  }
+
+  /**
+   * Tạo mã mới đang bật, chưa ai dùng.
+   *
+   * @param recipientsOnly true nếu chỉ khách được tặng dùng được (BR-44)
+   */
+  public Voucher(String code, LocalDateTime createdAt, boolean recipientsOnly) {
+    this.recipientsOnly = recipientsOnly;
     this.code = code;
     this.active = true;
     this.usedCount = 0;
@@ -162,5 +175,9 @@ public class Voucher {
 
   public LocalDateTime getCreatedAt() {
     return createdAt;
+  }
+
+  public boolean isRecipientsOnly() {
+    return recipientsOnly;
   }
 }

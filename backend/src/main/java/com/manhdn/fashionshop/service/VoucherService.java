@@ -1,5 +1,6 @@
 package com.manhdn.fashionshop.service;
 
+import com.manhdn.fashionshop.dto.MyVoucherResponse;
 import com.manhdn.fashionshop.dto.PageResponse;
 import com.manhdn.fashionshop.dto.VoucherRequest;
 import com.manhdn.fashionshop.dto.VoucherResponse;
@@ -8,11 +9,14 @@ import com.manhdn.fashionshop.entity.Voucher;
 import com.manhdn.fashionshop.exception.ConflictException;
 import com.manhdn.fashionshop.exception.InvalidRequestException;
 import com.manhdn.fashionshop.repository.OrderRepository;
+import com.manhdn.fashionshop.repository.VoucherRecipientRepository;
 import com.manhdn.fashionshop.repository.VoucherRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -41,13 +45,18 @@ public class VoucherService {
   private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy");
 
   private final VoucherRepository voucherRepository;
+  private final VoucherRecipientRepository recipientRepository;
   private final OrderRepository orderRepository;
   private final Clock clock;
 
   /** Nhận repository và đồng hồ qua constructor. */
   public VoucherService(
-      VoucherRepository voucherRepository, OrderRepository orderRepository, Clock clock) {
+      VoucherRepository voucherRepository,
+      VoucherRecipientRepository recipientRepository,
+      OrderRepository orderRepository,
+      Clock clock) {
     this.voucherRepository = voucherRepository;
+    this.recipientRepository = recipientRepository;
     this.orderRepository = orderRepository;
     this.clock = clock;
   }
@@ -86,18 +95,53 @@ public class VoucherService {
    */
   @Transactional
   public VoucherResponse create(VoucherRequest request) {
+    return VoucherResponse.from(createVoucher(request, false), now());
+  }
+
+  /**
+   * Tạo mã đang bật và trả về entity, dùng chung cho mã công khai và mã tặng riêng (US-26). Phải
+   * gọi trong giao dịch của người gọi.
+   *
+   * @param request điều kiện của mã
+   * @param recipientsOnly true nếu chỉ khách được tặng dùng được (BR-44)
+   * @return mã vừa lưu, đã có id
+   * @throws InvalidRequestException nếu điều kiện mâu thuẫn
+   * @throws ConflictException nếu trùng mã
+   */
+  @Transactional
+  public Voucher createVoucher(VoucherRequest request, boolean recipientsOnly) {
     validate(request);
     String code = normalize(request.code());
     if (voucherRepository.existsByCode(code)) {
       throw new ConflictException(DUPLICATE_CODE);
     }
-    Voucher voucher = new Voucher(code, now());
+    Voucher voucher = new Voucher(code, now(), recipientsOnly);
     configure(voucher, request);
     try {
-      return VoucherResponse.from(voucherRepository.saveAndFlush(voucher), now());
+      return voucherRepository.saveAndFlush(voucher);
     } catch (DataIntegrityViolationException ex) {
       throw new ConflictException(DUPLICATE_CODE);
     }
+  }
+
+  /**
+   * Mã riêng khách được tặng và đang dùng được (US-26): đang bật, trong thời hạn, còn lượt, khách
+   * chưa dùng hết lượt của mình. Hết hạn sớm nhất đứng trước.
+   *
+   * @param accountId tài khoản khách
+   * @return các mã còn dùng được, chưa xét đơn tối thiểu
+   */
+  @Transactional(readOnly = true)
+  public List<MyVoucherResponse> myVouchers(long accountId) {
+    List<Long> ids = recipientRepository.voucherIdsOf(accountId);
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+    return voucherRepository.findAllById(ids).stream()
+        .filter(v -> problemOf(v, accountId, Long.MAX_VALUE) == null)
+        .sorted(Comparator.comparing(Voucher::getValidUntil))
+        .map(MyVoucherResponse::from)
+        .toList();
   }
 
   /**
@@ -173,6 +217,9 @@ public class VoucherService {
   }
 
   private String problemOf(Voucher voucher, long accountId, long subtotal) {
+    if (voucher.isRecipientsOnly() && !recipientRepository.contains(voucher.getId(), accountId)) {
+      return "Mã này chỉ dành cho khách được tặng";
+    }
     LocalDateTime now = now();
     if (!voucher.isActive()) {
       return "Mã giảm giá đã ngừng áp dụng";

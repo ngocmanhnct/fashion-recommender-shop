@@ -37,6 +37,7 @@ public record VoucherResponse(
     int usedCount,
     Integer remaining,
     boolean active,
+    boolean recipientsOnly,
     String status,
     LocalDateTime createdAt) {
 
@@ -58,6 +59,7 @@ public record VoucherResponse(
             ? null
             : Math.max(0, v.getUsageLimitTotal() - v.getUsedCount()),
         v.isActive(),
+        v.isRecipientsOnly(),
         statusOf(v, now),
         v.getCreatedAt());
   }

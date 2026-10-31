@@ -87,6 +87,11 @@ function SegmentPage() {
               </div>
             </div>
             {s.description && <p className="small">{s.description}</p>}
+            {s.goal && (
+              <p className="segment-goal small">
+                <span className="muted">Nên làm:</span> <strong>{s.goal}</strong>
+              </p>
+            )}
             <div className="segment-card-links">
               <Link to={`/admin/segments/${s.code}`} className="btn btn-primary">
                 Hồ sơ nhóm

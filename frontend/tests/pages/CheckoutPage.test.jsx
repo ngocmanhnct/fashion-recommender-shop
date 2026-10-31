@@ -4,12 +4,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import CheckoutPage from '../../src/pages/CheckoutPage';
 import * as addressApi from '../../src/services/addressApi';
 import * as orderApi from '../../src/services/orderApi';
+import { getMyVouchers } from '../../src/services/voucherApi';
 import { goToVnPay } from '../../src/services/vnpayRedirect';
 import { cartValue, renderWithContext } from '../renderWithContext';
 
 vi.mock('../../src/services/addressApi');
 vi.mock('../../src/services/orderApi');
 vi.mock('../../src/services/vnpayRedirect');
+vi.mock('../../src/services/voucherApi');
 
 const ITEM = {
   variantId: 11,
@@ -44,6 +46,26 @@ describe('CheckoutPage', () => {
     vi.mocked(orderApi.newIdempotencyKey).mockReturnValue('lan-dat-1');
     vi.mocked(orderApi.placeOrder).mockResolvedValue({ id: 55 });
     vi.mocked(addressApi.listAddresses).mockResolvedValue([HOME, OFFICE]);
+    vi.mocked(getMyVouchers).mockResolvedValue([]);
+  });
+
+  it('mã được tặng hiện thành nút, bấm là áp dụng (US-26)', async () => {
+    vi.mocked(getMyVouchers).mockResolvedValue([
+      { code: 'LOYAL-3110', discountType: 'FIXED', discountValue: 50000, minOrderAmount: 250000 },
+      { code: 'VIP-3110', discountType: 'PERCENT', discountValue: 10, maxDiscountAmount: 200000 },
+    ]);
+    vi.mocked(orderApi.getCheckoutPreview).mockImplementation(async (code) =>
+      code === 'LOYAL-3110'
+        ? { ...PREVIEW, discount: 50000, total: 380000, voucherCode: 'LOYAL-3110' }
+        : PREVIEW
+    );
+    renderCheckout();
+    const chips = await screen.findByRole('group', { name: 'Mã bạn được tặng' });
+    expect(chips).toHaveTextContent(/VIP-3110Giảm 10%, tối đa 200\.000/);
+    await userEvent.click(screen.getByRole('button', { name: /LOYAL-3110.*đơn từ 250\.000/ }));
+    expect(await screen.findByText('−50.000 ₫')).toBeInTheDocument();
+    expect(orderApi.getCheckoutPreview).toHaveBeenLastCalledWith('LOYAL-3110');
+    expect(screen.queryByRole('group', { name: 'Mã bạn được tặng' })).not.toBeInTheDocument();
   });
 
   it('đặt đơn COD với địa chỉ mặc định, tổng tiền đang thấy và mã lần đặt', async () => {

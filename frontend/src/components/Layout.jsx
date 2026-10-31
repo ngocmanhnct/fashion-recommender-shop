@@ -121,6 +121,10 @@ function HeaderActions({ user }) {
       )}
       {user?.role === 'CUSTOMER' && (
         <>
+          <NavLink to="/offers" className="icon-link">
+            <Icon name="ticket" />
+            <span className="icon-link-label">Ưu đãi</span>
+          </NavLink>
           <NavLink to="/wishlist" className="icon-link">
             <Icon name="heart" />
             <span className="icon-link-label">Yêu thích</span>
@@ -231,6 +235,9 @@ function DrawerAccount({ user, onLogout }) {
           <>
             <li>
               <Link to="/orders">Đơn hàng</Link>
+            </li>
+            <li>
+              <Link to="/offers">Ưu đãi của bạn</Link>
             </li>
             <li>
               <Link to="/wishlist">Yêu thích</Link>

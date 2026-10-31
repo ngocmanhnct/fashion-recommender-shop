@@ -99,13 +99,8 @@ public class SegmentProfileService {
         round1(
             purchases.stream().mapToDouble(p -> days(p.firstOrderAt(), now)).average().orElse(0));
     List<CareCustomer> care =
-        repeat.stream()
-            .filter(p -> needsCare(p, now))
-            .sorted(
-                Comparator.comparingDouble((CustomerPurchases p) -> overdueRatio(p, now))
-                    .reversed())
-            .map(p -> careCustomer(p, now))
-            .toList();
+        needingCare(repeat, now).stream().map(p -> careCustomer(p, now)).toList();
+    long avgOrderValue = orders == 0 ? 0 : Math.round((double) revenue / orders);
 
     long totalQuantity = profileRepository.totalQuantity(segmentId);
     List<CategoryShare> categories =
@@ -124,7 +119,7 @@ public class SegmentProfileService {
         revenue,
         percent(revenue, totalRevenue),
         orders,
-        orders == 0 ? 0 : Math.round((double) revenue / orders),
+        avgOrderValue,
         avgInterval,
         repeat.size(),
         avgTenure,
@@ -132,7 +127,32 @@ public class SegmentProfileService {
         buckets(GENDERS, genders, customers),
         buckets(AGE_GROUPS, profileRepository.ageCounts(segmentId, now.toLocalDate()), customers),
         care.size(),
-        care.stream().limit(CARE_LIST_SIZE).toList());
+        care.stream().limit(CARE_LIST_SIZE).toList(),
+        SegmentPlaybook.suggest(segment.getCode(), avgOrderValue));
+  }
+
+  /**
+   * Mã tài khoản của mọi khách cần chăm sóc trong nhóm (BR-43), để tặng mã (US-26).
+   *
+   * @param segmentId mã số nhóm
+   * @return khách quá nhịp mua nhiều nhất trước
+   */
+  @Transactional(readOnly = true)
+  public List<Long> careAccountIds(long segmentId) {
+    List<CustomerPurchases> repeat =
+        profileRepository.purchases(segmentId).stream().filter(p -> p.orders() > 1).toList();
+    return needingCare(repeat, LocalDateTime.now(clock)).stream()
+        .map(CustomerPurchases::accountId)
+        .toList();
+  }
+
+  /** Khách mua từ 2 đơn đang cần chăm sóc, quá nhịp mua nhiều nhất trước. */
+  private List<CustomerPurchases> needingCare(List<CustomerPurchases> repeat, LocalDateTime now) {
+    return repeat.stream()
+        .filter(p -> needsCare(p, now))
+        .sorted(
+            Comparator.comparingDouble((CustomerPurchases p) -> overdueRatio(p, now)).reversed())
+        .toList();
   }
 
   /** Nhịp mua riêng của khách mua từ 2 đơn: số ngày trung bình giữa 2 đơn liên tiếp. */

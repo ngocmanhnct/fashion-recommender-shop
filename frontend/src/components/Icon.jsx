@@ -2,6 +2,7 @@
 // trình đọc màn hình), nên biểu tượng tự nó aria-hidden.
 const PATHS = {
   bag: 'M6 8h12l-1 12H7L6 8Zm3 0V6a3 3 0 0 1 6 0v2',
+  eye: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
   heart: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10Z',
   receipt: 'M7 3h10v18l-2.5-1.5L12 21l-2.5-1.5L7 21V3Zm3 5h4m-4 4h4m-4 4h2',
   user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0',
@@ -20,7 +21,7 @@ const PATHS = {
 };
 
 /**
- * Biểu tượng tên name: bag, heart, receipt, user, menu, close, search, chevron, arrow; menu quản
+ * Biểu tượng tên name: bag, eye, heart, receipt, user, menu, close, search, chevron, arrow; menu quản
  * trị dùng thêm box, grid, tag, users, pie, ticket.
  */
 function Icon({ name, size = 20, className = '' }) {

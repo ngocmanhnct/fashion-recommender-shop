@@ -243,7 +243,8 @@ public class CustomerAdminService {
         stats == null ? 0 : round1(stats.getFrequency()),
         stats == null ? 0 : Math.round(stats.getMonetary()),
         revenue,
-        percent(revenue, totalRevenue));
+        percent(revenue, totalRevenue),
+        SegmentPlaybook.goalOf(segment.getCode()));
   }
 
   private static double percent(long part, long total) {
