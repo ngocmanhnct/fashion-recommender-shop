@@ -3489,9 +3489,19 @@ legend {
 .dash-bars li {
   display: flex;
   flex: 1 1 0;
-  align-items: flex-end;
   min-width: 0;
   height: 100%;
+}
+
+/* Mỗi cột là 1 nút (nhận Tab, trình đọc màn hình đọc ngày và số tiền), bỏ kiểu nút mặc định. */
+.dash-bars button {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
   outline: none;
   cursor: default;
 }
@@ -3511,7 +3521,7 @@ legend {
   background: var(--accent);
 }
 
-.dash-bars li:focus-visible {
+.dash-bars button:focus-visible {
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 

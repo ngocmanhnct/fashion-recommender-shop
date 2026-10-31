@@ -121,7 +121,7 @@ describe('DashboardPage', () => {
     // Đỉnh 1,2 triệu làm tròn lên 2 triệu, giữa trục 1 triệu.
     expect(screen.getByText('2 tr')).toBeInTheDocument();
     expect(screen.getByText('1 tr')).toBeInTheDocument();
-    const items = within(bars).getAllByRole('listitem');
+    const items = within(bars).getAllByRole('button');
     expect(items).toHaveLength(3);
     expect(items[2].querySelector('.dash-bar')).toHaveStyle({ height: '60%' });
 

@@ -233,16 +233,17 @@ function RevenueChart({ days }) {
             onMouseLeave={() => setActive(null)}
           >
             {days.map((day, index) => (
-              <li
-                key={day.date}
-                className={index === active ? 'is-active' : undefined}
-                tabIndex={focusable ? 0 : undefined}
-                aria-label={`${formatDay(day.date)}: ${formatPrice(day.revenue)}`}
-                onMouseEnter={() => setActive(index)}
-                onFocus={() => setActive(index)}
-                onBlur={() => setActive(null)}
-              >
-                <span className="dash-bar" style={{ height: `${(day.revenue / top) * 100}%` }} />
+              <li key={day.date} className={index === active ? 'is-active' : undefined}>
+                <button
+                  type="button"
+                  tabIndex={focusable ? undefined : -1}
+                  aria-label={`${formatDay(day.date)}: ${formatPrice(day.revenue)}`}
+                  onMouseEnter={() => setActive(index)}
+                  onFocus={() => setActive(index)}
+                  onBlur={() => setActive(null)}
+                >
+                  <span className="dash-bar" style={{ height: `${(day.revenue / top) * 100}%` }} />
+                </button>
               </li>
             ))}
           </ol>
