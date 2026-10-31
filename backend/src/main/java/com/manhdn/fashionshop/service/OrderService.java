@@ -23,6 +23,7 @@ import com.manhdn.fashionshop.repository.AddressRepository;
 import com.manhdn.fashionshop.repository.CartItemRepository;
 import com.manhdn.fashionshop.repository.OrderRepository;
 import com.manhdn.fashionshop.repository.ProductVariantRepository;
+import com.manhdn.fashionshop.repository.VoucherRepository;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,9 +48,10 @@ import org.springframework.transaction.annotation.Transactional;
  *       chạy lần lượt.
  *   <li>Khách tự hủy được đơn Chờ xử lý hoặc Đang xử lý (BR-13); hủy thì hoàn tồn kho (BR-16).
  *   <li>Đặt và hủy đơn là hành động rõ ý: yêu cầu tính lại gợi ý sau 3 giây (BR-20).
+ *   <li>Mỗi đơn dùng tối đa 1 mã giảm giá (US-21, BR-31): kiểm tra ở bước xem trước và lại lần nữa
+ *       khi xác nhận (BR-30); lượt dùng được trừ trong cùng giao dịch đặt đơn, hủy đơn thì trả lại
+ *       lượt (BR-33).
  * </ul>
- *
- * <p>Hiện chỉ có thanh toán khi nhận hàng (COD); thanh toán online (VNPay) làm ở bước sau.
  */
 @Service
 public class OrderService {
@@ -72,6 +74,8 @@ public class OrderService {
   private final OrderRepository orderRepository;
   private final RecomputeRequestService recomputeRequestService;
   private final RefundService refundService;
+  private final VoucherService voucherService;
+  private final VoucherRepository voucherRepository;
   private final VnPayClient vnPayClient;
   private final Clock clock;
 
@@ -86,6 +90,8 @@ public class OrderService {
       OrderRepository orderRepository,
       RecomputeRequestService recomputeRequestService,
       RefundService refundService,
+      VoucherService voucherService,
+      VoucherRepository voucherRepository,
       VnPayClient vnPayClient,
       Clock clock) {
     this.transactionRetry = transactionRetry;
@@ -97,6 +103,8 @@ public class OrderService {
     this.orderRepository = orderRepository;
     this.recomputeRequestService = recomputeRequestService;
     this.refundService = refundService;
+    this.voucherService = voucherService;
+    this.voucherRepository = voucherRepository;
     this.vnPayClient = vnPayClient;
     this.clock = clock;
   }
@@ -113,23 +121,32 @@ public class OrderService {
 
   /**
    * Tóm tắt đơn hàng trước khi xác nhận (US-10): giỏ hàng theo giá và tồn kho hiện tại (đã tự loại
-   * dòng không còn mua được, BR-11), phí vận chuyển và tổng thanh toán.
+   * dòng không còn mua được, BR-11), phí vận chuyển, mã giảm giá và tổng thanh toán.
    *
    * @param accountId mã tài khoản lấy từ JWT
+   * @param voucherCode mã giảm giá khách nhập, null hoặc rỗng nếu không dùng; mã không dùng được
+   *     thì không giảm và trả lý do, không chặn khách đặt hàng không mã (US-21)
    * @return tóm tắt đơn hàng; giỏ rỗng thì không có dòng nào và tổng bằng 0
    * @throws NoSuchElementException nếu tài khoản không còn tồn tại
    */
-  public CheckoutPreviewResponse preview(long accountId) {
+  public CheckoutPreviewResponse preview(long accountId, String voucherCode) {
     CartResponse cart = cartService.getCart(accountId);
     long subtotal = cart.subtotal();
     long shippingFee = cart.items().isEmpty() ? 0 : shippingFeeFor(subtotal);
+    VoucherService.Check check =
+        isBlank(voucherCode) || cart.items().isEmpty()
+            ? null
+            : voucherService.check(accountId, voucherCode, subtotal);
+    long discount = check == null ? 0 : check.discount();
     return new CheckoutPreviewResponse(
         cart.items(),
         cart.notices(),
         subtotal,
         shippingFee,
-        0,
-        subtotal + shippingFee,
+        discount,
+        subtotal + shippingFee - discount,
+        check != null && check.ok() ? check.voucher().getCode() : null,
+        check == null ? null : check.error(),
         vnPayClient.configured());
   }
 
@@ -143,7 +160,8 @@ public class OrderService {
    * @throws NoSuchElementException nếu tài khoản hoặc địa chỉ không có
    * @throws InvalidRequestException nếu chọn thanh toán online (chưa hỗ trợ)
    * @throws ConflictException nếu mã định danh đã thuộc tài khoản khác, giỏ hàng rỗng, có dòng
-   *     ngừng bán hoặc không đủ tồn kho (BR-09), hay tổng tiền đã đổi so với lúc xem trước
+   *     ngừng bán hoặc không đủ tồn kho (BR-09), mã giảm giá không còn dùng được (BR-30), hay tổng
+   *     tiền đã đổi so với lúc xem trước
    */
   public PlaceOrderResult placeOrder(long accountId, PlaceOrderRequest request) {
     return transactionRetry.execute(() -> place(accountId, request));
@@ -238,11 +256,24 @@ public class OrderService {
     long subtotal =
         lines.stream().mapToLong(line -> line.getVariant().getPrice() * line.getQuantity()).sum();
     long shippingFee = shippingFeeFor(subtotal);
-    if (request.expectedTotal() != subtotal + shippingFee) {
+    VoucherService.Check voucher = null;
+    if (!isBlank(request.voucherCode())) {
+      // Kiểm tra lại mã lúc xác nhận: mã có thể vừa hết hạn, hết lượt hay bị tắt (BR-30).
+      voucher = voucherService.check(accountId, request.voucherCode(), subtotal);
+      if (!voucher.ok()) {
+        throw new ConflictException(voucher.error() + ". Hãy bỏ mã hoặc nhập mã khác.");
+      }
+    }
+    long discount = voucher == null ? 0 : voucher.discount();
+    long total = subtotal + shippingFee - discount;
+    if (request.expectedTotal() != total) {
       throw new ConflictException(
           "Giá sản phẩm vừa thay đổi, tổng thanh toán mới là %sđ. Hãy xem lại đơn hàng."
-              .formatted(
-                  String.format(Locale.ROOT, "%,d", subtotal + shippingFee).replace(',', '.')));
+              .formatted(String.format(Locale.ROOT, "%,d", total).replace(',', '.')));
+    }
+    // Trừ lượt dùng bằng UPDATE có điều kiện: 2 khách cùng dùng lượt cuối thì chỉ 1 người được.
+    if (voucher != null && voucherRepository.tryUse(voucher.voucher().getId()) == 0) {
+      throw new ConflictException("Mã giảm giá vừa hết lượt dùng. Hãy bỏ mã hoặc nhập mã khác.");
     }
 
     LocalDateTime now = LocalDateTime.now(clock);
@@ -251,6 +282,9 @@ public class OrderService {
       ProductVariant variant = line.getVariant();
       order.addItem(new OrderItem(variant, line.getQuantity()));
       variant.decreaseStock(line.getQuantity());
+    }
+    if (voucher != null) {
+      order.applyVoucher(voucher.voucher(), discount);
     }
     orderRepository.save(order);
     cartItemRepository.deleteAll(lines);
@@ -313,7 +347,8 @@ public class OrderService {
 
   /**
    * Chuyển đơn sang Đã hủy kèm phần thanh toán: đơn ONLINE chưa trả tiền thì thanh toán chuyển
-   * FAILED, đơn đã trả tiền thì khởi tạo hoàn tiền (BR-28). Người gọi đã hoàn tồn kho.
+   * FAILED, đơn đã trả tiền thì khởi tạo hoàn tiền (BR-28); đơn dùng mã giảm giá thì trả lại lượt
+   * dùng (BR-33). Người gọi đã hoàn tồn kho.
    */
   void cancelWithPayment(Order order, LocalDateTime now) {
     if (order.awaitingPayment()) {
@@ -321,6 +356,14 @@ public class OrderService {
     }
     order.cancel(now);
     refundService.startIfPaid(order);
+    if (order.getVoucher() != null) {
+      // Đơn hủy không tính là đã dùng mã (BR-33).
+      voucherRepository.release(order.getVoucher().getId());
+    }
+  }
+
+  private static boolean isBlank(String text) {
+    return text == null || text.isBlank();
   }
 
   private Order findOwn(long accountId, long orderId) {

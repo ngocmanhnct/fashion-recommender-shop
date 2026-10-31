@@ -256,7 +256,7 @@ class OrderIntegrationTest {
                 orderService.placeOrder(
                     buyer[0],
                     new PlaceOrderRequest(
-                        UUID.randomUUID().toString(), PaymentMethod.COD, buyer[1], 130_000L));
+                        UUID.randomUUID().toString(), PaymentMethod.COD, buyer[1], 130_000L, null));
                 return "OK";
               } catch (ConflictException e) {
                 return "CONFLICT";

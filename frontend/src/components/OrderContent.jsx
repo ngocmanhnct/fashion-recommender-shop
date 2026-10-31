@@ -44,7 +44,7 @@ function OrderContent({ order, productHref, itemAction }) {
         </p>
         {order.discount > 0 && (
           <p className="cart-summary-row">
-            <span>Giảm giá</span>
+            <span>Giảm giá{order.voucherCode && ` (${order.voucherCode})`}</span>
             <span>−{formatPrice(order.discount)}</span>
           </p>
         )}

@@ -24,6 +24,12 @@ export const ADMIN_SECTIONS = [
         hint: 'Duyệt, giao, hủy, hoàn tiền',
         icon: 'receipt',
       },
+      {
+        to: '/admin/vouchers',
+        label: 'Mã giảm giá',
+        hint: 'Tạo mã, hạn dùng, số lượt',
+        icon: 'ticket',
+      },
     ],
   },
   {
