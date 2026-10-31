@@ -92,6 +92,20 @@ public class ProductController {
   }
 
   /**
+   * "Thường được mua cùng" các sản phẩm trong giỏ hàng (chức năng 20), công khai vì khách chưa đăng
+   * nhập cũng có giỏ trong trình duyệt.
+   *
+   * @param productIds mã các sản phẩm trong giỏ, từ 1 đến 50 mã, vd {@code ?productIds=1,2}
+   * @return 200 kèm tối đa 4 sản phẩm còn hàng và lý do (rỗng nếu chưa ai mua cùng); 400 nếu thiếu
+   *     mã hoặc quá 50 mã
+   */
+  @GetMapping("/bought-together")
+  public List<RelatedProductResponse> boughtTogether(
+      @RequestParam(required = false) List<Long> productIds) {
+    return catalogService.boughtTogether(productIds);
+  }
+
+  /**
    * Gợi ý sản phẩm liên quan: tối đa 4 sản phẩm còn hàng, mỗi sản phẩm kèm lý do.
    *
    * @param id mã sản phẩm đang xem

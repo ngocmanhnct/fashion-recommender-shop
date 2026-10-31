@@ -27,6 +27,7 @@ import com.manhdn.fashionshop.repository.ProductRepository;
 import com.manhdn.fashionshop.repository.ProductSpecifications;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -73,6 +74,12 @@ public class ProductCatalogService {
   static final String SAME_CATEGORY = "Cùng danh mục với sản phẩm bạn đang xem";
   static final String SAME_BRAND = "Cùng thương hiệu với sản phẩm bạn đang xem";
   static final String BEST_SELLER = "Sản phẩm bán chạy";
+  static final String BOUGHT_TOGETHER = "Thường được mua cùng sản phẩm trong giỏ";
+
+  /**
+   * Số sản phẩm tối đa trong giỏ khi xin gợi ý "Thường được mua cùng" (bằng số dòng giỏ tối đa).
+   */
+  public static final int MAX_CART_PRODUCTS = 50;
 
   private static final String ID = "id";
   private static final String MIN_PRICE = "minPrice";
@@ -170,6 +177,45 @@ public class ProductCatalogService {
     }
     addTier(
         result, chosen, Specification.unrestricted(), BEST_SELLER, RecommendationSource.POPULAR);
+    return result;
+  }
+
+  /**
+   * "Thường được mua cùng" ở trang giỏ hàng (chức năng 20, mở rộng US-12): tối đa 4 sản phẩm còn
+   * hàng hay được mua kèm các sản phẩm trong giỏ, không gồm chính các sản phẩm đó. Dùng mô hình
+   * "hay mua cùng" của ml-service (theo khách); không gọi được thì đếm số đơn chung (quy tắc).
+   * Không lấp bằng sản phẩm bán chạy: chưa ai mua cùng thì trả danh sách rỗng và trang giỏ ẩn khối
+   * này.
+   *
+   * @param productIds mã các sản phẩm trong giỏ, từ 1 đến 50 mã
+   * @return tối đa 4 sản phẩm kèm lý do
+   * @throws InvalidRequestException nếu không có mã nào hoặc quá 50 mã
+   */
+  public List<RelatedProductResponse> boughtTogether(List<Long> productIds) {
+    if (productIds == null || productIds.isEmpty() || productIds.contains(null)) {
+      throw new InvalidRequestException("Cần ít nhất 1 mã sản phẩm");
+    }
+    Set<Long> inCart = new LinkedHashSet<>(productIds);
+    if (inCart.size() > MAX_CART_PRODUCTS) {
+      throw new InvalidRequestException("Tối đa " + MAX_CART_PRODUCTS + " sản phẩm");
+    }
+    List<RelatedProductResponse> result = new ArrayList<>();
+    Set<Long> chosen = new HashSet<>(inCart);
+    Optional<List<MlSuggestion>> suggestions =
+        mlServiceClient.boughtTogether(List.copyOf(inCart), RELATED_LIMIT);
+    if (suggestions.isPresent()) {
+      addSuggestions(result, chosen, suggestions.get());
+      return result;
+    }
+    // Lấy dư vì vài sản phẩm có thể đã hết hàng hoặc ngừng bán.
+    List<Long> found = productRepository.findBoughtTogether(inCart, RELATED_LIMIT * 5);
+    Map<Long, ProductCardResponse> cards = AvailableProducts.byId(productRepository, found);
+    for (Long id : found) {
+      ProductCardResponse card = cards.get(id);
+      if (card != null && result.size() < RELATED_LIMIT) {
+        result.add(new RelatedProductResponse(card, BOUGHT_TOGETHER, RecommendationSource.RULE));
+      }
+    }
     return result;
   }
 

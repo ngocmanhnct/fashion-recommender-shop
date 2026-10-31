@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+import BoughtTogether from '../components/BoughtTogether';
 import ProductImage from '../components/ProductImage';
 import QuantityStepper from '../components/QuantityStepper';
 import { useCart } from '../hooks/useCart';
@@ -10,7 +11,8 @@ import { MAX_QUANTITY } from '../services/guestCart';
 /**
  * Trang giỏ hàng (US-07, US-08): sửa số lượng, xóa từng dòng, tạm tính cập nhật ngay; thông báo
  * dòng bị loại vì ngừng bán, hết hàng hoặc bị giảm số lượng (BR-11). Bấm "Mua hàng" khi chưa đăng
- * nhập thì sang trang đăng nhập rồi quay lại bước thanh toán.
+ * nhập thì sang trang đăng nhập rồi quay lại bước thanh toán. Dưới giỏ là khối "Thường được mua
+ * cùng" (chức năng 20).
  */
 function CartPage() {
   const { mode, cart, loading, error, notices, refresh, dismissNotices } = useCart();
@@ -65,6 +67,7 @@ function CartPage() {
         onRetry={() => refresh().catch(() => {})}
         onCheckout={handleCheckout}
       />
+      {cart?.items.length > 0 && <BoughtTogether items={cart.items} />}
     </div>
   );
 }

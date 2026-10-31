@@ -366,6 +366,20 @@ def test_related_api(client):
     assert client.get("/recommendations/related/1?limit=0").status_code == 422
 
 
+def test_bought_together_api(client, rec_db):
+    with rec_db.begin() as conn:
+        for email in ("a@example.com", "b@example.com"):
+            add_order(conn, create_account(conn, email), [1, 6])
+    response = client.post("/recommendations/bought-together", json={"productIds": [1, 999]})
+    assert response.status_code == 200
+    body = response.json()
+    assert [s["productId"] for s in body] == [6]
+    assert body[0]["source"] == "RELATED" and body[0]["reason"].startswith("Khách mua ")
+    assert (
+        client.post("/recommendations/bought-together", json={"productIds": []}).status_code == 422
+    )
+
+
 def test_survey_api(client):
     body = {"categoryIds": [SOCKS], "style": "TREND", "excludeProductIds": [6], "limit": 3}
     response = client.post("/recommendations/survey", json=body)

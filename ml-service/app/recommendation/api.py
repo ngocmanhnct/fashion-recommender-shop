@@ -1,4 +1,5 @@
-"""API gợi ý tính ngay cho backend gọi (US-12, US-23); trình duyệt không gọi thẳng ml-service.
+"""API gợi ý tính ngay cho backend gọi (US-12, US-23, giỏ hàng); trình duyệt không gọi thẳng
+ml-service.
 
 Backend chờ tối đa 500ms, quá hạn hay lỗi thì tự dùng sản phẩm bán chạy (BR-22).
 """
@@ -77,6 +78,20 @@ def related(
     except KeyError:
         raise HTTPException(status_code=404, detail="Không có sản phẩm này") from None
     return [SuggestionResponse.of(s) for s in suggestions]
+
+
+class BoughtTogetherRequest(CamelModel):
+    """Các sản phẩm trong giỏ hàng."""
+
+    product_ids: list[int] = Field(min_length=1, max_length=50)
+    limit: int = Field(default=RELATED_LIMIT, ge=1, le=20)
+
+
+@router.post("/bought-together", response_model_by_alias=True)
+def bought_together(body: BoughtTogetherRequest, request: Request) -> list[SuggestionResponse]:
+    """ "Thường được mua cùng" các sản phẩm trong giỏ (chức năng 20); rỗng nếu chưa ai mua cùng."""
+    model = _model(request)
+    return [SuggestionResponse.of(s) for s in model.bought_together(body.product_ids, body.limit)]
 
 
 @router.post("/survey", response_model_by_alias=True)

@@ -434,6 +434,34 @@ class Recommender:
             for r in picked
         ]
 
+    # ---- trang giỏ hàng ----
+
+    def bought_together(
+        self, product_ids: Collection[int], limit: int = RELATED_LIMIT
+    ) -> list[Suggestion]:
+        """ "Thường được mua cùng" các sản phẩm trong giỏ (chức năng 20): cộng độ "hay mua cùng"
+        với từng sản phẩm trong giỏ. Chỉ lấy sản phẩm thật sự có khách mua cùng (điểm > 0), nên
+        danh sách có thể ít hơn `limit` hoặc rỗng; không lấp bằng sản phẩm khác."""
+        rows = [self.vectors.index[p] for p in product_ids if p in self.vectors.index]
+        if not rows or limit <= 0:
+            return []
+        together = self.copurchase[rows].toarray()  # giỏ × sản phẩm
+        score = together.sum(axis=0)
+        anchors = together.argmax(axis=0)  # sản phẩm trong giỏ đóng góp nhiều nhất
+        allowed = self._allowed(set(product_ids), None) & (score > 0)
+        ranking = score + TIE_BREAK * self.popularity
+        order = np.argsort(-np.where(allowed, ranking, -np.inf), kind="stable")
+        picked = [int(r) for r in order[:limit] if allowed[r]]
+        return [
+            Suggestion(
+                int(self.vectors.ids[r]),
+                float(score[r]),
+                f"Khách mua {short_name(self.names[rows[anchors[r]]])} cũng hay mua",
+                SOURCE_RELATED,
+            )
+            for r in picked
+        ]
+
     def _related_reason(self, row: int, other: int, content: float, copurchase: float) -> str:
         """Lý do của sản phẩm liên quan, theo phần đóng góp lớn nhất."""
         if copurchase > 0.3 and RELATED_COPURCHASE * copurchase >= 0.5 * RELATED_CONTENT * content:

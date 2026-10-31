@@ -8,6 +8,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -63,6 +64,7 @@ class RecommendationIntegrationTest {
   private static final String HOME = "/api/recommendations/me";
   private static final String BEST_SELLER = "Sản phẩm bán chạy";
   private static final String SIMILAR = "Tương tự sản phẩm bạn đang xem";
+  private static final String BOUGHT_TOGETHER = "/api/products/bought-together";
 
   @Autowired private MockMvc mockMvc;
   @Autowired private CategoryService categoryService;
@@ -234,6 +236,83 @@ class RecommendationIntegrationTest {
         .andExpect(jsonPath("$[1].source").value("POPULAR"))
         .andExpect(jsonPath("$[*].product.id", not(hasItem(viewed.id().intValue()))))
         .andExpect(jsonPath("$[*].product.id", not(hasItem(soldOut.id().intValue()))));
+  }
+
+  // ---------- Thường được mua cùng ở giỏ hàng (chức năng 20) ----------
+
+  @Test
+  void boughtTogetherKeepsMlOrderAndSkipsCartAndSoldOutProducts() throws Exception {
+    long bags = category("Túi Mua cùng Lark");
+    ProductResponse inCart = product(bags, "Lark trong giỏ", 1);
+    ProductResponse other = product(bags, "Lark trong giỏ 2", 1);
+    ProductResponse soldOut = product(bags, "Lark hết hàng", 0);
+    ProductResponse together = product(bags, "Lark mua cùng", 1);
+    product(bags, "Lark bán chạy", 9);
+    String reason = "Khách mua Lark trong giỏ cũng hay mua";
+    when(mlServiceClient.boughtTogether(List.of(inCart.id(), other.id()), 4))
+        .thenReturn(
+            Optional.of(
+                List.of(
+                    suggestion(other.id(), reason),
+                    suggestion(soldOut.id(), reason),
+                    suggestion(together.id(), reason))));
+    reload();
+
+    mockMvc
+        .perform(
+            get(BOUGHT_TOGETHER)
+                .param("productIds", inCart.id() + "," + other.id() + "," + inCart.id()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].product.id").value(together.id()))
+        .andExpect(jsonPath("$[0].reason").value(reason))
+        .andExpect(jsonPath("$[0].source").value("RELATED"));
+  }
+
+  @Test
+  void withoutMlServiceBoughtTogetherCountsSharedOrdersAndDoesNotFill() throws Exception {
+    when(mlServiceClient.boughtTogether(anyList(), anyInt())).thenReturn(Optional.empty());
+    long shoes = category("Giày Mua cùng Finch");
+    long buyer = account();
+    ProductResponse inCart = product(shoes, "Finch trong giỏ", 1);
+    ProductResponse often = product(shoes, "Finch hay mua cùng", 1);
+    ProductResponse once = product(shoes, "Finch mua cùng 1 lần", 1);
+    ProductResponse cancelled = product(shoes, "Finch chỉ trong đơn hủy", 1);
+    ProductResponse best = product(shoes, "Finch bán chạy", 9);
+    long first = insertOrder(jdbcTemplate, buyer, "DELIVERED");
+    insertOrderItem(jdbcTemplate, first, variantOf(inCart), 1);
+    insertOrderItem(jdbcTemplate, first, variantOf(once), 1);
+    insertOrderItem(jdbcTemplate, first, variantOf(often), 1);
+    long second = insertOrder(jdbcTemplate, buyer, "PENDING");
+    insertOrderItem(jdbcTemplate, second, variantOf(inCart), 1);
+    insertOrderItem(jdbcTemplate, second, variantOf(often), 1);
+    long third = insertOrder(jdbcTemplate, buyer, "CANCELLED");
+    insertOrderItem(jdbcTemplate, third, variantOf(inCart), 1);
+    insertOrderItem(jdbcTemplate, third, variantOf(cancelled), 1);
+    insertOrderItem(
+        jdbcTemplate, insertOrder(jdbcTemplate, buyer, "DELIVERED"), variantOf(best), 50);
+    reload();
+
+    mockMvc
+        .perform(get(BOUGHT_TOGETHER).param("productIds", String.valueOf(inCart.id())))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(2))
+        .andExpect(jsonPath("$[0].product.id").value(often.id()))
+        .andExpect(jsonPath("$[0].reason").value("Thường được mua cùng sản phẩm trong giỏ"))
+        .andExpect(jsonPath("$[0].source").value("RULE"))
+        .andExpect(jsonPath("$[1].product.id").value(once.id()));
+  }
+
+  @Test
+  void boughtTogetherNeedsOneToFiftyProducts() throws Exception {
+    mockMvc.perform(get(BOUGHT_TOGETHER)).andExpect(status().isBadRequest());
+    List<String> ids = new ArrayList<>();
+    for (long id = 1; id <= 51; id++) {
+      ids.add(String.valueOf(id));
+    }
+    mockMvc
+        .perform(get(BOUGHT_TOGETHER).param("productIds", String.join(",", ids)))
+        .andExpect(status().isBadRequest());
   }
 
   // ---------- Khảo sát (US-23) ----------

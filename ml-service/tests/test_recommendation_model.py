@@ -294,3 +294,22 @@ def test_short_name():
     long = "Giày thể thao nam Biti's Hunter X phiên bản giới hạn màu đen trắng"
     assert short_name(long) == "Giày thể thao nam Biti's Hunter X phiên…"
     assert len(short_name(long)) <= 41
+
+
+def test_bought_together_sums_copurchase_with_cart_items(model):
+    result = model.bought_together([1])
+    assert [s.product_id for s in result] == [6]
+    assert result[0].reason == "Khách mua Giày thể thao nam Biti's Hunter chạy bộ cũng hay mua"
+    assert result[0].source == "RELATED"
+    # Giỏ có giày 1 và túi 4: lấy cả vớ 6 (mua cùng giày) và túi 5 (mua cùng túi 4).
+    assert {s.product_id for s in model.bought_together([1, 4])} == {5, 6}
+    # Sản phẩm đã trong giỏ không được gợi ý lại; vớ 6 được mua cùng giày 1 nhiều hơn giày 2.
+    assert [s.product_id for s in model.bought_together([6])] == [1, 2]
+    assert [s.product_id for s in model.bought_together([1, 6])] == [2]
+    assert model.bought_together([6], limit=1)[0].product_id == 1
+
+
+def test_bought_together_without_copurchase_is_empty(model):
+    assert model.bought_together([999]) == []
+    assert model.bought_together([3]) == []  # chưa ai mua giày 3
+    assert model.bought_together([1], limit=0) == []
