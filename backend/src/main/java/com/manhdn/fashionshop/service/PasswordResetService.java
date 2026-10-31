@@ -76,7 +76,7 @@ public class PasswordResetService {
     this.loginAttemptService = loginAttemptService;
     this.emailClient = emailClient;
     this.clock = clock;
-    this.frontendUrl = frontendUrl.replaceAll("/+$", "");
+    this.frontendUrl = withoutTrailingSlash(frontendUrl);
   }
 
   /**
@@ -153,6 +153,14 @@ public class PasswordResetService {
     } catch (NoSuchAlgorithmException ex) {
       throw new IllegalStateException("JVM không có SHA-256", ex);
     }
+  }
+
+  private static String withoutTrailingSlash(String url) {
+    String result = url;
+    while (result.endsWith("/")) {
+      result = result.substring(0, result.length() - 1);
+    }
+    return result;
   }
 
   private static String emailText(String fullName, String email, String link) {
