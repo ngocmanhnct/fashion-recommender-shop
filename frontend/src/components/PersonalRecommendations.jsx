@@ -13,6 +13,7 @@ import SurveyHome from './SurveyHome';
 const SUBTITLES = {
   BEHAVIOR: 'Dựa trên sản phẩm bạn đã xem, đã mua và đang có trong giỏ hàng.',
   SURVEY: 'Dựa trên câu trả lời khảo sát của bạn.',
+  POPULAR: 'Sản phẩm bán chạy nhất cửa hàng.',
 };
 
 /** ml-service còn đang tính lại thì tải lại sau chừng này mili giây, tối đa MAX_POLLS lần. */
@@ -27,6 +28,8 @@ const MAX_POLLS = 6;
  *   nhật và nhãn "Mới" cho sản phẩm chưa có ở lần khách thấy trước. Khi backend báo đang tính lại,
  *   khối tự tải lại sau vài giây để khách thấy danh sách mới mà không phải tải lại trang.
  * Chưa có danh sách riêng, chưa đăng nhập, hay tải lỗi thì hiện phần khảo sát thay danh sách.
+ * Khách thuộc nhóm CONTROL của thử nghiệm A/B (US-27) thấy sản phẩm bán chạy trong cùng khối "Gợi
+ * ý cho bạn", để 2 nhóm chỉ khác nhau ở cách chọn sản phẩm.
  */
 function PersonalRecommendations() {
   const { user } = useAuth();
@@ -46,7 +49,11 @@ function PersonalRecommendations() {
     [accountId]
   );
 
-  const personal = Boolean(shown && shown.source !== 'POPULAR' && shown.products.length > 0);
+  const personal = Boolean(
+    shown &&
+    shown.products.length > 0 &&
+    (shown.source !== 'POPULAR' || shown.abVariant === 'CONTROL')
+  );
   const idsKey = personal ? shown.products.map((item) => item.product.id).join(',') : '';
 
   useEffect(() => {

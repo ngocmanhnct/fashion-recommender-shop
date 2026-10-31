@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Fashion Shop API (Tuần 9)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR); danh sách khách hàng và kết quả phân nhóm (US-18, US-19); chiến dịch tặng mã theo nhóm và ưu đãi của khách (US-26); tự tặng mã cho khách mới vào nhóm (US-24).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR); danh sách khách hàng và kết quả phân nhóm (US-18, US-19); chiến dịch tặng mã theo nhóm và ưu đãi của khách (US-26); tự tặng mã cho khách mới vào nhóm (US-24, thử nghiệm A/B gợi ý US-27).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -93,6 +93,10 @@
     },
     {
       "key": "campaignId",
+      "value": ""
+    },
+    {
+      "key": "abTestId",
       "value": ""
     }
   ],
@@ -1110,7 +1114,7 @@
                 "me"
               ]
             },
-            "description": "Khối \"Gợi ý cho bạn\" ở trang chủ (US-13): tối đa 8 sản phẩm còn hàng kèm lý do, theo danh sách ml-service đã tính sẵn (bảng recommendation, BR-20). source = BEHAVIOR (đủ dữ liệu hành vi theo BR-19), SURVEY (chưa đủ, theo khảo sát) hoặc POPULAR (chưa có danh sách, trả sản phẩm bán chạy). Danh sách được tính lại 3 giây sau khi thêm vào giỏ, đặt hàng hay lưu khảo sát, 30 giây sau lượt xem; trong lúc chờ updating = true (frontend tự gọi lại mỗi 2,5 giây, tối đa 6 lần). updatedSecondsAgo = số giây từ lần tính gần nhất (null khi POPULAR). recent = hàng \"Vì bạn vừa xem / vừa thêm vào giỏ\": hành động gần nhất trong 24 giờ (kind VIEW hoặc CART, product là sản phẩm đó) kèm tối đa 4 sản phẩm liên quan tính ngay (không chờ ml-service tính lại), bỏ sản phẩm đang trong giỏ; null khi không có hoạt động. Sản phẩm trong recent không lặp lại ở products. Không token 401, token admin 403."
+            "description": "Khối \"Gợi ý cho bạn\" ở trang chủ (US-13): tối đa 8 sản phẩm còn hàng kèm lý do, theo danh sách ml-service đã tính sẵn (bảng recommendation, BR-20). source = BEHAVIOR (đủ dữ liệu hành vi theo BR-19), SURVEY (chưa đủ, theo khảo sát) hoặc POPULAR (chưa có danh sách, trả sản phẩm bán chạy). Danh sách được tính lại 3 giây sau khi thêm vào giỏ, đặt hàng hay lưu khảo sát, 30 giây sau lượt xem; trong lúc chờ updating = true (frontend tự gọi lại mỗi 2,5 giây, tối đa 6 lần). updatedSecondsAgo = số giây từ lần tính gần nhất (null khi POPULAR). recent = hàng \"Vì bạn vừa xem / vừa thêm vào giỏ\": hành động gần nhất trong 24 giờ (kind VIEW hoặc CART, product là sản phẩm đó) kèm tối đa 4 sản phẩm liên quan tính ngay (không chờ ml-service tính lại), bỏ sản phẩm đang trong giỏ; null khi không có hoạt động. Sản phẩm trong recent không lặp lại ở products. Không token 401, token admin 403. Khi có thử nghiệm A/B đang chạy (US-27), abVariant là nhóm của khách (TREATMENT hoặc CONTROL); nhóm CONTROL nhận sản phẩm bán chạy (source POPULAR, recent null). Không tham gia thì abVariant null."
           },
           "event": [
             {
@@ -3342,6 +3346,159 @@
                     "exec": [
                       "pm.test('Có thống kê', () => pm.response.to.have.status(200));",
                       "pm.test('Có dòng tổng', () => pm.expect(pm.response.json().total).to.have.property('shown'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Thử nghiệm A/B gợi ý",
+          "description": "Thử nghiệm A/B gợi ý ở trang chủ (US-27, BR-46). Khi thử nghiệm chạy, khách đã có danh sách gợi ý riêng được chia vào nhóm TREATMENT (thấy gợi ý học máy) hoặc CONTROL (thấy sản phẩm bán chạy) ở lần đầu gọi '3. Khách hàng > Gợi ý cho bạn' (trường abVariant). Kết quả so sánh 2 nhóm bằng kiểm định z hai tỷ lệ. Mỗi lúc chỉ chạy 1 thử nghiệm: chạy 'Dừng thử nghiệm' trước khi bắt đầu lại.",
+          "item": [
+            {
+              "name": "Bắt đầu thử nghiệm",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Gợi ý học máy so với bán chạy\",\n  \"treatmentPercent\": 50\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/ab-tests",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "ab-tests"
+                  ]
+                },
+                "description": "treatmentPercent: phần trăm khách vào nhóm gợi ý học máy, 10 đến 90. Trả 201 kèm { id, name, treatmentPercent, startedAt, endedAt, running }. Đang có thử nghiệm chạy thì 409; thiếu tên hoặc tỷ lệ ngoài 10-90 thì 400 kèm errors."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Đã bắt đầu', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('abTestId', pm.response.json().id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Danh sách thử nghiệm",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/ab-tests",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "ab-tests"
+                  ]
+                },
+                "description": "Mọi thử nghiệm, mới nhất trước. Thử nghiệm đang chạy có running = true, endedAt = null."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Có danh sách', () => pm.response.to.have.status(200));",
+                      "const running = pm.response.json().find((t) => t.running);",
+                      "if (running) pm.collectionVariables.set('abTestId', running.id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Kết quả thử nghiệm",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/ab-tests/{{abTestId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "ab-tests",
+                    "{{abTestId}}"
+                  ]
+                },
+                "description": "Trả { experiment, treatment, control, clickRate, orderRate, boughtClickedRate, minUsersPerGroup }. Mỗi nhóm có users, shown, clicks, ctr, usersClicked, clickRate, usersOrdered, orderRate, orders, revenue, revenuePerUser, usersBoughtClicked, boughtClickedRate (tỷ lệ là phần trăm, null khi mẫu số bằng 0). Mỗi phép so sánh có difference (điểm phần trăm, nhóm gợi ý trừ nhóm bán chạy), pValue và verdict: NOT_ENOUGH_DATA (nhóm dưới 30 khách), TREATMENT_BETTER, CONTROL_BETTER (p < 0,05) hoặc NO_DIFFERENCE. Chỉ tính hành động từ lúc khách được chia nhóm đến lúc dừng."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Có kết quả 2 nhóm', () => {",
+                      "  pm.response.to.have.status(200);",
+                      "  pm.expect(pm.response.json()).to.have.property('treatment');",
+                      "  pm.expect(pm.response.json()).to.have.property('control');",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Dừng thử nghiệm",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/ab-tests/{{abTestId}}/stop",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "ab-tests",
+                    "{{abTestId}}",
+                    "stop"
+                  ]
+                },
+                "description": "Từ lúc dừng mọi khách thấy gợi ý như bình thường; kết quả giữ nguyên số liệu đến lúc dừng. Đã dừng rồi thì 400, mã không có thì 404."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Đã dừng', () => {",
+                      "  pm.response.to.have.status(200);",
+                      "  pm.expect(pm.response.json().running).to.eql(false);",
+                      "});"
                     ]
                   }
                 }

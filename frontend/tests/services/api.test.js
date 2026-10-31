@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import * as abTestApi from '../../src/services/abTestApi';
 import * as addressApi from '../../src/services/addressApi';
 import { brandAdminApi, categoryAdminApi } from '../../src/services/adminCatalogApi';
 import * as authApi from '../../src/services/authApi';
@@ -28,6 +29,15 @@ const CALLS = [
     { email: 'a@b.vn', password: 'x' },
   ],
   [() => authApi.getMe(), 'get', '/api/auth/me'],
+  [() => abTestApi.listAbTests(), 'get', '/api/admin/ab-tests'],
+  [
+    () => abTestApi.startAbTest({ name: 'A', treatmentPercent: 50 }),
+    'post',
+    '/api/admin/ab-tests',
+    { name: 'A', treatmentPercent: 50 },
+  ],
+  [() => abTestApi.stopAbTest(4), 'post', '/api/admin/ab-tests/4/stop'],
+  [() => abTestApi.getAbTestResult(4), 'get', '/api/admin/ab-tests/4'],
   [() => addressApi.listAddresses(), 'get', '/api/addresses'],
   [() => addressApi.createAddress({ a: 1 }), 'post', '/api/addresses', { a: 1 }],
   [() => addressApi.updateAddress(2, { a: 1 }), 'put', '/api/addresses/2', { a: 1 }],
@@ -151,6 +161,11 @@ const QUERIES = [
   [() => customerAdminApi.getCampaigns(''), '/api/admin/campaigns', {}],
   [() => customerAdminApi.getCampaigns('VIP'), '/api/admin/campaigns', { segment: 'VIP' }],
   [() => orderApi.getCheckoutPreview(), '/api/orders/preview', {}],
+  [
+    () => abTestApi.getRecommendationCtr({ from: '2026-10-01', to: '2026-10-30' }),
+    '/api/admin/recommendations/ctr',
+    { from: '2026-10-01', to: '2026-10-30' },
+  ],
   [() => orderApi.getCheckoutPreview('CHAOBAN'), '/api/orders/preview', { voucherCode: 'CHAOBAN' }],
   [
     () => voucherAdminApi.searchVouchers({ keyword: '', page: 1 }),

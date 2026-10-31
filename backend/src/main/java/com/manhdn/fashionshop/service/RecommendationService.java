@@ -8,6 +8,7 @@ import com.manhdn.fashionshop.dto.RecentActivityResponse;
 import com.manhdn.fashionshop.dto.RecommendationSource;
 import com.manhdn.fashionshop.dto.RecommendationsResponse;
 import com.manhdn.fashionshop.dto.RelatedProductResponse;
+import com.manhdn.fashionshop.entity.AbVariant;
 import com.manhdn.fashionshop.entity.Recommendation;
 import com.manhdn.fashionshop.repository.CartItemRepository;
 import com.manhdn.fashionshop.repository.ProductRepository;
@@ -41,6 +42,9 @@ import org.springframework.transaction.annotation.Transactional;
  * giỏ": sản phẩm liên quan của lần xem hoặc thêm giỏ gần nhất trong {@link #RECENT_WINDOW_HOURS}
  * giờ, tính lúc mở trang như khối sản phẩm liên quan (US-12). Sản phẩm đã có ở hàng này không lặp
  * lại ở danh sách chính.
+ *
+ * <p>Khi có thử nghiệm A/B đang chạy (US-27), khách thuộc nhóm CONTROL thấy sản phẩm bán chạy thay
+ * cho cả 2 phần trên; nhóm TREATMENT thấy như bình thường.
  */
 @Service
 @Transactional(readOnly = true)
@@ -66,6 +70,7 @@ public class RecommendationService {
   private final ProductViewLogRepository viewLogRepository;
   private final CartItemRepository cartItemRepository;
   private final ProductCatalogService catalogService;
+  private final AbTestService abTestService;
   private final Clock clock;
 
   /** Nhận các phụ thuộc qua constructor. */
@@ -75,11 +80,13 @@ public class RecommendationService {
       ProductViewLogRepository viewLogRepository,
       CartItemRepository cartItemRepository,
       ProductCatalogService catalogService,
+      AbTestService abTestService,
       Clock clock) {
     this.recommendationRepository = recommendationRepository;
     this.productRepository = productRepository;
     this.cartItemRepository = cartItemRepository;
     this.catalogService = catalogService;
+    this.abTestService = abTestService;
     this.viewLogRepository = viewLogRepository;
     this.clock = clock;
   }
@@ -95,21 +102,32 @@ public class RecommendationService {
    * sản phẩm nào còn bán), thời điểm tính danh sách và cờ {@code updating} cho biết ml-service còn
    * đang tính lại (frontend tải lại sau vài giây để khách thấy danh sách mới).
    *
+   * <p>Có thử nghiệm A/B đang chạy thì khách có danh sách riêng được chia nhóm ở lần gọi đầu (vì
+   * vậy phương thức này có ghi); nhóm CONTROL nhận sản phẩm bán chạy, không có hàng hành động gần
+   * nhất. {@code abVariant} cho biết nhóm của khách, null khi không tham gia thử nghiệm.
+   *
    * @param accountId mã tài khoản khách hàng
    * @return nguồn, danh sách sản phẩm kèm lý do, hàng hành động gần nhất và trạng thái cập nhật
    */
+  @Transactional
   public RecommendationsResponse forAccount(long accountId) {
+    List<Recommendation> rows = recommendationRepository.findForAccount(accountId);
+    Map<Long, ProductCardResponse> cards =
+        AvailableProducts.byId(
+            productRepository, rows.stream().map(r -> r.getProduct().getId()).toList());
+    Optional<AbVariant> variant = abTestService.variantFor(accountId, !cards.isEmpty());
+    String abVariant = variant.map(AbVariant::name).orElse(null);
+    if (variant.isPresent() && variant.get() == AbVariant.CONTROL) {
+      return new RecommendationsResponse(
+          SOURCE_POPULAR, bestSellers(), null, null, false, abVariant);
+    }
+
     RecentActivityResponse recent = recentActivity(accountId);
     Set<Long> inRecent =
         recent == null
             ? Set.of()
             : recent.products().stream().map(p -> p.product().id()).collect(Collectors.toSet());
     boolean updating = recommendationRepository.countPendingRecompute(accountId) > 0;
-
-    List<Recommendation> rows = recommendationRepository.findForAccount(accountId);
-    Map<Long, ProductCardResponse> cards =
-        AvailableProducts.byId(
-            productRepository, rows.stream().map(r -> r.getProduct().getId()).toList());
     List<Recommendation> shown = new ArrayList<>();
     for (Recommendation row : rows) {
       Long productId = row.getProduct().getId();
@@ -122,7 +140,8 @@ public class RecommendationService {
     if (shown.isEmpty()) {
       List<RelatedProductResponse> popular =
           bestSellers().stream().filter(p -> !inRecent.contains(p.product().id())).toList();
-      return new RecommendationsResponse(SOURCE_POPULAR, popular, recent, null, updating);
+      return new RecommendationsResponse(
+          SOURCE_POPULAR, popular, recent, null, updating, abVariant);
     }
     String source = hasEnoughBehaviour(accountId) ? SOURCE_BEHAVIOR : SOURCE_SURVEY;
     List<RelatedProductResponse> products =
@@ -137,7 +156,7 @@ public class RecommendationService {
     ZonedDateTime generatedAt = shown.get(0).getGeneratedAt().atZone(clock.getZone());
     long secondsAgo =
         Math.max(0, Duration.between(generatedAt, ZonedDateTime.now(clock)).toSeconds());
-    return new RecommendationsResponse(source, products, recent, secondsAgo, updating);
+    return new RecommendationsResponse(source, products, recent, secondsAgo, updating, abVariant);
   }
 
   /**

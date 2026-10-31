@@ -195,9 +195,18 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Mỗi nhóm có tối đa 1 chương trình đang chạy; admin dừng được, khách đã nhận vẫn dùng được đến hạn riêng
 - Kết quả của chương trình hiện cùng bảng kết quả các lần tặng mã (US-26), số khách được tặng tăng dần theo thời gian
 
+**US-27: Thử nghiệm A/B gợi ý học máy so với sản phẩm bán chạy** *(bổ sung 31/10/2026)* Là admin, tôi muốn chia khách thành 2 nhóm ngẫu nhiên, một nhóm thấy gợi ý học máy và một nhóm thấy sản phẩm bán chạy ở cùng chỗ trên trang chủ, rồi so sánh tỷ lệ bấm và tỷ lệ mua của 2 nhóm, để có bằng chứng bằng số rằng gợi ý học máy hiệu quả hơn cách đơn giản nhất. Tiêu chí chấp nhận:
+
+- Admin bắt đầu thử nghiệm ở trang "Hiệu quả gợi ý" với tên và tỷ lệ khách vào nhóm gợi ý (10-90%, mặc định 50%); mỗi lúc chỉ chạy 1 thử nghiệm, admin dừng được bất cứ lúc nào
+- Khi thử nghiệm chạy, khách đã có danh sách gợi ý riêng được chia nhóm ở lần đầu mở trang chủ, cố định trong suốt thử nghiệm (BR-46): nhóm A (gợi ý học máy) thấy trang chủ như bình thường, nhóm B (bán chạy) thấy sản phẩm bán chạy trong cùng khối "Gợi ý cho bạn" và không có hàng "Vì bạn vừa xem"; khách không được báo mình thuộc nhóm nào
+- Khách chưa có danh sách gợi ý riêng không tham gia (cả 2 nhóm đều sẽ thấy sản phẩm bán chạy, không có gì để so); sản phẩm liên quan ở trang chi tiết, giỏ hàng và kết quả khảo sát không đổi
+- Kết quả theo từng nhóm: số khách, lượt hiện, lượt bấm, tỷ lệ bấm, tỷ lệ khách bấm ít nhất 1 lần, tỷ lệ khách đặt hàng, tỷ lệ khách mua sản phẩm đã bấm từ gợi ý, số đơn, doanh thu và doanh thu trên mỗi khách; chỉ tính hành động từ lúc khách được chia nhóm đến lúc dừng
+- Mỗi tỷ lệ theo khách có chênh lệch A − B, giá trị p và kết luận (BR-46); xem lại được kết quả của các thử nghiệm đã dừng
+- Cùng trang có bảng tỷ lệ bấm theo vị trí và nguồn gợi ý trong 7, 30 hoặc 90 ngày gần nhất
+
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng).**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý).**
 
 ## 2\. Business rules
 
@@ -329,9 +338,11 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
 - **BR-45 — Khách mới vào nhóm** *(bổ sung 31/10/2026)*: ml-service ghi đè `account_segment` mỗi lần xếp nhóm nên không giữ lúc khách vào nhóm; backend tự ghi nhóm hiện tại và lúc vào nhóm của mỗi khách vào `segment_entry` (khách mới được phân nhóm hoặc đổi sang nhóm khác thì lúc vào nhóm là thời điểm backend thấy thay đổi, khách vẫn ở nhóm cũ thì giữ nguyên). Mỗi phút, chương trình tự tặng đang chạy (mã còn bật và trong thời hạn) tặng mã cho khách đang thuộc nhóm có lúc vào nhóm **sau** lúc bật chương trình và chưa nhận mã đó; hạn dùng riêng của khách = min(lúc nhận + số ngày đã đặt, hạn của mã), tính theo giờ Việt Nam như BR-30. Khách rời nhóm rồi quay lại không nhận lần hai từ cùng chương trình. **\[Giả định\]** quét mỗi phút là đủ gần thời gian thực vì khách chỉ đổi nhóm sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm. *(US-24)*
 
+- **BR-46 — Thử nghiệm A/B gợi ý** *(bổ sung 31/10/2026, US-27)*: nhóm của khách chọn bằng băm, không bằng số ngẫu nhiên: lấy 4 byte đầu của SHA-256(`ab:{mã thử nghiệm}:{mã tài khoản}`) chia lấy dư 100, nhỏ hơn tỷ lệ nhóm gợi ý thì vào nhóm A (TREATMENT), còn lại nhóm B (CONTROL). Cách này ngẫu nhiên giữa các khách nhưng cố định với từng khách, và đổi giữa các lần thử nghiệm; nhóm được ghi vào `ab_assignment` kèm lúc chia ở lần đầu khách đủ điều kiện mở trang chủ. Chỉ số so sánh tính theo khách (mỗi khách là 1 quan sát độc lập): tỷ lệ khách bấm gợi ý trang chủ ít nhất 1 lần, tỷ lệ khách đặt ít nhất 1 đơn chưa hủy, tỷ lệ khách đặt đơn có sản phẩm đã bấm từ gợi ý trang chủ trước lúc đặt. Hai tỷ lệ x₁/n₁ (A) và x₂/n₂ (B) được so bằng kiểm định z hai tỷ lệ, hai phía: p̂ = (x₁ + x₂)/(n₁ + n₂), z = (x₁/n₁ − x₂/n₂) / √(p̂(1 − p̂)(1/n₁ + 1/n₂)), giá trị p = 2(1 − Φ(|z|)). Kết luận: nhóm nào dưới 30 khách thì "chưa đủ khách để kết luận"; p < 0,05 thì nhóm có tỷ lệ cao hơn "cao hơn rõ rệt"; còn lại "chưa thấy khác biệt có ý nghĩa". Tỷ lệ bấm theo lượt hiện chỉ để tham khảo, không kiểm định (các lượt hiện của cùng một khách không độc lập).
+
 ---
 
-**Tổng cộng: 36 business rule**, bao phủ toàn bộ 9 epic ở Mục 1\. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
+**Tổng cộng: 36 business rule gốc**, bao phủ toàn bộ 9 epic ở Mục 1\. Bổ sung sau: BR-37 đến BR-46. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
 
 ## 3\. Từ điển dữ liệu
 
@@ -727,16 +738,33 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 | segment\_campaign | voucher\_id | BIGINT UNSIGNED | UNIQUE, NOT NULL, FK → voucher.id | Mỗi chiến dịch 1 mã riêng |
 | segment\_campaign | recipient\_count | INT | NOT NULL | Số khách được tặng |
 | segment\_campaign | created\_at | DATETIME | NOT NULL |  |
-
 | segment\_entry | account\_id | BIGINT UNSIGNED | PK, FK → account.id | Khách đã phân nhóm (V8, US-24) |
 | segment\_entry | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng entered\_at) | Nhóm hiện tại, backend chép từ `account_segment` mỗi phút |
 | segment\_entry | entered\_at | DATETIME | NOT NULL | Lúc backend thấy khách vào nhóm này (BR-45) |
 
 Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (các đơn chưa hủy có `voucher_id` của chiến dịch): số khách mua, số đơn, doanh thu (`total_amount`), tiền đã giảm (`discount_amount`).
 
+### 3.18 Thử nghiệm A/B gợi ý — `ab_experiment`, `ab_assignment`
+
+*Nguồn: US-27, BR-46. Migration V9 (31/10/2026).*
+
+| Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
+| :---- | :---- | :---- | :---- | :---- |
+| ab\_experiment | id | BIGINT UNSIGNED | PK |  |
+| ab\_experiment | name | VARCHAR(100) | NOT NULL | Tên do admin đặt |
+| ab\_experiment | treatment\_percent | INT | NOT NULL, CHECK 10-90 | Phần trăm khách vào nhóm gợi ý học máy |
+| ab\_experiment | started\_at | DATETIME | NOT NULL, INDEX |  |
+| ab\_experiment | ended\_at | DATETIME | NULLABLE | NULL \= đang chạy; tối đa 1 thử nghiệm đang chạy (kiểm tra ở backend) |
+| ab\_assignment | experiment\_id | BIGINT UNSIGNED | PK (cùng account\_id), FK → ab\_experiment.id |  |
+| ab\_assignment | account\_id | BIGINT UNSIGNED | PK, FK → account.id, INDEX |  |
+| ab\_assignment | variant | ENUM('TREATMENT','CONTROL') | NOT NULL | Nhóm A (gợi ý học máy) hoặc B (bán chạy), BR-46 |
+| ab\_assignment | assigned\_at | DATETIME | NOT NULL | Lúc chia nhóm; kết quả chỉ tính hành động từ lúc này |
+
+Kết quả thử nghiệm không lưu sẵn mà tính khi xem từ `product_event_log` (lượt hiện, lượt bấm ở vị trí HOME và HOME\_RECENT) và `orders` (đơn chưa hủy, kèm `order_item` để biết khách mua sản phẩm đã bấm).
+
 ---
 
-**Tổng cộng: 29 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10 và 3 bảng chiến dịch ở Mục 3.17), bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 31 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10, 3 bảng chiến dịch ở Mục 3.17 và 2 bảng thử nghiệm A/B ở Mục 3.18), bao phủ toàn bộ Mục 1-2.
 
 ## 4\. Context diagram
 
