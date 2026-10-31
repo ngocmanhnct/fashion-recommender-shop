@@ -7,8 +7,9 @@ import ProductImage from './ProductImage';
  * khác bên trong). Điểm đánh giá chỉ hiện khi đã có đánh giá, số đã bán chỉ hiện khi lớn hơn 0.
  * reason: lý do gợi ý (danh sách sản phẩm liên quan), không bắt buộc.
  * onClick: gọi khi bấm vào thẻ (ghi lượt bấm gợi ý), không bắt buộc.
+ * isNew: hiện nhãn "Mới" (sản phẩm vừa vào danh sách gợi ý), không bắt buộc.
  */
-function ProductCard({ product, reason, onClick }) {
+function ProductCard({ product, reason, onClick, isNew = false }) {
   const hasRating = product.ratingAverage != null;
   const hasSold = product.soldCount > 0;
   return (
@@ -20,6 +21,7 @@ function ProductCard({ product, reason, onClick }) {
           categoryName={product.categoryName}
         />
         {!product.inStock && <span className="badge badge-soldout">Hết hàng</span>}
+        {isNew && <span className="badge badge-new">Mới</span>}
       </span>
       <span className="product-card-body">
         <span className="product-card-name">{product.name}</span>

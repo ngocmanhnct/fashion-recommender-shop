@@ -123,13 +123,20 @@ def split(
         if not earlier or not targets:
             continue
         since = last.created_at - timedelta(days=data.VIEW_WINDOW_DAYS)
+        seen = [(p, at) for p, at in views.get(account_id, []) if since <= at < last.created_at]
         signals = UserSignals(
             account_id,
             purchased=bought,
-            viewed={p for p, at in views.get(account_id, []) if since <= at < last.created_at},
+            viewed={p for p, _ in seen},
             delivered_orders=len(earlier),
             survey=survey,
+            now=last.created_at,
         )
+        for order in earlier:
+            for product_id in order.products:
+                signals.touch(product_id, order.created_at)
+        for product_id, at in seen:
+            signals.touch(product_id, at)
         behaviour.append(Case(signals, targets))
         held_out.add(last.id)
     train = [o for o in orders if o.id not in held_out]
@@ -206,6 +213,7 @@ BEHAVIOUR_METHODS = {
     "Bán chạy": Weights(0, 0, 1, 0, 0),
     "Nội dung (P(u), cosine)": Weights(1, 0, 0, 0, 0),
     "Hay mua cùng": Weights(0, 1, 0, 0, 0),
+    "Hybrid, không ưu tiên gần đây": replace(DEFAULT_WEIGHTS, recent_boost=0),
     "Hybrid (mặc định)": DEFAULT_WEIGHTS,
 }
 """Các cách so sánh trên khách có hành vi: từng nguồn riêng và hybrid."""
@@ -250,6 +258,7 @@ def run(engine: Engine, grid: bool, out=None) -> dict[str, Scores]:
     print_table(results, dataset, out)
     if grid:
         print_grid(dataset, behaviour, out)
+        print_recency_grid(behaviour, out)
     print(f"\nThời gian chạy: {time.perf_counter() - started:.1f} giây", file=out)
     return results
 
@@ -298,6 +307,19 @@ def print_grid(dataset: Dataset, behaviour: Callable[[Weights], Scores], out) ->
         print(
             f"| {w.content} | {w.copurchase} | {w.popular} | {w.diversity} | {s.hit_rate:.3f} "
             f"| {s.ndcg:.3f} | {s.coverage:.3f} |",
+            file=out,
+        )
+
+
+def print_recency_grid(behaviour: Callable[[Weights], Scores], out) -> None:
+    """Thử các mức ưu tiên tương tác gần đây (β, chu kỳ bán rã) với trọng số trộn mặc định."""
+    print("\n| β | Bán rã (ngày) | Tỷ lệ trúng | NDCG | Độ phủ |", file=out)
+    print("|---:|---:|---:|---:|---:|", file=out)
+    for boost, half_life in itertools.product((0.0, 1.0, 2.0, 3.0, 5.0), (1.0, 3.0, 7.0)):
+        weights = replace(DEFAULT_WEIGHTS, recent_boost=boost, recent_half_life_days=half_life)
+        s = behaviour(weights)
+        print(
+            f"| {boost:g} | {half_life:g} | {s.hit_rate:.3f} | {s.ndcg:.3f} | {s.coverage:.3f} |",
             file=out,
         )
 

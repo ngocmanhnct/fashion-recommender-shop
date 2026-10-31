@@ -173,6 +173,18 @@ public class ProductCatalogService {
     return result;
   }
 
+  /**
+   * Thẻ của một sản phẩm đang bán (tên, giá, ảnh, điểm đánh giá), dùng khi cần nêu tên sản phẩm
+   * trong khối gợi ý.
+   *
+   * @param id mã sản phẩm
+   * @return thẻ sản phẩm
+   * @throws NoSuchElementException nếu không có sản phẩm hoặc sản phẩm đã ngừng bán
+   */
+  public ProductCardResponse getCard(Long id) {
+    return ProductCardResponse.from(getForSale(id));
+  }
+
   /** Thêm sản phẩm dịch vụ học máy gợi ý (còn bán, còn hàng) theo đúng thứ tự, kèm lý do. */
   private void addSuggestions(
       List<RelatedProductResponse> result, Set<Long> chosen, List<MlSuggestion> suggestions) {

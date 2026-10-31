@@ -15,8 +15,9 @@ import java.util.List;
  * Lượt hiện hoặc lượt bấm của các sản phẩm gợi ý, ghi vào product_event_log để tính tỷ lệ bấm.
  *
  * @param type SHOWN (khối gợi ý lọt vào màn hình, gửi cả danh sách) hoặc CLICKED (bấm 1 sản phẩm)
- * @param placement vị trí khối gợi ý: HOME (trang chủ), PRODUCT_DETAIL (sản phẩm liên quan),
- *     SURVEY_RESULT (kết quả khảo sát)
+ * @param placement vị trí khối gợi ý: HOME (trang chủ), HOME_RECENT (hàng "Vì bạn vừa xem / vừa
+ *     thêm vào giỏ" ở trang chủ), PRODUCT_DETAIL (sản phẩm liên quan), SURVEY_RESULT (kết quả khảo
+ *     sát)
  * @param items các sản phẩm, tối đa 20
  */
 public record RecommendationEventRequest(
@@ -25,8 +26,8 @@ public record RecommendationEventRequest(
         String type,
     @NotNull(message = "Chưa có vị trí gợi ý")
         @Pattern(
-            regexp = "HOME|PRODUCT_DETAIL|SURVEY_RESULT",
-            message = "Vị trí gợi ý là HOME, PRODUCT_DETAIL hoặc SURVEY_RESULT")
+            regexp = "HOME|HOME_RECENT|PRODUCT_DETAIL|SURVEY_RESULT",
+            message = "Vị trí gợi ý là HOME, HOME_RECENT, PRODUCT_DETAIL hoặc SURVEY_RESULT")
         String placement,
     @NotEmpty(message = "Chưa có sản phẩm nào")
         @Size(max = 20, message = "Tối đa 20 sản phẩm mỗi lần")

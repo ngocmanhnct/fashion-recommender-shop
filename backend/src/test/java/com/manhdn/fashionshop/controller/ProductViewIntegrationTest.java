@@ -51,11 +51,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 @AutoConfigureMockMvc
 class ProductViewIntegrationTest {
 
-  private static final long FIVE_MINUTES_MICROS = 300_000_000L;
+  private static final long THIRTY_SECONDS_MICROS = 30_000_000L;
   private static final long THREE_SECONDS_MICROS = 3_000_000L;
 
-  /** Còn hơn 4 phút nữa mới đến hạn: chắc chắn là thời gian chờ 5 phút của lượt xem. */
-  private static final long VIEW_DELAY_LOWER_BOUND = 240_000_000L;
+  /** Còn hơn 20 giây nữa mới đến hạn: chắc chắn là thời gian chờ 30 giây của lượt xem. */
+  private static final long VIEW_DELAY_LOWER_BOUND = 20_000_000L;
 
   @Autowired private MockMvc mockMvc;
   @Autowired private CategoryService categoryService;
@@ -93,7 +93,7 @@ class ProductViewIntegrationTest {
   // ---------- Ghi lượt xem qua API ----------
 
   @Test
-  void viewIsLoggedAndRequestsRecomputeInFiveMinutesUtc() throws Exception {
+  void viewIsLoggedAndRequestsRecomputeInThirtySecondsUtc() throws Exception {
     long account = account();
     long product = product();
 
@@ -104,7 +104,7 @@ class ProductViewIntegrationTest {
     assertThat(request.get("task_type")).isEqualTo("RECOMMENDATION");
     assertThat(((Number) request.get("version")).intValue()).isEqualTo(1);
     assertThat(((Number) request.get("attempts")).intValue()).isZero();
-    assertThat(microsUntilDue(account)).isBetween(VIEW_DELAY_LOWER_BOUND, FIVE_MINUTES_MICROS);
+    assertThat(microsUntilDue(account)).isBetween(VIEW_DELAY_LOWER_BOUND, THIRTY_SECONDS_MICROS);
     assertThat(
             jdbcTemplate.queryForObject(
                 "SELECT TIMESTAMPDIFF(SECOND, created_at, UTC_TIMESTAMP(3)) FROM recompute_request"
@@ -135,7 +135,7 @@ class ProductViewIntegrationTest {
     assertThat(version(account)).isEqualTo(6);
 
     // Chỉ lượt xem vừa đạt ngưỡng được tính lại sau 3 giây: sau khi ml-service đã xử lý yêu cầu,
-    // sản phẩm mới tiếp theo trở lại thời gian chờ 5 phút
+    // sản phẩm mới tiếp theo trở lại thời gian chờ 30 giây
     jdbcTemplate.update("DELETE FROM recompute_request WHERE account_id = ?", account);
     view(account, product()).andExpect(status().isNoContent());
     assertThat(microsUntilDue(account)).isGreaterThan(VIEW_DELAY_LOWER_BOUND);
