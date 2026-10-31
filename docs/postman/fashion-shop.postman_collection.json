@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Fashion Shop API (Tuần 9)",
-    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR); danh sách khách hàng và kết quả phân nhóm (US-18, US-19).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
+    "description": "Bộ request thử API backend: đăng nhập, danh mục, thương hiệu, sản phẩm, biến thể; trang người dùng (danh sách, tìm kiếm, chi tiết, gợi ý sản phẩm, ghi lượt xem); khảo sát lần đầu (US-23); gợi ý cho bạn ở trang chủ (US-13); nhật ký lượt hiện, lượt bấm gợi ý và tỷ lệ bấm (CTR); danh sách khách hàng và kết quả phân nhóm (US-18, US-19); chiến dịch tặng mã theo nhóm và ưu đãi của khách (US-26).\n\nCách dùng: điền biến adminEmail và adminPassword ở tab Variables của collection (giống ADMIN_EMAIL, ADMIN_PASSWORD trong .env), chạy '1. Xác thực > Đăng nhập admin' trước. Token tự lưu vào biến token và mọi request khác tự gửi kèm, trừ nhóm '3. Khách hàng' gửi biến customerToken do '1. Xác thực > Đăng nhập khách hàng' lưu (nên chạy cả collection theo thứ tự vẫn đúng token). Các request tạo mới tự lưu id vừa tạo (categoryId, brandId, productId, variantId) cho request sau dùng; '2. Công khai > Danh sách sản phẩm' lưu id sản phẩm đầu tiên vào publicProductId (chỉ các request xem sản phẩm công khai và ghi lượt xem dùng biến này; productId chỉ dành cho request admin, để không sửa/xóa nhầm sản phẩm mẫu).\n\nToken hết hạn sau 24 giờ, và backend tạo khóa mới mỗi lần khởi động lại nếu JWT_SECRET để trống, nên khởi động lại backend thì đăng nhập lại.\n\nCác nhóm API: 1. Xác thực, 2. Công khai, 3. Khách hàng, 4. Admin (chia nhỏ theo đối tượng quản lý), 5. ML service (API nội bộ của ml-service, dùng biến mlBaseUrl, chỉ thử được khi chạy ml-service trên máy). API mới được thêm vào đúng nhóm theo quyền truy cập.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -1683,6 +1683,36 @@
           ]
         },
         {
+          "name": "Ưu đãi của bạn",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/vouchers/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "vouchers",
+                "me"
+              ]
+            },
+            "description": "US-26. Mã riêng khách được tặng qua chiến dịch theo nhóm và còn dùng được (đang bật, trong thời hạn, còn lượt, khách chưa dùng hết lượt của mình), hết hạn sớm nhất trước: [{ code, discountType, discountValue, maxDiscountAmount, minOrderAmount, validUntil }]. Chưa xét đơn tối thiểu. Token ADMIN trả 403."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem ưu đãi thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Xem trước đơn hàng kèm mã giảm giá",
           "request": {
             "method": "GET",
@@ -2878,7 +2908,7 @@
         },
         {
           "name": "Khách hàng và phân nhóm",
-          "description": "Danh sách, chi tiết khách hàng (US-18) và kết quả phân nhóm RFM + K-Means (US-19). Chỉ đọc: ml-service ghi các bảng phân nhóm. Chạy 'Danh sách khách hàng' trước để lưu biến customerId.",
+          "description": "Danh sách, chi tiết khách hàng (US-18) và kết quả phân nhóm RFM + K-Means (US-19). Chỉ đọc: ml-service ghi các bảng phân nhóm. Chạy 'Danh sách khách hàng' trước để lưu biến customerId. Chiến dịch tặng mã theo nhóm (US-26) ghi: tạo mã riêng (recipientsOnly) và danh sách khách được tặng.",
           "item": [
             {
               "name": "Danh sách khách hàng",
@@ -3045,8 +3075,139 @@
                     "LOYAL"
                   ]
                 },
-                "description": "US-25. Hồ sơ 1 nhóm theo mã (VIP, LOYAL, SAVER, NEW, AT_RISK, LOST): số khách và % khách đã phân nhóm, doanh thu và % doanh thu các nhóm, số đơn Đã giao, giá trị đơn trung bình, nhịp mua (số ngày trung bình giữa 2 đơn liên tiếp, null nếu chưa ai mua từ 2 đơn), số ngày gắn bó trung bình, 5 danh mục mua nhiều nhất, số khách theo giới tính (MALE, FEMALE, OTHER, UNKNOWN) và nhóm tuổi (UNDER_18 … 55_PLUS, UNKNOWN), khách cần chăm sóc (BR-43: mua từ 2 đơn, số ngày chưa mua vượt 1,5 lần nhịp riêng và quá 30 ngày; trả tối đa 20, quá nhịp lâu nhất trước, careCount là tổng số). Chỉ tính đơn Đã giao. Mã không có trả 404."
+                "description": "US-25. Hồ sơ 1 nhóm theo mã (VIP, LOYAL, SAVER, NEW, AT_RISK, LOST): số khách và % khách đã phân nhóm, doanh thu và % doanh thu các nhóm, số đơn Đã giao, giá trị đơn trung bình, nhịp mua (số ngày trung bình giữa 2 đơn liên tiếp, null nếu chưa ai mua từ 2 đơn), số ngày gắn bó trung bình, 5 danh mục mua nhiều nhất, số khách theo giới tính (MALE, FEMALE, OTHER, UNKNOWN) và nhóm tuổi (UNDER_18 … 55_PLUS, UNKNOWN), khách cần chăm sóc (BR-43: mua từ 2 đơn, số ngày chưa mua vượt 1,5 lần nhịp riêng và quá 30 ngày; trả tối đa 20, quá nhịp lâu nhất trước, careCount là tổng số). Chỉ tính đơn Đã giao. Mã không có trả 404. Kèm suggestion (US-26): việc nên làm với nhóm theo thói quen của chính nhóm { goal, reason, target (ALL = cả nhóm, CARE = khách cần chăm sóc), discountType, discountValue, maxDiscountAmount, minOrderAmount, validDays } để điền sẵn biểu mẫu tặng mã."
               }
+            },
+            {
+              "name": "Tặng mã cho khách cần chăm sóc của nhóm",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/segments/AT_RISK/campaigns",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "segments",
+                    "AT_RISK",
+                    "campaigns"
+                  ]
+                },
+                "description": "US-26. target CARE: tặng cho khách cần chăm sóc của nhóm (BR-43) lúc tặng; ALL: cả nhóm. voucher là điều kiện mã như \"Tạo mã giảm giá\"; mã tạo ra là mã riêng (recipientsOnly = true): chỉ khách được tặng dùng được (BR-44), khách khác nhập thì preview báo \"Mã này chỉ dành cho khách được tặng\" và đặt hàng trả 409. Trả 201 kèm chiến dịch như \"Kết quả các lần tặng mã\". Nhóm không có trong lần phân nhóm gần nhất 404; không có khách để tặng 409; trùng mã 409.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target\": \"CARE\",\n  \"voucher\": {\n    \"code\": \"AT_RISK-0111\",\n    \"discountType\": \"PERCENT\",\n    \"discountValue\": 20,\n    \"maxDiscountAmount\": 100000,\n    \"minOrderAmount\": null,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2026-11-08T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Tặng mã thành công', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('voucherCode', pm.response.json().voucher.code);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Tặng mã cho cả nhóm",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/segments/LOYAL/campaigns",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "segments",
+                    "LOYAL",
+                    "campaigns"
+                  ]
+                },
+                "description": "US-26. Như trên với target ALL: mọi khách đang trong nhóm lúc tặng (khách vào nhóm sau đó không nhận được). Ví dụ ưu đãi gợi ý của nhóm Khách thân thiết: giảm 50.000đ cho đơn từ 1,3 lần giá trị đơn trung bình của nhóm.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"target\": \"ALL\",\n  \"voucher\": {\n    \"code\": \"LOYAL-0111\",\n    \"discountType\": \"FIXED\",\n    \"discountValue\": 50000,\n    \"maxDiscountAmount\": null,\n    \"minOrderAmount\": 250000,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2026-11-15T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Tặng mã thành công', () => pm.response.to.have.status(201));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Kết quả các lần tặng mã",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/campaigns",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "campaigns"
+                  ],
+                  "query": [
+                    {
+                      "key": "segment",
+                      "value": "AT_RISK",
+                      "disabled": true,
+                      "description": "Mã nhóm (tối đa 20 ký tự); bỏ trống là mọi nhóm"
+                    }
+                  ]
+                },
+                "description": "US-26. Tối đa 50 chiến dịch, mới nhất trước: segmentCode, segmentName (tên lúc tặng), target, createdAt, recipientCount, voucher (như danh sách mã), buyers (số khách được tặng đã đặt đơn với mã), conversionRate (% buyers / recipientCount), orders, revenue (tổng tiền các đơn đó sau giảm), discount (tổng tiền đã giảm), revenuePerDiscount (revenue / discount, null khi chưa giảm đồng nào). Chỉ tính đơn chưa hủy."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Có kết quả', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
             }
           ]
         },

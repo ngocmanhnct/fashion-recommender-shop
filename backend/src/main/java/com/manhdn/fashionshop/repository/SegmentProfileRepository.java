@@ -158,4 +158,12 @@ public class SegmentProfileRepository {
         });
     return result;
   }
+
+  /** Mã tài khoản của mọi khách hiện thuộc nhóm. */
+  public List<Long> memberIds(long segmentId) {
+    return jdbc.queryForList(
+        "SELECT account_id FROM account_segment WHERE segment_id = :segmentId",
+        Map.of("segmentId", segmentId),
+        Long.class);
+  }
 }

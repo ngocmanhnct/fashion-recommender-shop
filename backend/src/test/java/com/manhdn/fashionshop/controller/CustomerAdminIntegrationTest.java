@@ -163,6 +163,8 @@ class CustomerAdminIntegrationTest {
         .andExpect(jsonPath("$.model.silhouette").value(0.42))
         .andExpect(jsonPath("$.model.trainedAt").value("2026-10-28T02:00:00"))
         .andExpect(jsonPath("$.segments[0].code").value("VIP"))
+        .andExpect(
+            jsonPath("$.segments[0].goal").value("Giữ chân nhóm mang lại nhiều doanh thu nhất"))
         .andExpect(jsonPath("$.segments[0].customerCount").value(2))
         .andExpect(jsonPath("$.segments[0].share").value(100.0))
         .andExpect(jsonPath("$.segments[0].avgRecency").value(5.0))

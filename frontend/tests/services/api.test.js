@@ -14,6 +14,7 @@ import * as recommendationApi from '../../src/services/recommendationApi';
 import * as reviewApi from '../../src/services/reviewApi';
 import * as surveyApi from '../../src/services/surveyApi';
 import * as voucherAdminApi from '../../src/services/voucherAdminApi';
+import * as voucherApi from '../../src/services/voucherApi';
 import * as wishlistApi from '../../src/services/wishlistApi';
 import { mockApi } from '../apiMock';
 
@@ -63,6 +64,13 @@ const CALLS = [
   [() => customerAdminApi.getCustomer(7), 'get', '/api/admin/customers/7'],
   [() => customerAdminApi.getSegments(), 'get', '/api/admin/segments'],
   [() => customerAdminApi.getSegmentProfile('VIP'), 'get', '/api/admin/segments/VIP'],
+  [
+    () => customerAdminApi.createCampaign('VIP', { target: 'ALL', voucher: { code: 'X' } }),
+    'post',
+    '/api/admin/segments/VIP/campaigns',
+    { target: 'ALL', voucher: { code: 'X' } },
+  ],
+  [() => voucherApi.getMyVouchers(), 'get', '/api/vouchers/me'],
   [() => healthApi.getHealth(), 'get', '/actuator/health'],
   [() => orderAdminApi.getAdminOrder(9), 'get', '/api/admin/orders/9'],
   [
@@ -139,6 +147,8 @@ const QUERIES = [
     { status: 'PENDING', page: 0, size: 20 },
   ],
   [() => orderApi.listOrders(), '/api/orders', { page: 0, size: 10 }],
+  [() => customerAdminApi.getCampaigns(''), '/api/admin/campaigns', {}],
+  [() => customerAdminApi.getCampaigns('VIP'), '/api/admin/campaigns', { segment: 'VIP' }],
   [() => orderApi.getCheckoutPreview(), '/api/orders/preview', {}],
   [() => orderApi.getCheckoutPreview('CHAOBAN'), '/api/orders/preview', { voucherCode: 'CHAOBAN' }],
   [

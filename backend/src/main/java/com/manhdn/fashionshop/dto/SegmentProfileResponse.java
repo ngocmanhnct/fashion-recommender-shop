@@ -25,6 +25,7 @@ import java.util.List;
  * @param ageGroups số khách theo nhóm tuổi
  * @param careCount số khách cần chăm sóc (BR-43)
  * @param careList tối đa 20 khách cần chăm sóc, quá nhịp mua nhiều nhất trước
+ * @param suggestion việc nên làm với nhóm và ưu đãi gợi ý (US-26)
  */
 public record SegmentProfileResponse(
     String code,
@@ -43,7 +44,8 @@ public record SegmentProfileResponse(
     List<Bucket> genders,
     List<Bucket> ageGroups,
     long careCount,
-    List<CareCustomer> careList) {
+    List<CareCustomer> careList,
+    CampaignSuggestion suggestion) {
 
   /**
    * Một danh mục và phần của nó trong số sản phẩm nhóm đã mua.

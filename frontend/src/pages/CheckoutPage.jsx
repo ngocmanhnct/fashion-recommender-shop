@@ -8,6 +8,8 @@ import { createAddress, listAddresses } from '../services/addressApi';
 import { getErrorMessage } from '../services/errorMessage';
 import { formatPrice } from '../services/format';
 import { getCheckoutPreview, newIdempotencyKey, placeOrder } from '../services/orderApi';
+import { getMyVouchers } from '../services/voucherApi';
+import { describeDiscount } from '../services/voucherLabels';
 import { goToVnPay } from '../services/vnpayRedirect';
 
 // Phí vận chuyển (BR-35): miễn phí khi tổng tiền hàng từ mức này; backend tính lại khi đặt.
@@ -18,7 +20,8 @@ const FREE_SHIPPING_THRESHOLD = 500_000;
  * thanh toán, xem tóm tắt đơn theo giá hiện tại rồi xác nhận.
  *
  * Mã giảm giá (US-21): bấm "Áp dụng" thì tóm tắt tính lại kèm số tiền giảm, hoặc báo vì sao mã
- * không dùng được. Chỉ mã backend đã nhận mới được gửi khi đặt hàng.
+ * không dùng được. Chỉ mã backend đã nhận mới được gửi khi đặt hàng. Mã riêng khách được tặng
+ * (US-26) hiện thành nút bên dưới ô nhập, bấm là áp dụng.
  *
  * Mã định danh lần đặt hàng (BR-10) được sinh 1 lần khi mở trang: bấm lại sau khi mất mạng gửi
  * cùng mã, backend trả lại đơn đã tạo thay vì tạo thêm đơn.
@@ -35,6 +38,8 @@ function CheckoutPage() {
     getCheckoutPreview(appliedCode)
   );
   const addressBook = useApiData('addresses', listAddresses);
+  // Không tải được mã được tặng thì chỉ thiếu nút chọn nhanh, khách vẫn gõ mã được.
+  const myVouchers = useApiData('my-vouchers', getMyVouchers);
   const [idempotencyKey] = useState(newIdempotencyKey);
   const [selectedId, setSelectedId] = useState(null);
   const [addingAddress, setAddingAddress] = useState(false);
@@ -111,6 +116,11 @@ function CheckoutPage() {
     const code = voucherInput.trim();
     if (code === appliedCode) preview.reload();
     else setAppliedCode(code);
+  };
+
+  const applyCode = (code) => {
+    setVoucherInput(code);
+    setAppliedCode(code);
   };
 
   const handleRemoveVoucher = () => {
@@ -297,6 +307,25 @@ function CheckoutPage() {
                     Áp dụng
                   </button>
                 </div>
+                {myVouchers.data?.length > 0 && (
+                  <div className="voucher-chips" role="group" aria-label="Mã bạn được tặng">
+                    {myVouchers.data.map((v) => (
+                      <button
+                        key={v.code}
+                        type="button"
+                        className="voucher-chip"
+                        disabled={preview.loading}
+                        onClick={() => applyCode(v.code)}
+                      >
+                        <strong>{v.code}</strong>
+                        <span className="small">
+                          {describeDiscount(v)}
+                          {v.minOrderAmount > 0 && `, đơn từ ${formatPrice(v.minOrderAmount)}`}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </form>
             )}
             {summary.voucherError && (
