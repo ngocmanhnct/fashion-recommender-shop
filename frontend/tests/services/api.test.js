@@ -12,6 +12,7 @@ import * as productAdminApi from '../../src/services/productAdminApi';
 import * as productApi from '../../src/services/productApi';
 import * as recommendationApi from '../../src/services/recommendationApi';
 import * as surveyApi from '../../src/services/surveyApi';
+import * as wishlistApi from '../../src/services/wishlistApi';
 import { mockApi } from '../apiMock';
 
 // Mỗi hàm bọc API gửi đúng phương thức, đường dẫn, tham số tới backend và trả về phần data.
@@ -81,6 +82,10 @@ const CALLS = [
   [() => productApi.recordProductView(1), 'post', '/api/products/1/views'],
   [() => recommendationApi.getMyRecommendations(), 'get', '/api/recommendations/me'],
   [() => surveyApi.getSurvey(), 'get', '/api/survey'],
+  [() => wishlistApi.getWishlist(), 'get', '/api/wishlist'],
+  [() => wishlistApi.getWishlistIds(), 'get', '/api/wishlist/ids'],
+  [() => wishlistApi.addToWishlist(3), 'put', '/api/wishlist/3'],
+  [() => wishlistApi.removeFromWishlist(3), 'delete', '/api/wishlist/3'],
   [() => surveyApi.getSurveyBrands([]), 'post', '/api/survey/brands', { answers: [] }],
   [() => surveyApi.evaluateSurvey([]), 'post', '/api/survey/evaluate', { answers: [] }],
   [() => surveyApi.getMySurvey(), 'get', '/api/survey/me'],

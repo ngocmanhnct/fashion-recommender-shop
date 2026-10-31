@@ -563,6 +563,26 @@ legend {
   min-width: 0;
 }
 
+.wishlist-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.wishlist-item .product-card {
+  height: auto;
+  flex: 1;
+}
+
+.wishlist-action {
+  margin-top: 12px;
+}
+
+.wishlist-btn.is-liked {
+  color: var(--danger);
+  border-color: currentColor;
+}
+
 .product-card {
   display: flex;
   flex-direction: column;

@@ -36,6 +36,7 @@ function Layout() {
           <NavLink to="/products">Sản phẩm</NavLink>
           {user?.role === 'ADMIN' && <NavLink to="/admin">Quản trị</NavLink>}
           {user?.role === 'CUSTOMER' && <NavLink to="/orders">Đơn hàng</NavLink>}
+          {user?.role === 'CUSTOMER' && <NavLink to="/wishlist">Yêu thích</NavLink>}
           {cartMode !== 'none' && (
             <NavLink to="/cart" className="cart-link">
               Giỏ hàng

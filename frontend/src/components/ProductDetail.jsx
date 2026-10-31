@@ -10,10 +10,11 @@ import ProductGallery from './ProductGallery';
 import ProductNotFound from './ProductNotFound';
 import RelatedProducts from './RelatedProducts';
 import VariantPicker from './VariantPicker';
+import WishlistButton from './WishlistButton';
 
 /**
  * Nội dung trang chi tiết sản phẩm (US-03): đường dẫn, ảnh, tên, thương hiệu, giá, chọn phân
- * loại, mô tả và gợi ý sản phẩm liên quan. Trang tạo lại component này theo mã sản phẩm (key),
+ * loại, nút yêu thích, mô tả và gợi ý sản phẩm liên quan. Trang tạo lại component này theo mã sản phẩm (key),
  * nên chuyển sang sản phẩm khác (vd bấm 1 sản phẩm liên quan) bắt đầu lại từ đầu, không còn sót
  * dữ liệu hay lựa chọn của sản phẩm trước.
  *
@@ -78,6 +79,7 @@ function ProductDetail({ id }) {
           )}
           <ProductStats product={product} />
           <VariantPicker key={product.id} product={product} />
+          <WishlistButton productId={product.id} />
         </div>
       </div>
 

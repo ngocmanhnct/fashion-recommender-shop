@@ -120,7 +120,7 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 
 ### Epic 7 — Tính năng phụ, ưu tiên thấp (có thể cắt nếu thiếu thời gian)
 
-**US-14: Lưu sản phẩm vào danh sách yêu thích (wishlist)** Là người mua đã đăng nhập, tôi muốn lưu sản phẩm vào danh sách yêu thích, để xem lại sau mà không cần tìm lại. Tiêu chí chấp nhận: thêm/xóa khỏi wishlist; xem danh sách wishlist riêng.
+**US-14: Lưu sản phẩm vào danh sách yêu thích (wishlist)** Là người mua đã đăng nhập, tôi muốn lưu sản phẩm vào danh sách yêu thích, để xem lại sau mà không cần tìm lại. Tiêu chí chấp nhận: thêm/xóa khỏi wishlist; xem danh sách wishlist riêng. Cài đặt (31/10/2026): nút "Yêu thích" ở trang chi tiết sản phẩm (khách chưa đăng nhập bấm thì đăng nhập rồi quay lại) và trang "Yêu thích" riêng, sản phẩm thêm sau đứng trước; ghi ở cấp sản phẩm, thêm lại hay bỏ sản phẩm không có trong danh sách thì không làm gì; tối đa 100 sản phẩm **\[Giả định\]**; sản phẩm hết hàng vẫn hiện, sản phẩm đã ngừng bán thì ẩn (dòng vẫn giữ); thêm/bỏ yêu cầu tính lại gợi ý như hành động rõ ý (BR-20).
 
 **US-15: Đánh giá sản phẩm đã mua** Là người mua đã nhận hàng, tôi muốn đánh giá sản phẩm, để chia sẻ trải nghiệm và giúp người mua sau. Tiêu chí chấp nhận: chỉ đánh giá được sản phẩm đã có đơn hàng hoàn tất; có điểm sao \+ nhận xét text.
 

@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import ProductDetailPage from '../../src/pages/ProductDetailPage';
 import * as productApi from '../../src/services/productApi';
+import * as wishlistApi from '../../src/services/wishlistApi';
 import { authValue, cartValue, renderWithContext, users } from '../renderWithContext';
 
 vi.mock('../../src/services/productApi');
 vi.mock('../../src/services/recommendationApi');
+vi.mock('../../src/services/wishlistApi');
 
 const variant = (id, option1Value, option2Value, stock, price = 500000) => ({
   id,
@@ -60,6 +62,7 @@ describe('ProductDetailPage', () => {
     vi.mocked(productApi.getProduct).mockResolvedValue(PRODUCT);
     vi.mocked(productApi.getRelatedProducts).mockResolvedValue(RELATED);
     vi.mocked(productApi.recordProductView).mockResolvedValue(undefined);
+    vi.mocked(wishlistApi.getWishlistIds).mockResolvedValue([]);
   });
 
   it('hiện thông tin sản phẩm, ghi 1 lượt xem cho khách hàng và gợi ý liên quan', async () => {

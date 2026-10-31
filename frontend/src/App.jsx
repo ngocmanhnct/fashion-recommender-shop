@@ -17,6 +17,7 @@ import ProductsPage from './pages/ProductsPage';
 import RegisterPage from './pages/RegisterPage';
 import SurveyPage from './pages/SurveyPage';
 import VnPayReturnPage from './pages/VnPayReturnPage';
+import WishlistPage from './pages/WishlistPage';
 import BrandAdminPage from './pages/admin/BrandAdminPage';
 import CategoryAdminPage from './pages/admin/CategoryAdminPage';
 import CustomerDetailPage from './pages/admin/CustomerDetailPage';
@@ -65,6 +66,14 @@ function App() {
           element={
             <RequireCustomer>
               <AddressesPage />
+            </RequireCustomer>
+          }
+        />
+        <Route
+          path="wishlist"
+          element={
+            <RequireCustomer>
+              <WishlistPage />
             </RequireCustomer>
           }
         />
