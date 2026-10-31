@@ -132,12 +132,16 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 - Hiển thị rõ số tiền được giảm trước khi xác nhận đơn hàng, tách riêng khỏi tổng tiền hàng và phí vận chuyển (xem BR-32)  
 - Mỗi đơn hàng áp dụng tối đa 1 mã giảm giá (xem BR-31)
 
+Cài đặt (31/10/2026): ô "Mã giảm giá" nằm trong phần tóm tắt ở trang thanh toán; bấm "Áp dụng" thì tóm tắt tính lại (dòng "Giảm giá (MÃ)" tách riêng khỏi tiền hàng và phí vận chuyển) hoặc hiện lý do mã không dùng được (sai mã, đã ngừng, chưa tới ngày, hết hạn, hết lượt, khách đã dùng đủ lượt, đơn còn thiếu bao nhiêu tiền mới đủ mức tối thiểu), khách vẫn đặt được đơn không có mã. Mã không phân biệt hoa thường, lưu dạng chữ hoa. Đơn hàng và trang chi tiết đơn ghi mã đã dùng. Phí vận chuyển tính trên tiền hàng trước giảm giá (BR-35). Lượt dùng mỗi khách đếm các đơn chưa hủy của khách đó với mã này.
+
 **US-22: Quản lý mã giảm giá** Là admin, tôi muốn tạo/sửa/vô hiệu hóa mã giảm giá, để chạy các chương trình khuyến mãi. Tiêu chí chấp nhận:
 
 - Tạo mã mới: mã code, loại (phần trăm hoặc số tiền cố định), giá trị, đơn hàng tối thiểu (tùy chọn), thời hạn hiệu lực, giới hạn lượt dùng (tổng và/hoặc theo từng khách hàng)  
 - Xem danh sách mã đã tạo kèm số lượt đã dùng / còn lại  
 - Vô hiệu hóa mã trước hạn nếu cần dừng chương trình khuyến mãi sớm  
 - Chỉ admin mới truy cập được (kiểm tra phân quyền, cùng US-16/17)
+
+Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng). Mã phần trăm có thêm trần giảm tối đa (`max_discount_amount`, migration V2), mã số tiền cố định không có trần. Thời hạn tính theo **giờ Việt Nam** (máy chủ Docker chạy giờ UTC). Sửa mã không đổi số tiền đã giảm của đơn cũ; mã đã có người dùng thì không đổi được chuỗi mã. Danh sách hiện tình trạng: Đang áp dụng, Chưa tới ngày, Đã hết hạn, Đã hết lượt, Đã ngừng.
 
 ### Epic 8 — Quản trị (Admin)
 

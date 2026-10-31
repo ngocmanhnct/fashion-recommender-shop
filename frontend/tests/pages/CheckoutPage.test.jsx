@@ -55,6 +55,7 @@ describe('CheckoutPage', () => {
       paymentMethod: 'COD',
       addressId: 1,
       expectedTotal: 430000,
+      voucherCode: null,
     });
     expect(cart.refresh).toHaveBeenCalled();
     expect(await screen.findByTestId('location')).toHaveTextContent('/orders/55 {"placed":true}');
@@ -125,6 +126,55 @@ describe('CheckoutPage', () => {
     await waitFor(() => expect(addressApi.listAddresses).toHaveBeenCalled());
     expect(orderApi.getCheckoutPreview).not.toHaveBeenCalled();
     expect(screen.getByText('Đang tải...')).toBeInTheDocument();
+  });
+
+  it('áp mã giảm giá: tóm tắt tính lại, đặt hàng gửi mã đã nhận, bỏ mã thì về giá cũ', async () => {
+    vi.mocked(orderApi.getCheckoutPreview).mockImplementation(async (code) =>
+      code === 'chaoban'
+        ? { ...PREVIEW, discount: 40000, total: 390000, voucherCode: 'CHAOBAN' }
+        : PREVIEW
+    );
+    renderCheckout();
+    const input = await screen.findByLabelText('Mã giảm giá');
+    expect(screen.getByRole('button', { name: 'Áp dụng' })).toBeDisabled();
+    await userEvent.type(input, ' chaoban ');
+    await userEvent.click(screen.getByRole('button', { name: 'Áp dụng' }));
+
+    expect(await screen.findByText('−40.000 ₫')).toBeInTheDocument();
+    expect(screen.getByText('Giảm giá')).toBeInTheDocument();
+    expect(screen.getByText('CHAOBAN')).toBeInTheDocument();
+    expect(orderApi.getCheckoutPreview).toHaveBeenLastCalledWith('chaoban');
+    await userEvent.click(screen.getByRole('button', { name: 'Đặt hàng' }));
+    expect(orderApi.placeOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ expectedTotal: 390000, voucherCode: 'CHAOBAN' })
+    );
+  });
+
+  it('bỏ mã đã áp; mã không dùng được thì báo lý do và đặt hàng không gửi mã', async () => {
+    vi.mocked(orderApi.getCheckoutPreview).mockImplementation(async (code) => {
+      if (code === 'HETHAN') return { ...PREVIEW, voucherError: 'Mã giảm giá đã hết hạn' };
+      if (code === 'OK') return { ...PREVIEW, discount: 10000, total: 420000, voucherCode: 'OK' };
+      return PREVIEW;
+    });
+    renderCheckout();
+    await userEvent.type(await screen.findByLabelText('Mã giảm giá'), 'OK');
+    await userEvent.click(screen.getByRole('button', { name: 'Áp dụng' }));
+    expect(await screen.findByText('−10.000 ₫')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Bỏ mã' }));
+    expect(await screen.findByLabelText('Mã giảm giá')).toHaveValue('');
+    expect(orderApi.getCheckoutPreview).toHaveBeenLastCalledWith('');
+
+    await userEvent.type(screen.getByLabelText('Mã giảm giá'), 'HETHAN');
+    await userEvent.click(screen.getByRole('button', { name: 'Áp dụng' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Mã giảm giá đã hết hạn');
+    const calls = vi.mocked(orderApi.getCheckoutPreview).mock.calls.length;
+    // Bấm lại cùng mã thì tải lại tóm tắt.
+    await userEvent.click(screen.getByRole('button', { name: 'Áp dụng' }));
+    await waitFor(() => expect(orderApi.getCheckoutPreview).toHaveBeenCalledTimes(calls + 1));
+    await userEvent.click(await screen.findByRole('button', { name: 'Đặt hàng' }));
+    expect(orderApi.placeOrder).toHaveBeenCalledWith(
+      expect.objectContaining({ expectedTotal: 430000, voucherCode: null })
+    );
   });
 
   it('giỏ trống, tải lỗi', async () => {

@@ -21,6 +21,7 @@ import java.util.List;
  * @param subtotal tổng tiền hàng
  * @param shippingFee phí vận chuyển
  * @param discount số tiền giảm giá
+ * @param voucherCode mã giảm giá đã dùng, null nếu không dùng
  * @param total tổng thanh toán
  * @param cancellable khách còn tự hủy được không (BR-13)
  * @param createdAt thời điểm đặt hàng
@@ -41,6 +42,7 @@ public record OrderResponse(
     long subtotal,
     long shippingFee,
     long discount,
+    String voucherCode,
     long total,
     boolean cancellable,
     LocalDateTime createdAt,
@@ -63,6 +65,7 @@ public record OrderResponse(
         order.getSubtotalAmount(),
         order.getShippingFee(),
         order.getDiscountAmount(),
+        order.getVoucher() == null ? null : order.getVoucher().getCode(),
         order.getTotalAmount(),
         order.getStatus().customerCancellable(),
         order.getCreatedAt(),

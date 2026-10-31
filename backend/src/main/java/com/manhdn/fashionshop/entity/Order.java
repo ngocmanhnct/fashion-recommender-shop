@@ -78,6 +78,11 @@ public class Order {
   @Column(nullable = false)
   private String addressDetailSnapshot;
 
+  /** Mã giảm giá đã áp dụng (BR-31: tối đa 1 mã), null nếu không dùng mã. */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "voucher_id")
+  private Voucher voucher;
+
   @Column(nullable = false)
   private Long discountAmount;
 
@@ -147,6 +152,18 @@ public class Order {
     items.add(item);
     subtotalAmount += item.getLineTotal();
     totalAmount = subtotalAmount + shippingFee - discountAmount;
+  }
+
+  /**
+   * Áp mã giảm giá sau khi đã thêm đủ dòng đơn: số tiền giảm trừ vào tổng thanh toán (BR-32).
+   *
+   * @param voucher mã giảm giá
+   * @param discount số tiền giảm thực nhận, đã tính mức sàn
+   */
+  public void applyVoucher(Voucher voucher, long discount) {
+    this.voucher = voucher;
+    this.discountAmount = discount;
+    this.totalAmount = subtotalAmount + shippingFee - discountAmount;
   }
 
   /** Ghi nhận thanh toán VNPay thành công (US-10). */
@@ -252,6 +269,10 @@ public class Order {
 
   public String getAddressDetailSnapshot() {
     return addressDetailSnapshot;
+  }
+
+  public Voucher getVoucher() {
+    return voucher;
   }
 
   public long getDiscountAmount() {

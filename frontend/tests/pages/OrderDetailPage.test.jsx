@@ -68,6 +68,18 @@ describe('OrderDetailPage', () => {
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 
+  it('đơn có mã giảm giá thì hiện dòng giảm giá kèm mã', async () => {
+    vi.mocked(orderApi.getOrder).mockResolvedValue({
+      ...ORDER,
+      discount: 40000,
+      voucherCode: 'CHAOBAN',
+      total: 390000,
+    });
+    renderPage();
+    expect(await screen.findByText('Giảm giá (CHAOBAN)')).toBeInTheDocument();
+    expect(screen.getByText('−40.000 ₫')).toBeInTheDocument();
+  });
+
   it('hủy lỗi thì hiện lỗi; đơn đã rời kho thì không tự hủy được', async () => {
     vi.mocked(orderApi.cancelOrder).mockRejectedValue({
       response: { data: { detail: 'Đơn đang giao' } },

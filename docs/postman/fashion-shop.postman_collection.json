@@ -82,6 +82,14 @@
     {
       "key": "idempotencyKey",
       "value": ""
+    },
+    {
+      "key": "voucherId",
+      "value": ""
+    },
+    {
+      "key": "voucherCode",
+      "value": ""
     }
   ],
   "item": [
@@ -1557,9 +1565,17 @@
                 "api",
                 "orders",
                 "preview"
+              ],
+              "query": [
+                {
+                  "key": "voucherCode",
+                  "value": "{{voucherCode}}",
+                  "disabled": true,
+                  "description": "Mã giảm giá khách nhập (US-21); bật để xem số tiền giảm hoặc lý do mã không dùng được"
+                }
               ]
             },
-            "description": "Tóm tắt trước khi đặt (US-10): giỏ hàng theo giá hiện tại (đã tự loại dòng không còn mua được, kèm notices), phí vận chuyển 30.000đ, miễn phí khi tổng tiền hàng từ 500.000đ (BR-35), tổng thanh toán. Cần giỏ hàng có sản phẩm (chạy 'Gộp giỏ hàng sau khi đăng nhập' trước). Lưu total vào biến expectedTotal và sinh idempotencyKey mới cho lần đặt hàng."
+            "description": "Tóm tắt trước khi đặt (US-10): giỏ hàng theo giá hiện tại (đã tự loại dòng không còn mua được, kèm notices), phí vận chuyển 30.000đ, miễn phí khi tổng tiền hàng từ 500.000đ (BR-35), tổng thanh toán. Cần giỏ hàng có sản phẩm (chạy 'Gộp giỏ hàng sau khi đăng nhập' trước). Lưu total vào biến expectedTotal và sinh idempotencyKey mới cho lần đặt hàng. Có voucherCode thì kiểm tra mã: hợp lệ trả discount và voucherCode (đã viết hoa), không hợp lệ trả voucherError (vd hết hạn, đơn chưa đủ mức tối thiểu, đã dùng hết lượt), tổng không trừ gì."
           },
           "event": [
             {
@@ -1661,6 +1677,91 @@
                   "  pm.response.to.have.status(200);",
                   "  pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('orderId'));",
                   "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Xem trước đơn hàng kèm mã giảm giá",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders/preview?voucherCode={{voucherCode}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders",
+                "preview"
+              ],
+              "query": [
+                {
+                  "key": "voucherCode",
+                  "value": "{{voucherCode}}",
+                  "description": "Tạo mã ở 'Admin → Mã giảm giá → Tạo mã giảm giá' trước"
+                }
+              ]
+            },
+            "description": "Như 'Xem trước đơn hàng' nhưng kèm mã (US-21). Lưu total (đã trừ giảm giá) vào expectedTotal để đặt hàng kèm mã."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem trước thành công', () => pm.response.to.have.status(200));",
+                  "pm.test('Mã được nhận', () => pm.expect(pm.response.json().voucherError).to.be.oneOf([null, undefined]));",
+                  "pm.collectionVariables.set('expectedTotal', pm.response.json().total);",
+                  "pm.collectionVariables.set('idempotencyKey', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đặt hàng kèm mã giảm giá",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/orders",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            },
+            "description": "Đặt hàng kèm mã (US-21). Mã không còn dùng được (hết hạn, hết lượt, đã dùng đủ lượt của mình, đơn chưa đủ mức) thì 409, khách bỏ mã hoặc nhập mã khác. Lượt dùng được trừ trong cùng giao dịch đặt hàng, không vượt giới hạn khi nhiều khách đặt cùng lúc (BR-30); hủy đơn trả lại lượt (BR-33). Đơn trả về có discount và voucherCode.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idempotencyKey\": \"{{idempotencyKey}}\",\n  \"paymentMethod\": \"COD\",\n  \"addressId\": {{addressId}},\n  \"expectedTotal\": {{expectedTotal}},\n  \"voucherCode\": \"{{voucherCode}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Đặt hàng thành công', () => pm.response.to.have.status(201));",
+                  "pm.test('Đã giảm giá', () => pm.expect(pm.response.json().discount).to.be.above(0));",
+                  "pm.collectionVariables.set('orderId', pm.response.json().id);"
                 ]
               }
             }
@@ -2580,6 +2681,197 @@
                   ]
                 },
                 "description": "Chỉ cho đơn có hoàn tiền FAILED: ghi nhận Quản trị viên đã tự hoàn tiền, trạng thái hoàn tiền thành COMPLETED. Đơn không có hoàn tiền thất bại trả 409. Trả chi tiết đơn như GET /api/admin/orders/{id}."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Mã giảm giá",
+          "description": "Quản lý mã giảm giá (US-22, BR-30 đến BR-33). Thời hạn validFrom/validUntil tính theo giờ Việt Nam. Khách nhập mã ở bước xem trước và đặt hàng (thư mục 3).",
+          "item": [
+            {
+              "name": "Danh sách mã giảm giá",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/vouchers?page=0&size=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "vouchers"
+                  ],
+                  "query": [
+                    {
+                      "key": "keyword",
+                      "value": "CHAO",
+                      "disabled": true,
+                      "description": "Một phần mã, không phân biệt hoa thường"
+                    },
+                    {
+                      "key": "page",
+                      "value": "0"
+                    },
+                    {
+                      "key": "size",
+                      "value": "20",
+                      "description": "1 đến 50"
+                    }
+                  ]
+                },
+                "description": "Mã mới tạo trước, kèm usedCount (số đơn chưa hủy đã dùng), remaining (null nếu không giới hạn) và status: ACTIVE, SCHEDULED (chưa tới ngày), EXPIRED, USED_UP (hết lượt), DISABLED (đã ngừng)."
+              }
+            },
+            {
+              "name": "Tạo mã giảm giá",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/vouchers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "vouchers"
+                  ]
+                },
+                "description": "Tạo mã đang bật (US-22). code 3 đến 50 ký tự gồm chữ không dấu, số, '-' hoặc '_', lưu dạng chữ hoa; trùng mã thì 409. discountType PERCENT (discountValue 1 đến 100, maxDiscountAmount là trần, bỏ trống là không trần) hoặc FIXED (số tiền, không có trần). minOrderAmount tính trên tiền hàng chưa gồm phí vận chuyển. usageLimitTotal, usageLimitPerAccount bỏ trống là không giới hạn; mỗi khách không quá tổng. validUntil phải sau validFrom. Tổng thanh toán sau giảm giữ tiền hàng ít nhất 5.000đ (BR-32). Lưu id và code vào biến voucherId, voucherCode.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"CHAOBAN10\",\n  \"discountType\": \"PERCENT\",\n  \"discountValue\": 10,\n  \"minOrderAmount\": 200000,\n  \"maxDiscountAmount\": 50000,\n  \"validFrom\": \"2026-11-01T00:00:00\",\n  \"validUntil\": \"2026-12-31T23:59:00\",\n  \"usageLimitTotal\": 100,\n  \"usageLimitPerAccount\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Tạo mã thành công', () => pm.response.to.have.status(201));",
+                      "pm.collectionVariables.set('voucherId', pm.response.json().id);",
+                      "pm.collectionVariables.set('voucherCode', pm.response.json().code);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Sửa mã giảm giá",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/vouchers/{{voucherId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "vouchers",
+                    "{{voucherId}}"
+                  ]
+                },
+                "description": "Gửi lại đủ điều kiện như khi tạo. Đơn đã đặt giữ nguyên số tiền đã giảm. Mã đã có người dùng thì không đổi được chuỗi mã (409).",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"code\": \"CHAOBAN10\",\n  \"discountType\": \"PERCENT\",\n  \"discountValue\": 10,\n  \"minOrderAmount\": 200000,\n  \"maxDiscountAmount\": 50000,\n  \"validFrom\": \"2026-11-01T00:00:00\",\n  \"validUntil\": \"2026-12-31T23:59:00\",\n  \"usageLimitTotal\": 200,\n  \"usageLimitPerAccount\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Ngừng áp dụng mã",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/vouchers/{{voucherId}}/active",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "vouchers",
+                    "{{voucherId}}",
+                    "active"
+                  ]
+                },
+                "description": "Tắt mã trước hạn; khách nhập mã sẽ thấy 'Mã giảm giá đã ngừng áp dụng'. Đơn đã đặt không đổi.",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"active\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "name": "Bật lại mã",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/admin/vouchers/{{voucherId}}/active",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "admin",
+                    "vouchers",
+                    "{{voucherId}}",
+                    "active"
+                  ]
+                },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"active\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
               }
             }
           ]

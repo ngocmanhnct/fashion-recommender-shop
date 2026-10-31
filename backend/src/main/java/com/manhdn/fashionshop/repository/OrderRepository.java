@@ -87,6 +87,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       """)
   OrderTotals totalsForAccount(@Param("accountId") Long accountId);
 
+  /**
+   * Số đơn chưa hủy của tài khoản đã dùng mã giảm giá này (giới hạn lượt theo tài khoản, BR-30).
+   */
+  @Query(
+      "select count(o) from Order o where o.account.id = :accountId and o.voucher.id = :voucherId"
+          + " and o.status <> com.manhdn.fashionshop.entity.OrderStatus.CANCELLED")
+  long countVoucherUses(@Param("accountId") Long accountId, @Param("voucherId") Long voucherId);
+
   /** Thống kê đơn của một tài khoản. */
   interface OrderTotals {
 

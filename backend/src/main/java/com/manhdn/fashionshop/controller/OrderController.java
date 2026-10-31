@@ -6,6 +6,7 @@ import com.manhdn.fashionshop.dto.OrderSummaryResponse;
 import com.manhdn.fashionshop.dto.PageResponse;
 import com.manhdn.fashionshop.dto.PaymentUrlResponse;
 import com.manhdn.fashionshop.dto.PlaceOrderRequest;
+import com.manhdn.fashionshop.exception.InvalidRequestException;
 import com.manhdn.fashionshop.service.OrderService;
 import com.manhdn.fashionshop.service.OrderService.PlaceOrderResult;
 import com.manhdn.fashionshop.service.PaymentService;
@@ -43,12 +44,18 @@ public class OrderController {
   /**
    * Tóm tắt đơn hàng trước khi xác nhận: giỏ hàng theo giá hiện tại, phí vận chuyển, tổng tiền.
    *
+   * @param voucherCode mã giảm giá khách nhập (không bắt buộc); không dùng được thì không giảm và
+   *     trả lý do ở voucherError
    * @param jwt token của Khách hàng, claim sub là mã tài khoản
    * @return 200 kèm tóm tắt; giỏ đã tự loại dòng không còn mua được, kèm thông báo
    */
   @GetMapping("/preview")
-  public CheckoutPreviewResponse preview(@AuthenticationPrincipal Jwt jwt) {
-    return orderService.preview(accountId(jwt));
+  public CheckoutPreviewResponse preview(
+      @RequestParam(required = false) String voucherCode, @AuthenticationPrincipal Jwt jwt) {
+    if (voucherCode != null && voucherCode.length() > 50) {
+      throw new InvalidRequestException("Mã giảm giá tối đa 50 ký tự");
+    }
+    return orderService.preview(accountId(jwt), voucherCode);
   }
 
   /**
@@ -58,7 +65,7 @@ public class OrderController {
    * @param jwt token của Khách hàng
    * @return 201 kèm đơn vừa tạo; 200 kèm đơn đã tạo nếu gửi lại cùng mã định danh; 400 nếu dữ liệu
    *     sai hoặc chọn thanh toán online; 404 nếu không có địa chỉ; 409 nếu giỏ rỗng, có sản phẩm
-   *     ngừng bán hoặc không đủ hàng, hay tổng tiền đã đổi
+   *     ngừng bán hoặc không đủ hàng, mã giảm giá không còn dùng được, hay tổng tiền đã đổi
    */
   @PostMapping
   public ResponseEntity<OrderResponse> place(

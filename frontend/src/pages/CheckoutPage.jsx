@@ -17,6 +17,9 @@ const FREE_SHIPPING_THRESHOLD = 500_000;
  * Trang thanh toán /checkout (US-09, US-10): chọn hoặc thêm địa chỉ giao hàng, chọn phương thức
  * thanh toán, xem tóm tắt đơn theo giá hiện tại rồi xác nhận.
  *
+ * Mã giảm giá (US-21): bấm "Áp dụng" thì tóm tắt tính lại kèm số tiền giảm, hoặc báo vì sao mã
+ * không dùng được. Chỉ mã backend đã nhận mới được gửi khi đặt hàng.
+ *
  * Mã định danh lần đặt hàng (BR-10) được sinh 1 lần khi mở trang: bấm lại sau khi mất mạng gửi
  * cùng mã, backend trả lại đơn đã tạo thay vì tạo thêm đơn.
  */
@@ -25,7 +28,12 @@ function CheckoutPage() {
   const { refresh: refreshCart, loading: cartLoading } = useCart();
   // Vừa đăng nhập thì CartProvider còn đang gộp giỏ của trình duyệt vào tài khoản: chờ gộp xong
   // mới xem trước đơn, nếu không preview đọc giỏ cũ và báo giỏ trống (issue #63).
-  const preview = useApiData(cartLoading ? null : 'checkout-preview', getCheckoutPreview);
+  // Mã giảm giá khách bấm "Áp dụng" nằm trong requestKey: đổi mã là tải lại tóm tắt.
+  const [voucherInput, setVoucherInput] = useState('');
+  const [appliedCode, setAppliedCode] = useState('');
+  const preview = useApiData(cartLoading ? null : `checkout-preview:${appliedCode}`, () =>
+    getCheckoutPreview(appliedCode)
+  );
   const addressBook = useApiData('addresses', listAddresses);
   const [idempotencyKey] = useState(newIdempotencyKey);
   const [selectedId, setSelectedId] = useState(null);
@@ -80,6 +88,7 @@ function CheckoutPage() {
         paymentMethod: method,
         addressId: selected.id,
         expectedTotal: summary.total,
+        voucherCode: summary.voucherCode ?? null,
       });
       refreshCart().catch(() => {});
       if (method === 'ONLINE') {
@@ -96,6 +105,18 @@ function CheckoutPage() {
   };
 
   const missing = FREE_SHIPPING_THRESHOLD - summary.subtotal;
+
+  const handleApplyVoucher = (event) => {
+    event.preventDefault();
+    const code = voucherInput.trim();
+    if (code === appliedCode) preview.reload();
+    else setAppliedCode(code);
+  };
+
+  const handleRemoveVoucher = () => {
+    setVoucherInput('');
+    setAppliedCode('');
+  };
 
   return (
     <div className="checkout-page">
@@ -234,10 +255,56 @@ function CheckoutPage() {
               Mua thêm {formatPrice(missing)} để được miễn phí vận chuyển.
             </p>
           )}
+          {summary.discount > 0 && (
+            <p className="cart-summary-row">
+              <span>Giảm giá</span>
+              <span>−{formatPrice(summary.discount)}</span>
+            </p>
+          )}
           <p className="cart-summary-row cart-summary-total">
             <span>Tổng thanh toán</span>
             <strong>{formatPrice(summary.total)}</strong>
           </p>
+          <div className="voucher-box">
+            {summary.voucherCode ? (
+              <p className="voucher-applied">
+                <span>
+                  Đã áp dụng mã <strong>{summary.voucherCode}</strong>
+                </span>
+                <button type="button" className="btn-link small" onClick={handleRemoveVoucher}>
+                  Bỏ mã
+                </button>
+              </p>
+            ) : (
+              <form className="voucher-form" onSubmit={handleApplyVoucher}>
+                <label htmlFor="voucher-code" className="field-label">
+                  Mã giảm giá
+                </label>
+                <div className="voucher-form-row">
+                  <input
+                    id="voucher-code"
+                    value={voucherInput}
+                    maxLength={50}
+                    autoComplete="off"
+                    placeholder="Nhập mã"
+                    onChange={(event) => setVoucherInput(event.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    className="btn btn-ghost"
+                    disabled={voucherInput.trim() === '' || preview.loading}
+                  >
+                    Áp dụng
+                  </button>
+                </div>
+              </form>
+            )}
+            {summary.voucherError && (
+              <p className="field-error" role="alert">
+                {summary.voucherError}
+              </p>
+            )}
+          </div>
           {placeError && (
             <p className="alert alert-error small" role="alert">
               {placeError}

@@ -13,6 +13,7 @@ import * as productApi from '../../src/services/productApi';
 import * as recommendationApi from '../../src/services/recommendationApi';
 import * as reviewApi from '../../src/services/reviewApi';
 import * as surveyApi from '../../src/services/surveyApi';
+import * as voucherAdminApi from '../../src/services/voucherAdminApi';
 import * as wishlistApi from '../../src/services/wishlistApi';
 import { mockApi } from '../apiMock';
 
@@ -33,6 +34,24 @@ const CALLS = [
   [() => categoryAdminApi.create('Giày'), 'post', '/api/admin/categories', { name: 'Giày' }],
   [() => brandAdminApi.rename(3, 'Nike'), 'put', '/api/admin/brands/3', { name: 'Nike' }],
   [() => brandAdminApi.remove(3), 'delete', '/api/admin/brands/3'],
+  [
+    () => voucherAdminApi.createVoucher({ code: 'A' }),
+    'post',
+    '/api/admin/vouchers',
+    { code: 'A' },
+  ],
+  [
+    () => voucherAdminApi.updateVoucher(7, { code: 'A' }),
+    'put',
+    '/api/admin/vouchers/7',
+    { code: 'A' },
+  ],
+  [
+    () => voucherAdminApi.setVoucherActive(7, false),
+    'put',
+    '/api/admin/vouchers/7/active',
+    { active: false },
+  ],
   [() => cartApi.getCart(), 'get', '/api/cart'],
   [() => cartApi.addCartItem(5, 2), 'post', '/api/cart/items', { variantId: 5, quantity: 2 }],
   [() => cartApi.updateCartItem(5, 3), 'put', '/api/cart/items/5', { quantity: 3 }],
@@ -120,6 +139,13 @@ const QUERIES = [
     { status: 'PENDING', page: 0, size: 20 },
   ],
   [() => orderApi.listOrders(), '/api/orders', { page: 0, size: 10 }],
+  [() => orderApi.getCheckoutPreview(), '/api/orders/preview', {}],
+  [() => orderApi.getCheckoutPreview('CHAOBAN'), '/api/orders/preview', { voucherCode: 'CHAOBAN' }],
+  [
+    () => voucherAdminApi.searchVouchers({ keyword: '', page: 1 }),
+    '/api/admin/vouchers',
+    { page: 1, size: 20 },
+  ],
   [
     () =>
       productAdminApi.searchProducts({
@@ -169,7 +195,7 @@ describe('API wrappers', () => {
     expect(withoutUndefined(api.requests[0].params)).toEqual(params);
   });
 
-  it('đặt hàng gửi đủ 4 trường', async () => {
+  it('đặt hàng gửi đủ 5 trường, không có mã thì voucherCode null', async () => {
     await orderApi.placeOrder({
       idempotencyKey: 'k',
       paymentMethod: 'COD',
@@ -181,6 +207,7 @@ describe('API wrappers', () => {
       paymentMethod: 'COD',
       addressId: 1,
       expectedTotal: 100,
+      voucherCode: null,
     });
   });
 

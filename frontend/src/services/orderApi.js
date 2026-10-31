@@ -3,18 +3,29 @@ import apiClient from './apiClient';
 // API đặt hàng và đơn hàng của khách hàng (US-10, US-11, US-20).
 const BASE = '/api/orders';
 
-/** Tóm tắt trước khi đặt: { items, notices, subtotal, shippingFee, discount, total }. */
-export function getCheckoutPreview() {
-  return apiClient.get(`${BASE}/preview`).then((res) => res.data);
+/**
+ * Tóm tắt trước khi đặt: { items, notices, subtotal, shippingFee, discount, total, voucherCode,
+ * voucherError }. Có voucherCode thì backend kiểm tra mã: hợp lệ thì trả mã đã chuẩn hóa kèm số
+ * tiền giảm, không hợp lệ thì voucherError nói lý do (US-21).
+ */
+export function getCheckoutPreview(voucherCode) {
+  const params = voucherCode ? { voucherCode } : undefined;
+  return apiClient.get(`${BASE}/preview`, { params }).then((res) => res.data);
 }
 
 /**
  * Đặt toàn bộ giỏ hàng. Gửi lại cùng idempotencyKey thì nhận lại đúng đơn đã tạo (BR-10), nên bấm
  * lại sau khi mất mạng không tạo thêm đơn.
  */
-export function placeOrder({ idempotencyKey, paymentMethod, addressId, expectedTotal }) {
+export function placeOrder({
+  idempotencyKey,
+  paymentMethod,
+  addressId,
+  expectedTotal,
+  voucherCode = null,
+}) {
   return apiClient
-    .post(BASE, { idempotencyKey, paymentMethod, addressId, expectedTotal })
+    .post(BASE, { idempotencyKey, paymentMethod, addressId, expectedTotal, voucherCode })
     .then((res) => res.data);
 }
 
