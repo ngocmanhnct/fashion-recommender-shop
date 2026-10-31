@@ -4,6 +4,7 @@ import {
   formatPrice,
   formatPriceRange,
   formatRating,
+  formatSecondsAgo,
 } from '../../src/services/format';
 
 // Intl chèn khoảng trắng không ngắt (U+00A0) trước ký hiệu ₫: so sánh sau khi đổi về dấu cách.
@@ -25,5 +26,13 @@ describe('format', () => {
     expect(formatNumber(1050)).toBe('1.050');
     expect(formatRating(4.5)).toBe('4,5');
     expect(formatRating(4)).toBe('4,0');
+  });
+
+  it('khoảng thời gian đã qua', () => {
+    expect(formatSecondsAgo(0)).toBe('vừa xong');
+    expect(formatSecondsAgo(59)).toBe('vừa xong');
+    expect(formatSecondsAgo(125)).toBe('2 phút trước');
+    expect(formatSecondsAgo(7200)).toBe('2 giờ trước');
+    expect(formatSecondsAgo(3 * 86400 + 5)).toBe('3 ngày trước');
   });
 });

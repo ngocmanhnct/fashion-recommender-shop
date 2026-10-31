@@ -48,6 +48,15 @@ class UserSignals:
     viewed: set[int] = field(default_factory=set)
     delivered_orders: int = 0
     survey: SurveyProfile | None = None
+    last_at: dict[int, datetime] = field(default_factory=dict)
+    """Mã sản phẩm → lần tương tác gần nhất (mua, thêm giỏ, thích, xem), để ưu tiên việc vừa làm."""
+    now: datetime | None = None
+    """Thời điểm tính gợi ý, cùng giờ với `last_at`; None thì không ưu tiên theo thời gian."""
+
+    def touch(self, product_id: int, at: datetime | None) -> None:
+        """Ghi nhận 1 lần tương tác với sản phẩm, giữ thời điểm muộn nhất."""
+        if at is not None and (product_id not in self.last_at or at > self.last_at[product_id]):
+            self.last_at[product_id] = at
 
     @property
     def has_enough_behaviour(self) -> bool:
@@ -161,52 +170,50 @@ def load_signals(conn: Connection, account_id: int, now: datetime) -> UserSignal
     if role != "CUSTOMER":
         return None
     params = {"id": account_id}
-    signals = UserSignals(account_id)
-    signals.purchased = {
-        int(p)
-        for (p,) in conn.execute(
-            text(
-                "SELECT DISTINCT v.product_id "
-                "FROM orders o "
-                "JOIN order_item oi ON oi.order_id = o.id "
-                "JOIN product_variant v ON v.id = oi.variant_id "
-                "WHERE o.account_id = :id AND o.status <> 'CANCELLED'"
-            ),
-            params,
-        )
-    }
+    signals = UserSignals(account_id, now=now)
+    for product_id, at in conn.execute(
+        text(
+            "SELECT v.product_id, MAX(o.created_at) "
+            "FROM orders o "
+            "JOIN order_item oi ON oi.order_id = o.id "
+            "JOIN product_variant v ON v.id = oi.variant_id "
+            "WHERE o.account_id = :id AND o.status <> 'CANCELLED' "
+            "GROUP BY v.product_id"
+        ),
+        params,
+    ):
+        signals.purchased.add(int(product_id))
+        signals.touch(int(product_id), at)
     signals.delivered_orders = int(
         conn.execute(
             text("SELECT COUNT(*) FROM orders WHERE account_id = :id AND status = 'DELIVERED'"),
             params,
         ).scalar()
     )
-    signals.cart = {
-        int(p)
-        for (p,) in conn.execute(
-            text(
-                "SELECT DISTINCT v.product_id FROM cart_item c "
-                "JOIN product_variant v ON v.id = c.variant_id WHERE c.account_id = :id"
-            ),
-            params,
-        )
-    }
-    signals.wishlist = {
-        int(p)
-        for (p,) in conn.execute(
-            text("SELECT product_id FROM wishlist_item WHERE account_id = :id"), params
-        )
-    }
-    signals.viewed = {
-        int(p)
-        for (p,) in conn.execute(
-            text(
-                "SELECT DISTINCT product_id FROM product_view_log "
-                "WHERE account_id = :id AND viewed_at >= :since"
-            ),
-            {"id": account_id, "since": now - timedelta(days=VIEW_WINDOW_DAYS)},
-        )
-    }
+    for product_id, at in conn.execute(
+        text(
+            "SELECT v.product_id, MAX(c.updated_at) FROM cart_item c "
+            "JOIN product_variant v ON v.id = c.variant_id WHERE c.account_id = :id "
+            "GROUP BY v.product_id"
+        ),
+        params,
+    ):
+        signals.cart.add(int(product_id))
+        signals.touch(int(product_id), at)
+    for product_id, at in conn.execute(
+        text("SELECT product_id, created_at FROM wishlist_item WHERE account_id = :id"), params
+    ):
+        signals.wishlist.add(int(product_id))
+        signals.touch(int(product_id), at)
+    for product_id, at in conn.execute(
+        text(
+            "SELECT product_id, MAX(viewed_at) FROM product_view_log "
+            "WHERE account_id = :id AND viewed_at >= :since GROUP BY product_id"
+        ),
+        {"id": account_id, "since": now - timedelta(days=VIEW_WINDOW_DAYS)},
+    ):
+        signals.viewed.add(int(product_id))
+        signals.touch(int(product_id), at)
     signals.survey = load_survey(conn, account_id)
     return signals
 

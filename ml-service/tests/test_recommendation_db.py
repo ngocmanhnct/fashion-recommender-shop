@@ -167,6 +167,9 @@ def test_load_signals_reads_each_kind_of_interaction(rec_db):
     assert signals.delivered_orders == 1
     assert signals.viewed == {2, 4}
     assert signals.cart == {6} and signals.wishlist == {2}
+    # Thời điểm tương tác gần nhất của mọi sản phẩm còn tính (không có đơn đã hủy, lượt xem cũ).
+    assert set(signals.last_at) == {1, 2, 4, 5, 6}
+    assert signals.now == NOW
     assert signals.survey.category_ids == (SHOES, SOCKS)
     assert signals.survey.brand_id == 10 and signals.survey.style == "BRAND"
 
@@ -405,6 +408,8 @@ def test_evaluate_prints_scores(rec_db, capsys):
     assert "Khách có hành vi: 4 ca; khởi động lạnh: 1 ca" in out
     assert "| Hybrid (mặc định) | 4 | 1.000 |" in out
     assert "| Nội dung | Mua cùng |" in out
+    assert "| Hybrid, không ưu tiên gần đây | 4 |" in out
+    assert "| β | Bán rã (ngày) |" in out
 
 
 def test_split_and_scores():
@@ -415,6 +420,8 @@ def test_split_and_scores():
     (case,) = dataset.behaviour
     assert case.targets == {2} and case.signals.purchased == {1}
     assert case.signals.viewed == {5}
+    assert case.signals.now == NOW
+    assert case.signals.last_at == {1: NOW - timedelta(days=9), 5: NOW - timedelta(days=1)}
     assert dataset.train_sold == {1: 1, 3: 1}
     assert dataset.cold_start == []
 

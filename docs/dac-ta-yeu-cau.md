@@ -114,7 +114,7 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 **US-13: Xem gợi ý cá nhân hóa trên trang chủ** Là người mua đã đăng nhập và có lịch sử xem/mua, tôi muốn thấy một khu vực gợi ý riêng trên trang chủ, để nhanh tìm sản phẩm hợp gu mà không cần tự tìm kiếm. Tiêu chí chấp nhận:
 
 - Chỉ hiển thị khi đã có đủ dữ liệu hành vi (xem ngưỡng ở BR-19); chưa đủ dữ liệu thì hiển thị sản phẩm phổ biến thay thế (tránh khu vực trống)  
-- Gợi ý tính sẵn, cập nhật vài giây sau hành động rõ ý và tối đa 5 phút sau lượt xem (xem BR-20); mở trang chủ không phải chờ tính  
+- Gợi ý tính sẵn, cập nhật vài giây sau hành động rõ ý và khoảng 30 giây sau lượt xem (xem BR-20); mở trang chủ không phải chờ tính. Trang chủ có thêm hàng "Vì bạn vừa xem / vừa thêm vào giỏ …" gồm sản phẩm liên quan của hành động gần nhất trong 24 giờ, đổi ngay theo từng hành động; trong lúc danh sách đang được tính lại, trang chủ báo "Đang cập nhật" và tự tải lại, sản phẩm mới so với lần khách thấy trước có nhãn "Mới"  
 - Tín hiệu hành vi đầu vào phân cấp trọng số theo **loại hành vi**: đã mua \> đã thêm giỏ hàng \> chỉ xem — dùng 3 nguồn dữ liệu đã có sẵn ở Mục 3, không đo thời gian xem (dwell time) vì cần cơ chế tracking phức tạp và dễ nhiễu. Trọng số cụ thể chốt khi cài đặt mô hình **\[Giả định\]**
 
 ### Epic 7 — Tính năng phụ, ưu tiên thấp (có thể cắt nếu thiếu thời gian)
@@ -250,7 +250,7 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 ### 2.5 Gợi ý sản phẩm (ML — US-12, US-13)
 
 - **BR-19**: Ngưỡng "đủ dữ liệu hành vi" để hiển thị khu vực gợi ý cá nhân hóa ở trang chủ (US-13): tài khoản có **≥1 đơn hàng đã hoàn tất** HOẶC **đã xem ≥5 sản phẩm trong 30 ngày gần nhất** (dữ liệu từ nhật ký xem sản phẩm ở US-03). Chưa đạt ngưỡng → hiển thị sản phẩm bán chạy nhất thay thế (giải quyết cold-start problem). **\[Giả định\]** ngưỡng cụ thể sẽ tinh chỉnh bằng dữ liệu thật khi cài đặt mô hình.  
-- **BR-20**: Gợi ý cá nhân hóa trên trang chủ (US-13) được tính sẵn và lưu vào bảng `recommendation`; mở trang chủ chỉ đọc danh sách đã lưu, không gọi dịch vụ học máy. Danh sách của một tài khoản được tính lại vài giây sau khi tài khoản đó đặt đơn, có đơn bị hủy hoặc chuyển sang Đã giao, thay đổi giỏ hàng, yêu thích hoặc sở thích khảo sát; sau tối đa 5 phút với lượt xem (lượt xem làm tài khoản vừa đạt ngưỡng BR-19 được xử lý như hành động rõ ý); toàn bộ tài khoản được tính lại mỗi đêm. Cơ chế: trong cùng giao dịch lưu hành động, backend ghi một yêu cầu vào `recompute_request` (Mục 3.15), đến hạn sau 3 giây với hành động rõ ý và 5 phút với lượt xem; yêu cầu mới gộp vào yêu cầu đang chờ và không làm lùi thời điểm đến hạn. Dịch vụ học máy lấy yêu cầu đã đến hạn mỗi 2 giây (lượt lấy đủ số tối đa thì lấy tiếp ngay), tính lại, ghi đè danh sách và chỉ xóa yêu cầu khi không có yêu cầu mới hơn đến trong lúc tính; tính lỗi thì giữ yêu cầu để thử lại. **\[Giả định\]** các mốc 3 giây, 5 phút, 2 giây. *(đổi từ "batch hàng ngày" theo góp ý ngày 15/10/2026)*  
+- **BR-20**: Gợi ý cá nhân hóa trên trang chủ (US-13) được tính sẵn và lưu vào bảng `recommendation`; mở trang chủ chỉ đọc danh sách đã lưu, không gọi dịch vụ học máy. Danh sách của một tài khoản được tính lại vài giây sau khi tài khoản đó đặt đơn, có đơn bị hủy hoặc chuyển sang Đã giao, thay đổi giỏ hàng, yêu thích hoặc sở thích khảo sát; sau khoảng 30 giây với lượt xem (lượt xem làm tài khoản vừa đạt ngưỡng BR-19 được xử lý như hành động rõ ý); toàn bộ tài khoản được tính lại mỗi đêm. Cơ chế: trong cùng giao dịch lưu hành động, backend ghi một yêu cầu vào `recompute_request` (Mục 3.15), đến hạn sau 3 giây với hành động rõ ý và 30 giây với lượt xem; yêu cầu mới gộp vào yêu cầu đang chờ và không làm lùi thời điểm đến hạn. Dịch vụ học máy lấy yêu cầu đã đến hạn mỗi 2 giây (lượt lấy đủ số tối đa thì lấy tiếp ngay), tính lại, ghi đè danh sách và chỉ xóa yêu cầu khi không có yêu cầu mới hơn đến trong lúc tính; tính lỗi thì giữ yêu cầu để thử lại. **\[Giả định\]** các mốc 3 giây, 30 giây, 2 giây. *(đổi từ "batch hàng ngày" theo góp ý ngày 15/10/2026; lượt xem đổi từ 5 phút xuống 30 giây ngày 30/10/2026 vì gợi ý đổi chưa rõ sau hành động)*  
 - **BR-21**: Số lượng sản phẩm gợi ý trên trang chi tiết sản phẩm cố định là 4\. *(US-12)*  
 - **BR-22**: Nếu số sản phẩm tương tự còn hàng ít hơn 4 (US-12), lấp đầy phần còn thiếu bằng sản phẩm bán chạy nhất — cùng cơ chế dự phòng như BR-19.
 
@@ -470,7 +470,7 @@ UNIQUE(account\_id, variant\_id) — 1 dòng/biến thể/tài khoản, cộng d
 
 *Nên có index trên (account\_id, viewed\_at) để tính ngưỡng "≥5 sản phẩm/30 ngày" ở BR-19 hiệu quả. Chính sách lưu trữ dài hạn (bảng này sẽ phình to theo thời gian) **chưa chốt** — chờ biết mô hình ML có cần dữ liệu xem lâu hơn 30 ngày để huấn luyện hay không.*
 
-*Cách đếm ngưỡng lượt xem của BR-19 (chốt Tuần 6, backend và dịch vụ học máy dùng chung): số `product_id` khác nhau có `viewed_at` ≥ thời điểm hiện tại − 30 ngày. `viewed_at` ghi theo giờ của JVM backend như các bảng khác (khác `recompute_request`, Mục 3.15, ghi giờ UTC). Mọi lượt xem đều được ghi, kể cả xem lại cùng sản phẩm; sản phẩm đã xóa mềm vẫn được đếm. "Đơn hàng đã hoàn tất" ở BR-19 \= đơn có `status = DELIVERED`. Lượt xem làm tài khoản vừa đạt ngưỡng (sản phẩm khác nhau thứ 5, tài khoản chưa có đơn DELIVERED) ghi yêu cầu tính lại đến hạn sau 3 giây; các lượt xem khác 5 phút (BR-20).*
+*Cách đếm ngưỡng lượt xem của BR-19 (chốt Tuần 6, backend và dịch vụ học máy dùng chung): số `product_id` khác nhau có `viewed_at` ≥ thời điểm hiện tại − 30 ngày. `viewed_at` ghi theo giờ của JVM backend như các bảng khác (khác `recompute_request`, Mục 3.15, ghi giờ UTC). Mọi lượt xem đều được ghi, kể cả xem lại cùng sản phẩm; sản phẩm đã xóa mềm vẫn được đếm. "Đơn hàng đã hoàn tất" ở BR-19 \= đơn có `status = DELIVERED`. Lượt xem làm tài khoản vừa đạt ngưỡng (sản phẩm khác nhau thứ 5, tài khoản chưa có đơn DELIVERED) ghi yêu cầu tính lại đến hạn sau 3 giây; các lượt xem khác 30 giây (BR-20).*
 
 ### 3.8 Đánh giá — `review`
 
@@ -613,7 +613,7 @@ Index (event\_type, created\_at) để tính tỷ lệ bấm theo khoảng thờ
 | :---- | :---- | :---- | :---- |
 | account\_id | BIGINT UNSIGNED | PK (cùng task\_type), FK → account.id |  |
 | task\_type | ENUM('RECOMMENDATION','SEGMENT\_ASSIGN') | PK (cùng account\_id) | Tính lại gợi ý (BR-20) hoặc gán nhóm khi có đơn Đã giao (BR-23) |
-| due\_at | DATETIME(3) | NOT NULL | Thời điểm đến hạn, giờ UTC: +3 giây với hành động rõ ý, +5 phút với lượt xem |
+| due\_at | DATETIME(3) | NOT NULL | Thời điểm đến hạn, giờ UTC: +3 giây với hành động rõ ý, +30 giây với lượt xem |
 | version | INT UNSIGNED | NOT NULL, DEFAULT 1 | Tăng mỗi lần có yêu cầu mới gộp vào |
 | attempts | INT UNSIGNED | NOT NULL, DEFAULT 0 | Số lần tính lỗi |
 | last\_error | VARCHAR(1000) | NULLABLE | Lỗi gần nhất |

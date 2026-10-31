@@ -125,6 +125,72 @@ class RecommendationIntegrationTest {
   }
 
   @Test
+  void homeAddsRowForLatestViewWithoutCartItemsAndKeepsItOutOfMainList() throws Exception {
+    long category = category("Danh mục Gợi ý Harrier");
+    long account = account();
+    insertOrder(jdbcTemplate, account, "DELIVERED");
+    long viewed = product(category, "Harrier vừa xem", 1).id();
+    long similar = product(category, "Harrier tương tự", 1).id();
+    ProductResponse carted = product(category, "Harrier trong giỏ", 1);
+    long stored = product(category, "Harrier đã tính", 1).id();
+    store(account, similar, stored);
+    view(account, viewed, LocalDateTime.now().minusMinutes(1));
+    cart(account, variantOf(carted), LocalDateTime.now().minusHours(2));
+    jdbcTemplate.update(
+        "INSERT INTO recompute_request (account_id, task_type, due_at, created_at)"
+            + " VALUES (?, 'RECOMMENDATION', UTC_TIMESTAMP(3), UTC_TIMESTAMP(3))",
+        account);
+    when(mlServiceClient.related(viewed, 4))
+        .thenReturn(
+            Optional.of(List.of(suggestion(carted.id(), SIMILAR), suggestion(similar, SIMILAR))));
+    reload();
+
+    customer(get(HOME), account)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.source").value("BEHAVIOR"))
+        .andExpect(jsonPath("$.updating").value(true))
+        .andExpect(jsonPath("$.updatedSecondsAgo").isNumber())
+        .andExpect(jsonPath("$.recent.kind").value("VIEW"))
+        .andExpect(jsonPath("$.recent.product.id").value(viewed))
+        .andExpect(jsonPath("$.recent.product.name").value("Harrier vừa xem"))
+        .andExpect(jsonPath("$.recent.products[0].product.id").value(similar))
+        .andExpect(jsonPath("$.recent.products[0].reason").value(SIMILAR))
+        .andExpect(jsonPath("$.recent.products[0].source").value("RELATED"))
+        .andExpect(
+            jsonPath("$.recent.products[*].product.id", not(hasItem(carted.id().intValue()))))
+        .andExpect(jsonPath("$.products[0].product.id").value(stored))
+        .andExpect(jsonPath("$.products[*].product.id", not(hasItem((int) similar))));
+  }
+
+  @Test
+  void latestCartItemWinsOverOlderViewAndOldActivityIsIgnored() throws Exception {
+    long category = category("Danh mục Gợi ý Plover");
+    long account = account();
+    long idle = account();
+    long viewed = product(category, "Plover đã xem", 1).id();
+    ProductResponse carted = product(category, "Plover vừa thêm giỏ", 1);
+    long similar = product(category, "Plover tương tự", 1).id();
+    view(account, viewed, LocalDateTime.now().minusHours(3));
+    cart(account, variantOf(carted), LocalDateTime.now().minusMinutes(1));
+    view(idle, viewed, LocalDateTime.now().minusHours(25));
+    when(mlServiceClient.related(carted.id(), 4))
+        .thenReturn(Optional.of(List.of(suggestion(similar, SIMILAR))));
+    reload();
+
+    customer(get(HOME), account)
+        .andExpect(jsonPath("$.source").value("POPULAR"))
+        .andExpect(jsonPath("$.updating").value(false))
+        .andExpect(jsonPath("$.updatedSecondsAgo").isEmpty())
+        .andExpect(jsonPath("$.recent.kind").value("CART"))
+        .andExpect(jsonPath("$.recent.product.id").value(carted.id()))
+        .andExpect(jsonPath("$.recent.products[0].product.id").value(similar))
+        .andExpect(jsonPath("$.products[*].product.id", not(hasItem((int) similar))));
+    customer(get(HOME), idle)
+        .andExpect(jsonPath("$.source").value("POPULAR"))
+        .andExpect(jsonPath("$.recent").isEmpty());
+  }
+
+  @Test
   void homeListIsForCustomersOnly() throws Exception {
     mockMvc.perform(get(HOME)).andExpect(status().isUnauthorized());
     mockMvc
@@ -289,6 +355,22 @@ class RecommendationIntegrationTest {
           "Lý do " + productId,
           LocalDateTime.now());
     }
+  }
+
+  private void view(long accountId, long productId, LocalDateTime at) {
+    jdbcTemplate.update(
+        "INSERT INTO product_view_log (account_id, product_id, viewed_at) VALUES (?, ?, ?)",
+        accountId,
+        productId,
+        at);
+  }
+
+  private void cart(long accountId, long variantId, LocalDateTime at) {
+    jdbcTemplate.update(
+        "INSERT INTO cart_item (account_id, variant_id, quantity, updated_at) VALUES (?, ?, 1, ?)",
+        accountId,
+        variantId,
+        at);
   }
 
   private void reload() {

@@ -62,6 +62,7 @@ Package `app/recommendation/`. Mô hình dựng trong bộ nhớ từ MySQL (kho
 - **Vector sản phẩm** (`features.py`): TF-IDF tên + mô tả (từ đơn và cặp 2 từ), one-hot danh mục, thương hiệu, 5 khoảng giá; trọng số khối 0,45 / 0,30 / 0,15 / 0,10. Độ tương đồng cosine = tích vô hướng.
 - **Hay mua cùng** (`copurchase.py`): cosine giữa 2 sản phẩm theo tập khách đã mua (đơn khác CANCELLED), co các cặp ít khách chung.
 - **Trang chủ** (`model.py`, nguồn theo BR-38): đủ dữ liệu hành vi (BR-19) thì trộn 0,7 × cosine với hồ sơ P(u) (đã mua 5, trong giỏ 3, yêu thích 2, đã xem 1, khảo sát 0,5) + 0,2 × hay mua cùng + 0,1 × bán chạy + 0,15 × điểm cộng theo kiểu người mua; chỉ có khảo sát thì cosine với vector khảo sát + 0,2 × bán chạy + 0,15 × điểm cộng, sản phẩm trong khoảng giá khách chọn đứng trước; không có gì thì không có danh sách (trang chủ hiện bán chạy). Không gợi ý sản phẩm đã mua, đang trong giỏ, hết hàng; trừ điểm sản phẩm trùng danh mục để danh sách đa dạng. Mỗi khách lưu 20 sản phẩm kèm lý do vào bảng `recommendation`.
+- **Ưu tiên tương tác gần đây** (`model.py`): trọng số mỗi tương tác ở trên nhân thêm 1 + β × 0,5^(tuổi tính bằng ngày / bán rã), β = 3, bán rã 1 ngày: món vừa thêm giỏ hay vừa xem nặng gấp 4, sau 1 ngày gấp 2,5, sau 1 tuần gần như bình thường. Nhờ vậy thêm 1 món vào giỏ làm trung bình 1,6 trên 8 món trang chủ đổi (trước 0,5). Lý do ghi "bạn vừa thêm vào giỏ / vừa xem" khi tương tác trong 24 giờ.
 - **Tính lại** (`store.py`): hàm xử lý yêu cầu RECOMMENDATION của tiến trình lấy việc (khoảng 20 ms mỗi khách). Lúc khởi động và 02:00 giờ Việt Nam mỗi đêm, ghi yêu cầu cho mọi khách có danh sách, có đơn Đã giao, có lượt xem 30 ngày hoặc đã làm khảo sát (BR-20).
 - **API cho backend** (khoảng 5 ms): `GET /recommendations/related/{productId}?limit=4` (sản phẩm liên quan, US-12), `POST /recommendations/survey` (gợi ý theo khảo sát, US-23; body `categoryIds`, `brandId`, `priceMin`, `priceMax`, `style`, `minRating`, `excludeProductIds`, `limit`). Xem `/docs`.
 
@@ -69,8 +70,10 @@ Package `app/recommendation/`. Mô hình dựng trong bộ nhớ từ MySQL (kho
 
 ```powershell
 uv run python -m app.recommendation.evaluate          # vài giây
-uv run python -m app.recommendation.evaluate --grid   # thử thêm 192 bộ trọng số (khoảng 2 phút)
+uv run python -m app.recommendation.evaluate --grid   # thử thêm 192 bộ trọng số và 15 bộ β × bán rã (vài phút)
 ```
+
+Bảng kết quả có thêm dòng "Hybrid, không ưu tiên gần đây" (β = 0) để so. Lưu ý: tỷ lệ trúng tăng khi bật ưu tiên gần đây (49% → 64% trên dữ liệu mô phỏng) phần lớn vì mô phỏng luôn cho khách xem món trước khi mua, nên không coi đó là số đo hiệu quả thật; CTR trên trang chủ mới là số đo thật.
 
 ## Phân nhóm khách hàng (Tuần 9)
 
