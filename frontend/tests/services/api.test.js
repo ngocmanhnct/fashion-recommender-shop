@@ -11,6 +11,7 @@ import * as orderApi from '../../src/services/orderApi';
 import * as productAdminApi from '../../src/services/productAdminApi';
 import * as productApi from '../../src/services/productApi';
 import * as recommendationApi from '../../src/services/recommendationApi';
+import * as reviewApi from '../../src/services/reviewApi';
 import * as surveyApi from '../../src/services/surveyApi';
 import * as wishlistApi from '../../src/services/wishlistApi';
 import { mockApi } from '../apiMock';
@@ -83,6 +84,13 @@ const CALLS = [
   [() => recommendationApi.getMyRecommendations(), 'get', '/api/recommendations/me'],
   [() => surveyApi.getSurvey(), 'get', '/api/survey'],
   [() => wishlistApi.getWishlist(), 'get', '/api/wishlist'],
+  [() => reviewApi.getMyReview(3), 'get', '/api/products/3/reviews/me'],
+  [
+    () => reviewApi.saveMyReview(3, { rating: 5, comment: '' }),
+    'put',
+    '/api/products/3/reviews/me',
+    { rating: 5, comment: '' },
+  ],
   [() => wishlistApi.getWishlistIds(), 'get', '/api/wishlist/ids'],
   [() => wishlistApi.addToWishlist(3), 'put', '/api/wishlist/3'],
   [() => wishlistApi.removeFromWishlist(3), 'delete', '/api/wishlist/3'],
@@ -125,6 +133,7 @@ const QUERIES = [
   [() => productApi.searchProducts({ page: 0 }), '/api/products', { page: 0 }],
   [() => productApi.getProductSuggestions(''), '/api/products/suggestions', {}],
   [() => productApi.getProductSuggestions('túi'), '/api/products/suggestions', { keyword: 'túi' }],
+  [() => reviewApi.getProductReviews(3), '/api/products/3/reviews', { page: 0, size: 5 }],
   [
     () => productApi.getBoughtTogether([3, 5]),
     '/api/products/bought-together',

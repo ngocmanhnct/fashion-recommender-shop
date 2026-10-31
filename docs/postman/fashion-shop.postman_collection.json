@@ -450,6 +450,53 @@
           ]
         },
         {
+          "name": "Đánh giá sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{publicProductId}}/reviews?page=0&size=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{publicProductId}}",
+                "reviews"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0",
+                  "description": "Số trang, từ 0"
+                },
+                {
+                  "key": "size",
+                  "value": "5",
+                  "description": "Số đánh giá mỗi trang, 1 đến 20"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "Phần đánh giá của trang sản phẩm (US-15): ratingAverage (làm tròn 1 chữ số, null nếu chưa có), reviewCount, starCounts (5 số, phần tử 0 là 1 sao) và reviews (một trang, sửa gần nhất trước; mỗi đánh giá có reviewerName là tên gọi, rating, comment, variantLabel, createdAt, updatedAt). Sản phẩm không có hoặc ngừng bán 404; page < 0 hoặc size ngoài 1–20 trả 400."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem đánh giá thành công', () => pm.response.to.have.status(200));",
+                  "pm.test('Có 5 mức sao', () => pm.expect(pm.response.json().starCounts).to.have.length(5));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Gợi ý sản phẩm liên quan",
           "request": {
             "method": "GET",
@@ -897,7 +944,7 @@
     },
     {
       "name": "3. Khách hàng (cần token tài khoản khách)",
-      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm, giỏ hàng, danh sách yêu thích (US-14), sổ địa chỉ, đặt hàng COD, đơn hàng (Tuần 6). Thanh toán online, khảo sát, đánh giá sẽ thêm sau. Đặt hàng: chạy lần lượt Thêm địa chỉ, Gộp giỏ hàng (để giỏ có sản phẩm), Xem trước đơn hàng rồi Đặt hàng. Mọi API giỏ hàng trả về cả giỏ: items, notices (dòng hệ thống vừa tự loại hoặc giảm số lượng, BR-11), totalQuantity, subtotal.",
+      "description": "API cho người dùng đã đăng nhập với vai trò khách hàng. Chạy '1. Xác thực > Đăng nhập khách hàng' trước: nhóm này gửi token trong biến customerToken do request đó lưu, nên chạy 'Đăng nhập admin' sau cũng không ảnh hưởng. Không có token bị 401, token admin bị 403. Hiện có: ghi lượt xem sản phẩm, giỏ hàng, danh sách yêu thích (US-14), sổ địa chỉ, đặt hàng COD, đơn hàng (Tuần 6). Có thêm thanh toán online, khảo sát, gợi ý, đánh giá sản phẩm (US-15). Đặt hàng: chạy lần lượt Thêm địa chỉ, Gộp giỏ hàng (để giỏ có sản phẩm), Xem trước đơn hàng rồi Đặt hàng. Mọi API giỏ hàng trả về cả giỏ: items, notices (dòng hệ thống vừa tự loại hoặc giảm số lượng, BR-11), totalQuantity, subtotal.",
       "item": [
         {
           "name": "Ghi lượt xem sản phẩm",
@@ -1683,6 +1730,79 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Lấy chi tiết đơn thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Đánh giá của tôi cho sản phẩm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{publicProductId}}/reviews/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{publicProductId}}",
+                "reviews",
+                "me"
+              ]
+            },
+            "description": "canReview: đã có đơn Đã giao chứa sản phẩm này chưa (BR-17); review: đánh giá đã gửi, null nếu chưa đánh giá."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem đánh giá của tôi thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Gửi hoặc sửa đánh giá",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/{{publicProductId}}/reviews/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "{{publicProductId}}",
+                "reviews",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"comment\": \"Hàng đẹp, giao nhanh\"\n}"
+            },
+            "description": "Gửi đánh giá (rating 1 đến 5, comment tối đa 1.000 ký tự, không bắt buộc). Mỗi sản phẩm tối đa 1 đánh giá: gửi lại là sửa (BR-18). Chỉ đánh giá được sản phẩm thuộc đơn Đã giao của mình (BR-17), chưa có thì 409 — chạy sau khi admin chuyển đơn sang Đã giao. Sai dữ liệu 400 kèm errors; sản phẩm không có hoặc ngừng bán 404."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Gửi đánh giá (200 nếu đã nhận hàng, 409 nếu chưa)', () => pm.expect(pm.response.code).to.be.oneOf([200, 409]));"
                 ]
               }
             }

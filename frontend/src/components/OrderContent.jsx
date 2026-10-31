@@ -3,9 +3,10 @@ import { formatPrice } from '../services/format';
 
 /**
  * Phần thân chi tiết đơn hàng: người nhận, sản phẩm và giá như lúc đặt (BR-15, BR-29), tổng tiền.
- * Dùng chung cho trang của khách và trang quản trị; productHref(item) cho biết link của mỗi dòng.
+ * Dùng chung cho trang của khách và trang quản trị; productHref(item) cho biết link của mỗi dòng,
+ * itemAction(item) (không bắt buộc) thêm 1 thao tác dưới mỗi dòng, vd "Đánh giá".
  */
-function OrderContent({ order, productHref }) {
+function OrderContent({ order, productHref, itemAction }) {
   return (
     <>
       <section className="checkout-section">
@@ -24,6 +25,7 @@ function OrderContent({ order, productHref }) {
               <div>
                 <Link to={productHref(item)}>{item.productName}</Link>
                 {item.variantLabel && <p className="muted small">Phân loại: {item.variantLabel}</p>}
+                {itemAction?.(item)}
               </div>
               <span className="muted small">
                 {formatPrice(item.unitPrice)} × {item.quantity}

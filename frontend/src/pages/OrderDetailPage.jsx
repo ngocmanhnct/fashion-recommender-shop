@@ -100,7 +100,11 @@ function OrderDetail({ id }) {
         )}
       </PaymentInfo>
 
-      <OrderContent order={order} productHref={(item) => `/products/${item.productId}`} />
+      <OrderContent
+        order={order}
+        productHref={(item) => `/products/${item.productId}`}
+        itemAction={order.status === 'DELIVERED' ? reviewLink : undefined}
+      />
 
       {cancelError && (
         <p className="alert alert-error" role="alert">
@@ -135,6 +139,15 @@ function OrderNotFound() {
         Xem đơn hàng của tôi
       </Link>
     </div>
+  );
+}
+
+/** Đơn Đã giao: mỗi dòng có link tới phần đánh giá của sản phẩm (US-15, BR-17). */
+function reviewLink(item) {
+  return (
+    <Link to={`/products/${item.productId}#danh-gia`} className="small">
+      Đánh giá sản phẩm
+    </Link>
   );
 }
 
