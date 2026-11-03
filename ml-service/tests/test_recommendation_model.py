@@ -93,6 +93,14 @@ def test_small_catalog_still_builds_vectors(count):
     assert small.survey_vector([SHOES], None, 0, None) is not None
 
 
+def test_catalog_without_usable_words_drops_text_block():
+    """Tên không có từ nào đủ 2 chữ cái: bỏ khối chữ, vẫn dựng được từ danh mục, giá."""
+    items = [CatalogItem(i, SHOES, None, "A 1", "", 100_000 * i) for i in range(1, 4)]
+    small = ItemVectors(items)
+    assert small.text_width == 0 and small.vectorizer is None
+    assert np.allclose(np.linalg.norm(small.matrix.toarray(), axis=1), 1.0)
+
+
 def test_survey_vector_matches_chosen_category_and_price(vectors):
     vector = vectors.survey_vector([SHOES], BITIS, 400_000, 600_000)
     assert np.linalg.norm(vector) == pytest.approx(1.0)

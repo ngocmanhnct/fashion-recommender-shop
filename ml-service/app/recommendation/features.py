@@ -163,6 +163,7 @@ class ItemVectors:
         scaled = [
             normalize(sparse.csr_matrix(blocks[name]), norm="l2") * math.sqrt(weight)
             for name, weight in BLOCK_WEIGHTS.items()
+            if blocks[name].shape[1] > 0
         ]
         return normalize(sparse.hstack(scaled, format="csr"), norm="l2")
 
