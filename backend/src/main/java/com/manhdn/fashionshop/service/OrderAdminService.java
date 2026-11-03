@@ -115,7 +115,10 @@ public class OrderAdminService {
             .findAccountIdById(orderId)
             .orElseThrow(() -> new NoSuchElementException("Không tìm thấy đơn hàng"));
     accountRepository.findWithLockById(accountId);
-    Order order = find(orderId);
+    Order order =
+        orderRepository
+            .findForUpdateById(orderId)
+            .orElseThrow(() -> new NoSuchElementException("Không tìm thấy đơn hàng"));
     OrderStatus current = order.getStatus();
     if (current == target) {
       return AdminOrderResponse.from(order);

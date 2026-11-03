@@ -75,6 +75,7 @@ function CustomerListPage() {
         <input
           key={filters.keyword}
           name="keyword"
+          aria-label="Tìm khách theo tên hoặc email"
           placeholder="Tên hoặc email khách hàng"
           defaultValue={filters.keyword}
         />

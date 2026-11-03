@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import * as authApi from '../services/authApi';
 import { UNAUTHORIZED_EVENT } from '../services/apiClient';
-import { clearToken, getToken, saveToken } from '../services/tokenStorage';
+import { clearToken, getToken, saveToken, TOKEN_KEY } from '../services/tokenStorage';
 import { AuthContext } from './authContext';
 
 function AuthProvider({ children }) {
@@ -14,14 +14,26 @@ function AuthProvider({ children }) {
     authApi
       .getMe()
       .then(setUser)
-      .catch(() => clearToken())
+      // Token sai hoặc tài khoản không còn thì xóa token. Lỗi khác (mất mạng, backend đang khởi
+      // động) thì giữ token: tải lại trang là vào lại được, không bắt đăng nhập lại.
+      .catch((error) => {
+        if ([401, 403, 404].includes(error?.response?.status)) clearToken();
+      })
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     const handleUnauthorized = () => setUser(null);
+    // Đăng xuất ở tab khác thì localStorage mất token: tab này cũng đăng xuất theo.
+    const handleStorage = (event) => {
+      if ((event.key === TOKEN_KEY || event.key === null) && !getToken()) setUser(null);
+    };
     window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
-    return () => window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+      window.removeEventListener('storage', handleStorage);
+    };
   }, []);
 
   const login = useCallback(async (email, password) => {

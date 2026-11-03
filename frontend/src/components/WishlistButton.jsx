@@ -15,7 +15,11 @@ function WishlistButton({ productId }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isCustomer = user?.role === 'CUSTOMER';
-  const { data } = useApiData(isCustomer ? `wishlist:${user.id}` : null, getWishlistIds);
+  const {
+    data,
+    error: loadError,
+    reload,
+  } = useApiData(isCustomer ? `wishlist:${user.id}` : null, getWishlistIds);
   // Danh sách sau lần bấm gần nhất; null = dùng danh sách vừa tải.
   const [ids, setIds] = useState(null);
   const [pending, setPending] = useState(false);
@@ -27,7 +31,9 @@ function WishlistButton({ productId }) {
 
   const toggle = async () => {
     if (!isCustomer) {
-      navigate('/login', { state: { from: location.pathname } });
+      navigate('/login', {
+        state: { from: `${location.pathname}${location.search}${location.hash}` },
+      });
       return;
     }
     setPending(true);
@@ -47,7 +53,7 @@ function WishlistButton({ productId }) {
         type="button"
         className={`btn btn-ghost wishlist-btn${liked ? ' is-liked' : ''}`}
         aria-pressed={liked}
-        disabled={pending || (isCustomer && data === null && ids === null)}
+        disabled={pending || (isCustomer && data === null && ids === null && !loadError)}
         onClick={toggle}
       >
         <span aria-hidden="true">{liked ? '♥' : '♡'} </span>
@@ -56,6 +62,14 @@ function WishlistButton({ productId }) {
       {error && (
         <p className="alert alert-error small" role="alert">
           {error}
+        </p>
+      )}
+      {loadError && ids === null && (
+        <p className="muted small" role="alert">
+          Chưa tải được danh sách yêu thích.{' '}
+          <button type="button" className="btn-link" onClick={reload}>
+            Thử lại
+          </button>
         </p>
       )}
     </div>

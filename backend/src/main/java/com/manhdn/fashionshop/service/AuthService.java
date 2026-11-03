@@ -98,16 +98,24 @@ public class AuthService {
   @Transactional(readOnly = true)
   public AuthResponse login(LoginRequest request) {
     String email = normalizeEmail(request.email());
-    loginAttemptService.checkNotLocked(email);
-    Optional<Account> account = accountRepository.findByEmail(email);
-    String hash = account.map(Account::getPasswordHash).orElse(dummyHash);
-    boolean passwordMatches = passwordEncoder.matches(request.password(), hash);
-    if (account.isEmpty() || !passwordMatches) {
-      loginAttemptService.recordFailure(email);
-      throw new InvalidCredentialsException();
+    loginAttemptService.startAttempt(email);
+    boolean recorded = false;
+    try {
+      Optional<Account> account = accountRepository.findByEmail(email);
+      String hash = account.map(Account::getPasswordHash).orElse(dummyHash);
+      boolean passwordMatches = passwordEncoder.matches(request.password(), hash);
+      recorded = true;
+      if (account.isEmpty() || !passwordMatches) {
+        loginAttemptService.recordFailure(email);
+        throw new InvalidCredentialsException();
+      }
+      loginAttemptService.recordSuccess(email);
+      return toAuthResponse(account.get());
+    } finally {
+      if (!recorded) {
+        loginAttemptService.release(email);
+      }
     }
-    loginAttemptService.recordSuccess(email);
-    return toAuthResponse(account.get());
   }
 
   /**

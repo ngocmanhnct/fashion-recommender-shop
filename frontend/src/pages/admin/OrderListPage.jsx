@@ -21,17 +21,10 @@ const REFUND_FAILED_TAB = 'REFUND_FAILED';
 function readFilters(searchParams) {
   const status = searchParams.get('status') ?? '';
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
-  if (status === REFUND_FAILED_TAB) {
-    return {
-      status: '',
-      refundStatus: 'FAILED',
-      keyword: searchParams.get('keyword') ?? '',
-      page: 0,
-    };
-  }
+  const refundFailed = status === REFUND_FAILED_TAB;
   return {
-    status: STATUS_TABS.includes(status) ? status : '',
-    refundStatus: '',
+    status: !refundFailed && STATUS_TABS.includes(status) ? status : '',
+    refundStatus: refundFailed ? 'FAILED' : '',
     keyword: searchParams.get('keyword') ?? '',
     page: Number.isInteger(pageParam) && pageParam > 0 ? pageParam - 1 : 0,
   };
@@ -74,8 +67,12 @@ function OrderListPage() {
             key={status || 'ALL'}
             type="button"
             role="tab"
-            aria-selected={filters.status === status}
-            className={filters.status === status ? 'btn btn-primary' : 'btn btn-ghost'}
+            aria-selected={!filters.refundStatus && filters.status === status}
+            className={
+              !filters.refundStatus && filters.status === status
+                ? 'btn btn-primary'
+                : 'btn btn-ghost'
+            }
             onClick={() => update({ status, refundStatus: '', page: 0 })}
           >
             {status ? ORDER_STATUS_LABELS[status] : 'Tất cả'}
@@ -96,6 +93,7 @@ function OrderListPage() {
         <input
           key={filters.keyword}
           name="keyword"
+          aria-label="Tìm đơn theo mã, email hoặc số điện thoại"
           placeholder="Mã đơn, email khách hoặc số điện thoại"
           defaultValue={filters.keyword}
         />

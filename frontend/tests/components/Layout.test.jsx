@@ -94,6 +94,12 @@ describe('Layout', () => {
     // Bấm vào vùng tối bên ngoài ngăn kéo thì đóng.
     await userEvent.click(document.querySelector('.drawer-backdrop'));
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    // Phím Esc cũng đóng; mở ra thì con trỏ bàn phím nằm trong ngăn kéo.
+    await userEvent.click(toggle);
+    expect(drawer).toContainElement(document.activeElement);
+    await userEvent.keyboard('{Escape}');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('ngăn kéo của khách hàng có đơn hàng, sổ địa chỉ; bấm liên kết là chuyển trang', async () => {

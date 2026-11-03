@@ -83,6 +83,16 @@ def test_empty_catalog_is_rejected():
         ItemVectors([])
 
 
+@pytest.mark.parametrize("count", [1, 3, 6])
+def test_small_catalog_still_builds_vectors(count):
+    """Danh mục ít sản phẩm: bộ lọc min_df/max_df của TF-IDF bỏ hết từ, vẫn phải dựng được."""
+    items = [CatalogItem(i, SHOES, BITIS, "Giày", "", 100_000 * i) for i in range(1, count + 1)]
+    small = ItemVectors(items)
+    norms = np.linalg.norm(small.matrix.toarray(), axis=1)
+    assert np.allclose(norms, 1.0)
+    assert small.survey_vector([SHOES], None, 0, None) is not None
+
+
 def test_survey_vector_matches_chosen_category_and_price(vectors):
     vector = vectors.survey_vector([SHOES], BITIS, 400_000, 600_000)
     assert np.linalg.norm(vector) == pytest.approx(1.0)

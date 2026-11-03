@@ -14,6 +14,7 @@ public record ChangePasswordRequest(
     @NotBlank(message = "Nhập mật khẩu hiện tại") String currentPassword,
     @NotBlank(message = "Mật khẩu mới không được để trống")
         @Size(min = 8, max = 72, message = "Mật khẩu phải từ 8 đến 72 ký tự")
+        @MaxPasswordBytes
         @Pattern(
             regexp = "^(?=.*\\p{L})(?=.*\\d).+$",
             message = "Mật khẩu phải có ít nhất 1 chữ cái và 1 chữ số")

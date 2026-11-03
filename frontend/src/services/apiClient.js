@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { clearToken, getToken } from './tokenStorage';
+import { clearToken, getToken, UNAUTHORIZED_EVENT } from './tokenStorage';
 
-// Sự kiện phát ra khi backend trả 401 cho một request có gửi token: token đã hết hạn hoặc
-// backend khởi động lại với khóa khác. AuthProvider nghe sự kiện này để đăng xuất.
-export const UNAUTHORIZED_EVENT = 'fashionshop:unauthorized';
+// Phát khi backend trả 401 cho một request có gửi token: token đã hết hạn hoặc backend khởi động
+// lại với khóa khác. Giữ export ở đây cho các file đang import từ apiClient.
+export { UNAUTHORIZED_EVENT };
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',

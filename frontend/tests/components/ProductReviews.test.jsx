@@ -43,6 +43,25 @@ describe('ProductReviews', () => {
     saveMyReview.mockResolvedValue(review(9, 4));
   });
 
+  it('quá 20 đánh giá thì tải nhiều trang 20 rồi ghép, không xin cỡ trang quá 20', async () => {
+    const all = Array.from({ length: 30 }, (_, i) =>
+      review(i + 1, 5, { comment: `Bình luận ${i + 1}` })
+    );
+    getProductReviews.mockImplementation(async (_id, page, size) =>
+      summary(all.slice(page * size, page * size + size), all.length)
+    );
+    renderReviews();
+    await screen.findByText('Bình luận 5');
+    for (let i = 0; i < 4; i++) {
+      await userEvent.click(await screen.findByRole('button', { name: 'Xem thêm đánh giá' }));
+    }
+    expect(await screen.findByText('Bình luận 25')).toBeInTheDocument();
+    expect(screen.queryByText('Bình luận 26')).not.toBeInTheDocument();
+    const sizes = getProductReviews.mock.calls.map(([, , size]) => size);
+    expect(Math.max(...sizes)).toBe(20);
+    expect(getProductReviews).toHaveBeenCalledWith(3, 1, 20);
+  });
+
   it('hiện điểm trung bình, số đánh giá theo sao, danh sách và tải thêm', async () => {
     renderReviews();
     expect(await screen.findByText('Rất đẹp')).toBeInTheDocument();

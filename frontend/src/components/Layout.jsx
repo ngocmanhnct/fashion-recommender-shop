@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { useApiData } from '../hooks/useApiData';
 import { useAuth } from '../hooks/useAuth';
@@ -171,12 +171,29 @@ function HeaderActions({ user }) {
 function MobileDrawer({ id, open, user, onClose, onLogout }) {
   const { data } = useApiData('all', getCategories);
   const groups = groupCategories(data);
+  const panelRef = useRef(null);
+
+  // Mở ngăn kéo thì đưa con trỏ bàn phím vào trong, để người dùng bàn phím đi tiếp được ngay.
+  useEffect(() => {
+    if (open) panelRef.current?.querySelector('a, button, summary')?.focus();
+  }, [open]);
+
+  // Phím Esc đóng ngăn kéo.
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleKey = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [open, onClose]);
+
   return (
     <div className={open ? 'drawer is-open' : 'drawer'}>
       <button type="button" className="drawer-backdrop" tabIndex={-1} onClick={onClose}>
         <span className="visually-hidden">Đóng menu</span>
       </button>
-      <div id={id} className="drawer-panel" inert={!open}>
+      <div id={id} className="drawer-panel" inert={!open} ref={panelRef}>
         <p className="drawer-title">Danh mục</p>
         <ul className="drawer-links">
           <li>

@@ -211,4 +211,13 @@ describe('CheckoutPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
     expect(await screen.findByRole('button', { name: 'Đặt hàng' })).toBeInTheDocument();
   });
+
+  it('sổ địa chỉ tải lỗi thì có nút thử lại, không hiện lối thêm địa chỉ', async () => {
+    vi.mocked(addressApi.listAddresses).mockRejectedValueOnce({ response: { status: 500 } });
+    renderCheckout();
+    expect(await screen.findByText('Không tải được sổ địa chỉ')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '+ Thêm địa chỉ mới' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Thử lại' }));
+    expect(await screen.findByRole('button', { name: '+ Thêm địa chỉ mới' })).toBeInTheDocument();
+  });
 });

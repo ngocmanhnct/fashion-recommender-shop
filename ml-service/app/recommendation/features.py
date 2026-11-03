@@ -87,16 +87,8 @@ class ItemVectors:
         )
         self.prices = np.array([item.price for item in items], dtype=np.int64)
 
-        self.vectorizer = TfidfVectorizer(
-            preprocessor=normalize_text,
-            token_pattern=r"(?u)\b[^\W\d_]{2,}\b",
-            ngram_range=(1, 2),
-            min_df=2,
-            max_df=0.3,
-            sublinear_tf=True,
-            stop_words=STOP_WORDS,
-        )
-        text = self.vectorizer.fit_transform(f"{item.name} {item.description}" for item in items)
+        text = self._fit_text([f"{item.name} {item.description}" for item in items])
+        self.text_width = text.shape[1]
 
         self.category_columns = {cid: col for col, cid in enumerate(sorted(set(self.category_ids)))}
         self.brand_columns = {
@@ -118,6 +110,27 @@ class ItemVectors:
         self.matrix = self._combine(blocks)
 
     # ---- các khối ----
+
+    def _fit_text(self, documents: list[str]):
+        """Dựng TF-IDF tên + mô tả. Danh mục nhỏ (dưới khoảng 7 sản phẩm) hoặc tên quá giống nhau
+        thì bộ lọc min_df/max_df bỏ hết từ (sklearn báo ValueError): nới bộ lọc, vẫn không còn từ nào
+        thì bỏ khối văn bản (ma trận 0 cột), các khối danh mục, thương hiệu, giá vẫn dùng được."""
+        for min_df, max_df in ((2, 0.3), (1, 1.0)):
+            self.vectorizer = TfidfVectorizer(
+                preprocessor=normalize_text,
+                token_pattern=r"(?u)\b[^\W\d_]{2,}\b",
+                ngram_range=(1, 2),
+                min_df=min_df,
+                max_df=max_df,
+                sublinear_tf=True,
+                stop_words=STOP_WORDS,
+            )
+            try:
+                return self.vectorizer.fit_transform(documents)
+            except ValueError:
+                continue
+        self.vectorizer = None
+        return sparse.csr_matrix((len(documents), 0))
 
     def _one_hot(self, columns: Iterable[int | None], width: int) -> sparse.csr_matrix:
         """Ma trận one-hot, mỗi hàng 1 cột (None = hàng toàn 0)."""
@@ -177,7 +190,7 @@ class ItemVectors:
         if brand_id is not None and brand_id in self.brand_columns:
             brand[self.brand_columns[brand_id]] = 1.0
         price = self._price_range_weights(price_min, price_max)
-        text = np.zeros(len(self.vectorizer.vocabulary_))
+        text = np.zeros(self.text_width)
         blocks = {"text": text, "category": category, "brand": brand, "price": price}
         parts = []
         for name, weight in BLOCK_WEIGHTS.items():

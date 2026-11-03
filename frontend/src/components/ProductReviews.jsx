@@ -9,6 +9,21 @@ import { getMyReview, getProductReviews } from '../services/reviewApi';
 import ReviewForm from './ReviewForm';
 
 const PAGE_SIZE = 5;
+// Backend trả tối đa 20 đánh giá mỗi lần gọi.
+const MAX_PAGE_SIZE = 20;
+
+/** Tải `count` đánh giá mới nhất; quá 20 thì gọi nhiều trang 20 rồi ghép lại. */
+async function loadReviews(productId, count) {
+  if (count <= MAX_PAGE_SIZE) return getProductReviews(productId, 0, count);
+  const pages = await Promise.all(
+    Array.from({ length: Math.ceil(count / MAX_PAGE_SIZE) }, (_, page) =>
+      getProductReviews(productId, page, MAX_PAGE_SIZE)
+    )
+  );
+  const [first] = pages;
+  const content = pages.flatMap((page) => page.reviews.content).slice(0, count);
+  return { ...first, reviews: { ...first.reviews, content } };
+}
 
 /**
  * Phần "Đánh giá sản phẩm" ở trang chi tiết (US-15): điểm trung bình, số đánh giá theo mức sao,
@@ -24,13 +39,18 @@ function ProductReviews({ productId }) {
   const [pages, setPages] = useState(1);
   const key = `${productId}:${version}:${pages}`;
   const { data, error, lastData, loading } = useApiData(key, () =>
-    getProductReviews(productId, 0, PAGE_SIZE * pages)
+    loadReviews(productId, PAGE_SIZE * pages)
   );
   const shown = data ?? lastData;
+  const hasData = Boolean(shown);
+  // Chỉ cuộn 1 lần khi mở trang với #danh-gia, không cuộn lại mỗi lần bấm "Xem thêm".
+  const scrolledRef = useRef(false);
 
   useEffect(() => {
-    if (location.hash === '#danh-gia' && shown) sectionRef.current?.scrollIntoView?.();
-  }, [location.hash, shown]);
+    if (location.hash !== '#danh-gia' || !hasData || scrolledRef.current) return;
+    scrolledRef.current = true;
+    sectionRef.current?.scrollIntoView?.();
+  }, [location.hash, hasData]);
 
   const handleSaved = () => {
     setPages(1);

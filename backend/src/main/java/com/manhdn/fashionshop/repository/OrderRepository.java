@@ -3,12 +3,14 @@ package com.manhdn.fashionshop.repository;
 import com.manhdn.fashionshop.entity.Order;
 import com.manhdn.fashionshop.entity.OrderStatus;
 import com.manhdn.fashionshop.entity.RefundStatus;
+import jakarta.persistence.LockModeType;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -69,6 +71,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   /** Mã tài khoản đặt đơn, để khóa tài khoản trước khi khóa đơn và biến thể. */
   @Query("select o.account.id from Order o where o.id = :id")
   Optional<Long> findAccountIdById(@Param("id") Long id);
+
+  /**
+   * Đọc đơn kèm khóa dòng (SELECT … FOR UPDATE). Gọi sau khi đã khóa tài khoản: giao dịch nào đã
+   * đọc thường trước đó ({@link #findAccountIdById}) thì MySQL (REPEATABLE READ) giữ ảnh chụp lúc
+   * đó, đọc thường lần nữa sẽ thấy đơn cũ; đọc có khóa luôn thấy bản mới nhất đã commit.
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select o from Order o where o.id = :id")
+  Optional<Order> findForUpdateById(@Param("id") Long id);
 
   /** Bỏ tham chiếu tới địa chỉ sắp bị xóa; đơn vẫn giữ bản sao địa chỉ (BR-29). */
   @Modifying(flushAutomatically = true)

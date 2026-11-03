@@ -124,7 +124,7 @@ class AuthServiceTest {
   void lockedEmailIsRejectedBeforeCheckingPassword() {
     doThrow(new TooManyLoginAttemptsException(Duration.ofMinutes(15)))
         .when(loginAttemptService)
-        .checkNotLocked("a@x.vn");
+        .startAttempt("a@x.vn");
 
     assertThatThrownBy(() -> authService.login(new LoginRequest("a@x.vn", "matkhau1")))
         .isInstanceOf(TooManyLoginAttemptsException.class);

@@ -167,7 +167,7 @@ public class PaymentService {
   private Boolean cancelExpired(long orderId, LocalDateTime cutoff) {
     long accountId = orderRepository.findAccountIdById(orderId).orElseThrow();
     accountRepository.findWithLockById(accountId);
-    Order order = orderRepository.findById(orderId).orElseThrow();
+    Order order = orderRepository.findForUpdateById(orderId).orElseThrow();
     if (!order.awaitingPayment() || order.getCreatedAt().isAfter(cutoff)) {
       return false;
     }
@@ -184,7 +184,7 @@ public class PaymentService {
       return new CallbackResult(CallbackOutcome.ORDER_NOT_FOUND, null);
     }
     accountRepository.findWithLockById(accountId.get());
-    Order order = orderRepository.findById(orderId).orElseThrow();
+    Order order = orderRepository.findForUpdateById(orderId).orElseThrow();
     if (!String.valueOf(order.getTotalAmount() * 100).equals(params.get("vnp_Amount"))) {
       return new CallbackResult(CallbackOutcome.INVALID_AMOUNT, orderId);
     }

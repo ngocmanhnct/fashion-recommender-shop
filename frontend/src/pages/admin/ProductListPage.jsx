@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import Pagination from '../../components/Pagination';
 import { getCategories } from '../../services/catalogApi';
@@ -19,10 +19,19 @@ function ProductListPage() {
       .catch((err) => setError(getErrorMessage(err)));
   }, []);
 
+  // Bấm lọc/chuyển trang nhanh: chỉ nhận kết quả của lần tải mới nhất, tải được thì xóa lỗi cũ.
+  const requestRef = useRef(0);
   const load = useCallback(() => {
+    const request = ++requestRef.current;
     searchProducts({ ...filters, page })
-      .then(setResult)
-      .catch((err) => setError(getErrorMessage(err)));
+      .then((data) => {
+        if (request !== requestRef.current) return;
+        setResult(data);
+        setError('');
+      })
+      .catch((err) => {
+        if (request === requestRef.current) setError(getErrorMessage(err));
+      });
   }, [filters, page]);
 
   useEffect(load, [load]);
@@ -63,8 +72,13 @@ function ProductListPage() {
       </div>
 
       <form className="inline-form" onSubmit={handleSearch}>
-        <input name="keyword" placeholder="Tìm theo tên" defaultValue={filters.keyword} />
-        <select name="categoryId" defaultValue={filters.categoryId}>
+        <input
+          name="keyword"
+          aria-label="Tìm sản phẩm theo tên"
+          placeholder="Tìm theo tên"
+          defaultValue={filters.keyword}
+        />
+        <select name="categoryId" aria-label="Lọc theo danh mục" defaultValue={filters.categoryId}>
           <option value="">Tất cả danh mục</option>
           {categories.map((c) => (
             <option key={c.id} value={c.id}>

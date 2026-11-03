@@ -148,9 +148,12 @@ function CheckoutPage() {
           <section className="checkout-section">
             <h2>Địa chỉ giao hàng</h2>
             {!addresses && addressBook.error && (
-              <p className="alert alert-error">
-                {getErrorMessage(addressBook.error, 'Không tải được sổ địa chỉ')}
-              </p>
+              <div className="alert alert-error">
+                <p>{getErrorMessage(addressBook.error, 'Không tải được sổ địa chỉ')}</p>
+                <button type="button" className="btn btn-ghost" onClick={addressBook.reload}>
+                  Thử lại
+                </button>
+              </div>
             )}
             {addresses && addresses.length > 0 && (
               <ul className="address-list">
@@ -181,7 +184,7 @@ function CheckoutPage() {
                 onSubmit={handleAddAddress}
                 onCancel={addresses.length > 0 ? () => setAddingAddress(false) : undefined}
               />
-            ) : (
+            ) : addresses ? (
               <p className="checkout-links">
                 <button type="button" className="btn-link" onClick={() => setAddingAddress(true)}>
                   + Thêm địa chỉ mới
@@ -190,7 +193,7 @@ function CheckoutPage() {
                   Quản lý sổ địa chỉ
                 </Link>
               </p>
-            )}
+            ) : null}
           </section>
           <section className="checkout-section">
             <h2>Phương thức thanh toán</h2>

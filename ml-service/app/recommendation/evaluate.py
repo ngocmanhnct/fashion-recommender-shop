@@ -2,9 +2,9 @@
 
 Cách đánh giá "giữ lại đơn cuối" (leave-last-order-out):
 - Khách có ít nhất 2 đơn khác CANCELLED: giấu đơn cuối cùng. Mô hình chỉ thấy các đơn trước đó,
-  lượt xem trước thời điểm đặt đơn cuối (trong 30 ngày) và khảo sát; "hay mua cùng" và "bán chạy"
-  dựng từ mọi đơn trừ các đơn bị giấu. Gợi ý trúng = sản phẩm có trong đơn bị giấu mà khách
-  chưa mua trước đó.
+  lượt xem trong 30 ngày trước đơn cuối nhưng bỏ 48 giờ ngay trước đơn (xem SESSION_GAP), và
+  khảo sát; "hay mua cùng" và "bán chạy" dựng từ mọi đơn trừ các đơn bị giấu. Gợi ý trúng = sản
+  phẩm có trong đơn bị giấu mà khách chưa mua trước đó.
 - Khởi động lạnh: khách đã làm khảo sát, chỉ dùng khảo sát để đoán đơn đầu tiên của khách. "Bán
   chạy" ở đây đếm cả các đơn đầu tiên đó nên được lợi một chút; khảo sát vẫn phải vượt nó.
 
@@ -37,6 +37,12 @@ from app.recommendation.features import ItemVectors
 from app.recommendation.model import DEFAULT_WEIGHTS, Recommender, Weights
 
 K = 10
+
+SESSION_GAP = timedelta(hours=48)
+"""Bỏ lượt xem trong 48 giờ ngay trước đơn bị giấu. Khách (thật và mô phỏng) xem đúng sản phẩm sắp
+mua ngay trước khi đặt; giữ các lượt xem đó thì sản phẩm cần đoán nằm sẵn trong đầu vào: chỉ cần
+gợi ý lại "sản phẩm vừa xem" đã trúng 100% (rò rỉ nhãn, hội đồng thử hỏi 01/11/2026). Bỏ phiên mua
+đó thì đo được khả năng đoán từ hành vi trước, đúng câu hỏi của gợi ý."""
 
 
 @dataclass
@@ -123,7 +129,8 @@ def split(
         if not earlier or not targets:
             continue
         since = last.created_at - timedelta(days=data.VIEW_WINDOW_DAYS)
-        seen = [(p, at) for p, at in views.get(account_id, []) if since <= at < last.created_at]
+        until = last.created_at - SESSION_GAP
+        seen = [(p, at) for p, at in views.get(account_id, []) if since <= at < until]
         signals = UserSignals(
             account_id,
             purchased=bought,
@@ -237,6 +244,7 @@ def run(engine: Engine, grid: bool, out=None) -> dict[str, Scores]:
             size,
         )
 
+    results["Xem gần đây (không mô hình)"] = score_lists(dataset.behaviour, _recently_viewed, size)
     for name, weights in BEHAVIOUR_METHODS.items():
         results[name] = behaviour(weights)
     base.weights = DEFAULT_WEIGHTS
@@ -261,6 +269,13 @@ def run(engine: Engine, grid: bool, out=None) -> dict[str, Scores]:
         print_recency_grid(behaviour, out)
     print(f"\nThời gian chạy: {time.perf_counter() - started:.1f} giây", file=out)
     return results
+
+
+def _recently_viewed(case: Case) -> list[int]:
+    """Mốc so sánh đơn giản: các sản phẩm đã xem mà chưa mua, xem gần nhất trước."""
+    signals = case.signals
+    viewed = [p for p in signals.viewed if p not in signals.purchased]
+    return sorted(viewed, key=lambda p: signals.last_at[p], reverse=True)
 
 
 def _popular_list(model: Recommender, k: int) -> list[int]:

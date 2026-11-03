@@ -71,6 +71,7 @@ function NamedResourceManager({ title, noun, loadAll, api }) {
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
+          aria-label={`Tên ${noun} mới`}
           placeholder={`Tên ${noun} mới`}
           maxLength={100}
         />
@@ -99,6 +100,7 @@ function NamedResourceManager({ title, noun, loadAll, api }) {
                     ref={editInputRef}
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
+                    aria-label={`Tên ${noun}`}
                     maxLength={100}
                   />
                 ) : (
