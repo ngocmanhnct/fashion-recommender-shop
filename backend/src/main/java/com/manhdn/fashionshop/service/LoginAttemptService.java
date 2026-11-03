@@ -40,7 +40,10 @@ public class LoginAttemptService {
   /** Thời gian chờ khi có quá nhiều lần đăng nhập cùng lúc cho một email. */
   private static final Duration BUSY_RETRY_AFTER = Duration.ofMinutes(1);
 
+  private static final Duration CLEAN_UP_INTERVAL = Duration.ofMinutes(1);
+
   private final Clock clock;
+  private Instant lastCleanUp;
   private final Map<String, AttemptState> states = new ConcurrentHashMap<>();
 
   /** Nhận đồng hồ để test điều khiển được thời gian. */
@@ -110,9 +113,7 @@ public class LoginAttemptService {
         state.failures.clear();
       }
     }
-    if (states.size() > MAX_TRACKED_EMAILS) {
-      states.entrySet().removeIf(entry -> entry.getValue().idle(now));
-    }
+    cleanUpIfTooMany(now);
   }
 
   /**
@@ -122,6 +123,24 @@ public class LoginAttemptService {
    */
   public void recordSuccess(String email) {
     states.remove(email);
+  }
+
+  /**
+   * Quá {@value #MAX_TRACKED_EMAILS} email thì dọn email không còn gì cần nhớ, tối đa 1 lần mỗi
+   * phút: khi bị thử hàng loạt, các email vừa thử chưa dọn được ngay, quét lại mỗi lần sai chỉ tốn
+   * CPU.
+   */
+  private void cleanUpIfTooMany(Instant now) {
+    if (states.size() <= MAX_TRACKED_EMAILS) {
+      return;
+    }
+    synchronized (this) {
+      if (lastCleanUp != null && now.isBefore(lastCleanUp.plus(CLEAN_UP_INTERVAL))) {
+        return;
+      }
+      lastCleanUp = now;
+    }
+    states.entrySet().removeIf(entry -> entry.getValue().idle(now));
   }
 
   private static void dropOldFailures(AttemptState state, Instant now) {
