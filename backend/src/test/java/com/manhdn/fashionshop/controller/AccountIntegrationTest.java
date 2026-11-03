@@ -111,6 +111,12 @@ class AccountIntegrationTest {
     changePassword(token, "matkhau1", "ngan1")
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errors.newPassword").value("Mật khẩu phải từ 8 đến 72 ký tự"));
+    // 31 ký tự nhưng 91 byte UTF-8: BCrypt không nhận quá 72 byte, phải là 400 chứ không phải 500.
+    changePassword(token, "matkhau1", "ệ".repeat(30) + "1")
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.errors.newPassword")
+                .value("Mật khẩu quá dài: tối đa 72 byte (chữ có dấu tính 2-3 byte)"));
 
     changePassword(token, "matkhau1", "matkhaumoi2").andExpect(status().isNoContent());
     login("doimk", "matkhau1").andExpect(status().isUnauthorized());

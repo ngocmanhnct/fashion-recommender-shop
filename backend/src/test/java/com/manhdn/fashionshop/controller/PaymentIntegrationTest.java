@@ -17,12 +17,15 @@ import com.manhdn.fashionshop.dto.ProductCreateRequest;
 import com.manhdn.fashionshop.dto.ProductResponse;
 import com.manhdn.fashionshop.dto.VariantRequest;
 import com.manhdn.fashionshop.entity.Account;
+import com.manhdn.fashionshop.entity.OrderStatus;
 import com.manhdn.fashionshop.entity.Role;
 import com.manhdn.fashionshop.repository.AccountRepository;
+import com.manhdn.fashionshop.repository.OrderRepository;
 import com.manhdn.fashionshop.service.CategoryService;
 import com.manhdn.fashionshop.service.PaymentService;
 import com.manhdn.fashionshop.service.ProductService;
 import com.manhdn.fashionshop.service.RefundService;
+import jakarta.persistence.EntityManager;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -34,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -51,6 +55,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Kiểm tra thanh toán VNPay (US-10, BR-28, BR-34) với MySQL thật: tạo đường dẫn thanh toán, kết quả
@@ -70,6 +76,9 @@ class PaymentIntegrationTest {
   @Autowired private PaymentService paymentService;
   @Autowired private RefundService refundService;
   @Autowired private AccountRepository accountRepository;
+  @Autowired private OrderRepository orderRepository;
+  @Autowired private EntityManager entityManager;
+  @Autowired private PlatformTransactionManager transactionManager;
   @Autowired private JdbcTemplate jdbcTemplate;
   @Autowired private NamedParameterJdbcTemplate namedJdbcTemplate;
   @MockitoSpyBean private VnPayClient vnPayClient;
@@ -399,6 +408,31 @@ class PaymentIntegrationTest {
     return mockMvc.perform(
         request.with(
             jwt().jwt(j -> j.subject("1")).authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))));
+  }
+
+  @Test
+  void lockedReadSeesOrderChangedByAnotherTransactionAfterSnapshot() {
+    // Issue #93: đọc thường mã tài khoản trước (như apply, cancelExpired, admin đổi trạng thái)
+    // làm MySQL REPEATABLE READ chốt ảnh chụp; giao dịch khác hủy đơn sau đó thì đọc thường vẫn
+    // thấy PENDING, còn đọc có khóa (findForUpdateById) phải thấy CANCELLED.
+    long accountId = account();
+    long orderId = OrderFixtures.insertOrder(jdbcTemplate, accountId, "PENDING");
+    OrderStatus[] seen = new OrderStatus[2];
+    new TransactionTemplate(transactionManager)
+        .executeWithoutResult(
+            tx -> {
+              orderRepository.findAccountIdById(orderId);
+              CompletableFuture.runAsync(
+                      () ->
+                          jdbcTemplate.update(
+                              "UPDATE orders SET status = 'CANCELLED' WHERE id = ?", orderId))
+                  .join();
+              seen[0] = orderRepository.findById(orderId).orElseThrow().getStatus();
+              entityManager.clear();
+              seen[1] = orderRepository.findForUpdateById(orderId).orElseThrow().getStatus();
+            });
+    assertThat(seen[0]).isEqualTo(OrderStatus.PENDING);
+    assertThat(seen[1]).isEqualTo(OrderStatus.CANCELLED);
   }
 
   private long account() {

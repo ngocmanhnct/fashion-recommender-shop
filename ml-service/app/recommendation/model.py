@@ -38,10 +38,10 @@ INTERACTION_WEIGHTS = {"PURCHASE": 5.0, "CART": 3.0, "WISHLIST": 2.0, "VIEW": 1.
 SURVEY_WEIGHT = 0.5
 
 # Ưu tiên tương tác gần đây: hệ số 1 + β · 0,5^(tuổi / chu kỳ bán rã), để khách thấy gợi ý đổi theo
-# việc vừa làm (thêm 1 món vào giỏ: trung bình 0,5 → 1,6 trên 8 món trang chủ đổi). Trên dữ liệu mô
-# phỏng tỷ lệ trúng tăng 49% → 64%, nhưng ở đó khách luôn xem món trước khi mua nên con số này nói
-# lên giả định mô phỏng nhiều hơn; chỉ dùng để chắc chắn độ chính xác không giảm. β lớn hơn làm danh
-# sách chỉ xoay quanh vài món vừa xem, mất các sở thích lâu dài.
+# việc vừa làm (thêm 1 món vào giỏ: trung bình 0,5 → 1,6 trên 8 món trang chủ đổi). Đánh giá ngoại
+# tuyến (đã bỏ lượt xem trong 48 giờ trước đơn, evaluate.SESSION_GAP) cho tỷ lệ trúng gần như bằng
+# β = 0 (chênh dưới 0,015 trên 3 bộ mô phỏng): hệ số này để khách thấy gợi ý đổi, không làm tăng độ
+# chính xác. β lớn hơn làm danh sách chỉ xoay quanh vài món vừa xem, mất các sở thích lâu dài.
 RECENT_BOOST = 3.0
 RECENT_HALF_LIFE_DAYS = 1.0
 

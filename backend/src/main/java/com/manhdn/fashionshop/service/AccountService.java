@@ -68,12 +68,13 @@ public class AccountService {
   @Transactional
   public void changePassword(Long accountId, ChangePasswordRequest request) {
     Account account = find(accountId);
-    loginAttemptService.checkNotLocked(account.getEmail());
+    loginAttemptService.startAttempt(account.getEmail());
     if (!passwordEncoder.matches(request.currentPassword(), account.getPasswordHash())) {
       loginAttemptService.recordFailure(account.getEmail());
       throw new InvalidRequestException("Mật khẩu hiện tại không đúng");
     }
     if (request.newPassword().equals(request.currentPassword())) {
+      loginAttemptService.recordSuccess(account.getEmail());
       throw new InvalidRequestException("Mật khẩu mới phải khác mật khẩu hiện tại");
     }
     account.setPasswordHash(passwordEncoder.encode(request.newPassword()));

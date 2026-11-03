@@ -423,6 +423,7 @@ def test_evaluate_prints_scores(rec_db, capsys):
     assert "| Hybrid (mặc định) | 4 | 1.000 |" in out
     assert "| Nội dung | Mua cùng |" in out
     assert "| Hybrid, không ưu tiên gần đây | 4 |" in out
+    assert "| Xem gần đây (không mô hình) | 4 |" in out
     assert "| β | Bán rã (ngày) |" in out
 
 
@@ -430,12 +431,15 @@ def test_split_and_scores():
     first = evaluate.Order(1, 10, NOW - timedelta(days=9), "DELIVERED", {1: 1})
     last = evaluate.Order(2, 10, NOW, "DELIVERED", {1: 1, 2: 2})
     single = evaluate.Order(3, 11, NOW, "DELIVERED", {3: 1})
-    dataset = evaluate.split([first, last, single], {10: [(5, NOW - timedelta(days=1))]}, {})
+    # Lượt xem 1 ngày trước đơn cuối thuộc phiên mua (SESSION_GAP 48 giờ): bỏ, tránh rò rỉ nhãn.
+    views = {10: [(5, NOW - timedelta(days=3)), (2, NOW - timedelta(days=1))]}
+    dataset = evaluate.split([first, last, single], views, {})
     (case,) = dataset.behaviour
     assert case.targets == {2} and case.signals.purchased == {1}
     assert case.signals.viewed == {5}
     assert case.signals.now == NOW
-    assert case.signals.last_at == {1: NOW - timedelta(days=9), 5: NOW - timedelta(days=1)}
+    assert case.signals.last_at == {1: NOW - timedelta(days=9), 5: NOW - timedelta(days=3)}
+    assert evaluate._recently_viewed(case) == [5]
     assert dataset.train_sold == {1: 1, 3: 1}
     assert dataset.cold_start == []
 

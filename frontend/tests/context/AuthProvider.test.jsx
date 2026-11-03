@@ -36,11 +36,42 @@ describe('AuthProvider', () => {
 
   it('token cũ không dùng được thì xóa', async () => {
     saveToken('token-cu', 3600);
-    vi.mocked(authApi.getMe).mockRejectedValue(new Error('401'));
+    vi.mocked(authApi.getMe).mockRejectedValue({ response: { status: 401 } });
     const { result } = renderAuth();
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.user).toBeNull();
     expect(getToken()).toBeNull();
+  });
+
+  it('mất mạng khi hỏi /me thì giữ token để tải lại trang vẫn vào được', async () => {
+    saveToken('token-cu', 3600);
+    vi.mocked(authApi.getMe).mockRejectedValue(new Error('Network Error'));
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.user).toBeNull();
+    expect(getToken()).toBe('token-cu');
+  });
+
+  it('token lưu trong máy quá hạn thì đăng xuất', async () => {
+    saveToken('token-cu', 3600);
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.user).toEqual(ACCOUNT));
+    localStorage.setItem('fashionshop.tokenExpiresAt', String(Date.now() - 1));
+    act(() => {
+      getToken();
+    });
+    expect(result.current.user).toBeNull();
+  });
+
+  it('tab khác đăng xuất thì tab này cũng đăng xuất', async () => {
+    saveToken('token-cu', 3600);
+    const { result } = renderAuth();
+    await waitFor(() => expect(result.current.user).toEqual(ACCOUNT));
+    localStorage.clear();
+    act(() => {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'fashionshop.token' }));
+    });
+    expect(result.current.user).toBeNull();
   });
 
   it('đăng nhập, đăng ký lưu token; đăng xuất xóa token', async () => {

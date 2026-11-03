@@ -421,7 +421,8 @@ jobs:
           printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
 
       # Chép cấu hình mới, đăng nhập registry bằng token tạm của lần chạy này (hết hạn khi job
-      # xong), kéo image đúng mã commit rồi khởi động lại những container có thay đổi.
+      # xong), kéo image đúng mã commit rồi khởi động lại những container có thay đổi. Caddy không
+      # tự đọc lại Caddyfile vừa chép (container không đổi nên không khởi động lại): reload tay.
       - name: Cập nhật máy ảo
         env:
           HOST: azureuser@${{ vars.STAGING_HOST }}
@@ -431,7 +432,8 @@ jobs:
           echo "$TOKEN" | ssh -i ~/.ssh/staging "$HOST" docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           status=0
           ssh -i ~/.ssh/staging "$HOST" "cd fashionshop && export IMAGE_TAG=$IMAGE_TAG \
-            && docker compose pull -q && docker compose up -d --remove-orphans" || status=$?
+            && docker compose pull -q && docker compose up -d --remove-orphans \
+            && docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile" || status=$?
           ssh -i ~/.ssh/staging "$HOST" "docker logout ghcr.io; docker image prune -af"
           exit $status
 

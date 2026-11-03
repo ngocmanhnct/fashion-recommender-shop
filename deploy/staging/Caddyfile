@@ -3,6 +3,16 @@
 {$STAGING_DOMAIN} {
 	encode zstd gzip
 
+	# Header bảo mật cơ bản: luôn dùng HTTPS, không cho trang khác nhúng site vào iframe,
+	# trình duyệt không đoán kiểu file, không gửi đường dẫn đầy đủ sang site khác.
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Frame-Options "DENY"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
 	# API nghiệp vụ, kể cả VNPay gọi /api/payments/vnpay/ipn.
 	handle /api/* {
 		reverse_proxy backend:8080

@@ -70,10 +70,10 @@ Package `app/recommendation/`. Mô hình dựng trong bộ nhớ từ MySQL (kho
 
 ```powershell
 uv run python -m app.recommendation.evaluate          # vài giây
-uv run python -m app.recommendation.evaluate --grid   # thử thêm 192 bộ trọng số và 15 bộ β × bán rã (vài phút)
+uv run python -m app.recommendation.evaluate --grid   # thử thêm 144 bộ trọng số trộn (4 × 4 × 3 × 3) và 15 bộ β × bán rã; trọng số các khối vector chọn tay (vài phút)
 ```
 
-Bảng kết quả có thêm dòng "Hybrid, không ưu tiên gần đây" (β = 0) để so. Lưu ý: tỷ lệ trúng tăng khi bật ưu tiên gần đây (49% → 64% trên dữ liệu mô phỏng) phần lớn vì mô phỏng luôn cho khách xem món trước khi mua, nên không coi đó là số đo hiệu quả thật; CTR trên trang chủ mới là số đo thật.
+Bảng kết quả có thêm dòng "Hybrid, không ưu tiên gần đây" (β = 0) và mốc "Xem gần đây (không mô hình)" để so. Lượt xem trong 48 giờ ngay trước đơn bị giấu bị bỏ (`SESSION_GAP`): khách xem đúng món sắp mua ngay trước khi đặt, giữ lại thì chỉ cần gợi ý lại món vừa xem đã trúng 100% (rò rỉ nhãn; trước 01/11/2026 bảng có lỗi này nên tỷ lệ trúng hybrid là 49%, nay khoảng 19–28% trên 3 bộ mô phỏng, vẫn hơn bán chạy 8–12% và xem gần đây 13–17%). "Hay mua cùng" và "bán chạy" vẫn dựng từ đơn của khách khác kể cả đơn sau thời điểm bị giấu, nên số vẫn hơi lạc quan. Ưu tiên gần đây không làm tăng tỷ lệ trúng ngoại tuyến; CTR trên trang chủ mới là số đo thật.
 
 ## Phân nhóm khách hàng (Tuần 9)
 

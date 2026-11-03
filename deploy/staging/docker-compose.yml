@@ -52,6 +52,8 @@ services:
     # Tuần 8: ml-service đọc/ghi MySQL (hàng đợi recompute_request). Chờ MySQL sẵn sàng; bảng do
     # Flyway của backend tạo, chưa có bảng thì tiến trình lấy việc tự chờ, /health vẫn UP.
     environment:
+      # Giờ Việt Nam như máy dev: backend lưu LocalDateTime theo giờ JVM, trang web hiện nguyên giá trị đó.
+      TZ: Asia/Ho_Chi_Minh
       DB_HOST: mysql
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     depends_on:
@@ -68,6 +70,8 @@ services:
     image: ghcr.io/ngocmanhnct/fashion-recommender-shop/backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     environment:
+      # Giờ Việt Nam như máy dev: backend lưu LocalDateTime theo giờ JVM, trang web hiện nguyên giá trị đó.
+      TZ: Asia/Ho_Chi_Minh
       DB_HOST: mysql
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       ML_SERVICE_URL: http://ml-service:8000

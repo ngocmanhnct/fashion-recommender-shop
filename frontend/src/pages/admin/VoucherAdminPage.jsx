@@ -139,7 +139,13 @@ function VoucherAdminPage() {
       )}
 
       <form className="inline-form" onSubmit={handleSearch}>
-        <input key={keyword} name="keyword" placeholder="Tìm theo mã" defaultValue={keyword} />
+        <input
+          key={keyword}
+          name="keyword"
+          aria-label="Tìm mã giảm giá"
+          placeholder="Tìm theo mã"
+          defaultValue={keyword}
+        />
         <button type="submit" className="btn btn-ghost">
           Tìm
         </button>

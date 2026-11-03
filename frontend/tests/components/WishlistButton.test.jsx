@@ -49,6 +49,15 @@ describe('WishlistButton', () => {
     expect(button).toHaveAttribute('aria-pressed', 'true');
   });
 
+  it('tải danh sách yêu thích lỗi thì nút vẫn bấm được và có nút thử lại', async () => {
+    getWishlistIds.mockRejectedValueOnce(new Error('Network Error'));
+    renderButton();
+    await userEvent.click(await screen.findByRole('button', { name: 'Thử lại' }));
+    expect(getWishlistIds).toHaveBeenCalledTimes(2);
+    const button = await screen.findByRole('button', { name: 'Yêu thích' });
+    expect(button).toBeEnabled();
+  });
+
   it('khách chưa đăng nhập bấm thì đăng nhập rồi quay lại sản phẩm', async () => {
     renderButton(null);
     await userEvent.click(screen.getByRole('button', { name: /Yêu thích/ }));

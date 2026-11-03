@@ -29,13 +29,13 @@ class LoginAttemptServiceTest {
   @Test
   void fourFailuresDoNotLock() {
     failTimes(4);
-    assertThatCode(() -> service.checkNotLocked(EMAIL)).doesNotThrowAnyException();
+    assertThatCode(() -> service.startAttempt(EMAIL)).doesNotThrowAnyException();
   }
 
   @Test
   void fifthFailureWithinWindowLocks() {
     failTimes(5);
-    assertThatThrownBy(() -> service.checkNotLocked(EMAIL))
+    assertThatThrownBy(() -> service.startAttempt(EMAIL))
         .isInstanceOf(TooManyLoginAttemptsException.class);
   }
 
@@ -43,7 +43,7 @@ class LoginAttemptServiceTest {
   void lockExpiresAfterFifteenMinutes() {
     failTimes(5);
     clock.advance(Duration.ofMinutes(15));
-    assertThatCode(() -> service.checkNotLocked(EMAIL)).doesNotThrowAnyException();
+    assertThatCode(() -> service.startAttempt(EMAIL)).doesNotThrowAnyException();
   }
 
   @Test
@@ -51,7 +51,7 @@ class LoginAttemptServiceTest {
     failTimes(4);
     clock.advance(Duration.ofMinutes(15));
     service.recordFailure(EMAIL);
-    assertThatCode(() -> service.checkNotLocked(EMAIL)).doesNotThrowAnyException();
+    assertThatCode(() -> service.startAttempt(EMAIL)).doesNotThrowAnyException();
   }
 
   @Test
@@ -59,13 +59,13 @@ class LoginAttemptServiceTest {
     failTimes(4);
     service.recordSuccess(EMAIL);
     failTimes(4);
-    assertThatCode(() -> service.checkNotLocked(EMAIL)).doesNotThrowAnyException();
+    assertThatCode(() -> service.startAttempt(EMAIL)).doesNotThrowAnyException();
   }
 
   @Test
   void lockIsPerEmail() {
     failTimes(5);
-    assertThatCode(() -> service.checkNotLocked("b@x.vn")).doesNotThrowAnyException();
+    assertThatCode(() -> service.startAttempt("b@x.vn")).doesNotThrowAnyException();
   }
 
   @Test
@@ -74,10 +74,33 @@ class LoginAttemptServiceTest {
       service.recordFailure(EMAIL);
     }
     clock.advance(Duration.ofMinutes(10));
-    assertThatThrownBy(() -> service.checkNotLocked(EMAIL))
+    assertThatThrownBy(() -> service.startAttempt(EMAIL))
         .isInstanceOfSatisfying(
             TooManyLoginAttemptsException.class,
             ex -> assertThat(ex.getRetryAfter()).isEqualTo(Duration.ofMinutes(5)));
+  }
+
+  @Test
+  void parallelAttemptsCannotTryMoreThanFivePasswords() {
+    for (int i = 0; i < LoginAttemptService.MAX_FAILED_ATTEMPTS; i++) {
+      service.startAttempt(EMAIL);
+    }
+    assertThatThrownBy(() -> service.startAttempt(EMAIL))
+        .isInstanceOf(TooManyLoginAttemptsException.class);
+    service.release(EMAIL);
+    assertThatCode(() -> service.startAttempt(EMAIL)).doesNotThrowAnyException();
+  }
+
+  @Test
+  void idleEmailsAreForgottenWhenTooManyAreTracked() {
+    for (int i = 0; i <= LoginAttemptService.MAX_TRACKED_EMAILS; i++) {
+      service.recordFailure("u" + i + "@x.vn");
+    }
+    clock.advance(Duration.ofMinutes(16));
+    service.recordFailure(EMAIL);
+    failTimes(4);
+    assertThatThrownBy(() -> service.startAttempt(EMAIL))
+        .isInstanceOf(TooManyLoginAttemptsException.class);
   }
 
   private void failTimes(int times) {

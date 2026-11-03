@@ -31,7 +31,19 @@ public class LoginAttemptService {
   /** Thời gian khóa sau khi vượt ngưỡng. */
   public static final Duration LOCK_DURATION = Duration.ofMinutes(15);
 
+  /**
+   * Số email nhớ tối đa trước khi dọn những email không còn gì cần nhớ, để thử hàng loạt email ngẫu
+   * nhiên không làm đầy bộ nhớ.
+   */
+  static final int MAX_TRACKED_EMAILS = 10_000;
+
+  /** Thời gian chờ khi có quá nhiều lần đăng nhập cùng lúc cho một email. */
+  private static final Duration BUSY_RETRY_AFTER = Duration.ofMinutes(1);
+
+  private static final Duration CLEAN_UP_INTERVAL = Duration.ofMinutes(1);
+
   private final Clock clock;
+  private Instant lastCleanUp;
   private final Map<String, AttemptState> states = new ConcurrentHashMap<>();
 
   /** Nhận đồng hồ để test điều khiển được thời gian. */
@@ -40,21 +52,43 @@ public class LoginAttemptService {
   }
 
   /**
-   * Chặn lại nếu email đang bị khóa. Gọi trước khi kiểm tra mật khẩu, để khi đang khóa thì kể cả
-   * mật khẩu đúng cũng không đăng nhập được.
+   * Bắt đầu một lần đăng nhập: chặn lại nếu email đang bị khóa, rồi giữ chỗ cho lần thử này trước
+   * khi kiểm tra mật khẩu (BCrypt mất vài chục ms). Nhờ giữ chỗ, gửi song song nhiều request cũng
+   * chỉ thử được tối đa {@value #MAX_FAILED_ATTEMPTS} mật khẩu trước khi bị khóa. Sau hàm này phải
+   * gọi đúng 1 trong {@link #recordFailure}, {@link #recordSuccess} hoặc {@link #release}.
    *
    * @param email email đã chuẩn hóa
-   * @throws TooManyLoginAttemptsException nếu email đang bị khóa
+   * @throws TooManyLoginAttemptsException nếu email đang bị khóa hoặc đang có quá nhiều lần thử
    */
-  public void checkNotLocked(String email) {
-    AttemptState state = states.get(email);
-    if (state == null) {
-      return;
-    }
+  public void startAttempt(String email) {
     Instant now = clock.instant();
+    AttemptState state = states.computeIfAbsent(email, key -> new AttemptState());
     synchronized (state) {
-      if (state.lockedUntil != null && now.isBefore(state.lockedUntil)) {
-        throw new TooManyLoginAttemptsException(Duration.between(now, state.lockedUntil));
+      if (state.lockedUntil != null) {
+        if (now.isBefore(state.lockedUntil)) {
+          throw new TooManyLoginAttemptsException(Duration.between(now, state.lockedUntil));
+        }
+        state.lockedUntil = null;
+      }
+      dropOldFailures(state, now);
+      if (state.failures.size() + state.inFlight >= MAX_FAILED_ATTEMPTS) {
+        throw new TooManyLoginAttemptsException(BUSY_RETRY_AFTER);
+      }
+      state.inFlight++;
+    }
+  }
+
+  /**
+   * Bỏ chỗ đã giữ khi lần đăng nhập dừng giữa chừng vì lỗi khác (vd mất kết nối CSDL), không tính
+   * là sai mật khẩu.
+   *
+   * @param email email đã chuẩn hóa
+   */
+  public void release(String email) {
+    AttemptState state = states.get(email);
+    if (state != null) {
+      synchronized (state) {
+        state.inFlight = Math.max(0, state.inFlight - 1);
       }
     }
   }
@@ -68,19 +102,18 @@ public class LoginAttemptService {
     Instant now = clock.instant();
     AttemptState state = states.computeIfAbsent(email, key -> new AttemptState());
     synchronized (state) {
+      state.inFlight = Math.max(0, state.inFlight - 1);
       if (state.lockedUntil != null && !now.isBefore(state.lockedUntil)) {
         state.lockedUntil = null;
       }
       state.failures.addLast(now);
-      Instant windowStart = now.minus(ATTEMPT_WINDOW);
-      while (!state.failures.isEmpty() && !state.failures.peekFirst().isAfter(windowStart)) {
-        state.failures.pollFirst();
-      }
+      dropOldFailures(state, now);
       if (state.failures.size() >= MAX_FAILED_ATTEMPTS) {
         state.lockedUntil = now.plus(LOCK_DURATION);
         state.failures.clear();
       }
     }
+    cleanUpIfTooMany(now);
   }
 
   /**
@@ -92,9 +125,43 @@ public class LoginAttemptService {
     states.remove(email);
   }
 
-  /** Số lần sai và mốc hết khóa của một email. */
+  /**
+   * Quá {@value #MAX_TRACKED_EMAILS} email thì dọn email không còn gì cần nhớ, tối đa 1 lần mỗi
+   * phút: khi bị thử hàng loạt, các email vừa thử chưa dọn được ngay, quét lại mỗi lần sai chỉ tốn
+   * CPU.
+   */
+  private void cleanUpIfTooMany(Instant now) {
+    if (states.size() <= MAX_TRACKED_EMAILS) {
+      return;
+    }
+    synchronized (this) {
+      if (lastCleanUp != null && now.isBefore(lastCleanUp.plus(CLEAN_UP_INTERVAL))) {
+        return;
+      }
+      lastCleanUp = now;
+    }
+    states.entrySet().removeIf(entry -> entry.getValue().idle(now));
+  }
+
+  private static void dropOldFailures(AttemptState state, Instant now) {
+    Instant windowStart = now.minus(ATTEMPT_WINDOW);
+    while (!state.failures.isEmpty() && !state.failures.peekFirst().isAfter(windowStart)) {
+      state.failures.pollFirst();
+    }
+  }
+
+  /** Số lần sai, số lần đang kiểm tra mật khẩu và mốc hết khóa của một email. */
   private static final class AttemptState {
     private final Deque<Instant> failures = new ArrayDeque<>();
     private Instant lockedUntil;
+    private int inFlight;
+
+    /** Không còn gì cần nhớ: không khóa, không lần thử đang chạy, mọi lần sai đã ra khỏi cửa sổ. */
+    synchronized boolean idle(Instant now) {
+      dropOldFailures(this, now);
+      return inFlight == 0
+          && failures.isEmpty()
+          && (lockedUntil == null || !now.isBefore(lockedUntil));
+    }
   }
 }
