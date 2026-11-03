@@ -121,6 +121,16 @@ class AuthServiceTest {
   }
 
   @Test
+  void unexpectedErrorReleasesReservedAttemptWithoutCountingFailure() {
+    when(accountRepository.findByEmail("a@x.vn")).thenThrow(new IllegalStateException("CSDL lỗi"));
+
+    assertThatThrownBy(() -> authService.login(new LoginRequest("a@x.vn", "matkhau1")))
+        .isInstanceOf(IllegalStateException.class);
+    verify(loginAttemptService).release("a@x.vn");
+    verify(loginAttemptService, never()).recordFailure(anyString());
+  }
+
+  @Test
   void lockedEmailIsRejectedBeforeCheckingPassword() {
     doThrow(new TooManyLoginAttemptsException(Duration.ofMinutes(15)))
         .when(loginAttemptService)
