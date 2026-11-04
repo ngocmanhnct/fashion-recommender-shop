@@ -688,7 +688,7 @@ Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu 
 
 ### 3.16 Cây khảo sát và kết quả — `survey_question`, `survey_option`, `survey_option_category`, `survey_result`
 
-*Nguồn: US-23, BR-37, BR-38 (bổ sung 22/10/2026, migration V5; hỏi kỹ hơn từ 04/11/2026, migration V11). Câu hỏi rẽ nhánh theo câu trả lời trước, dựa trên thang kiểu người mua Sproles & Kendall (rút gọn). Cây câu hỏi là dữ liệu nạp sẵn trong migration, chưa có trang quản trị để sửa.*
+*Nguồn: US-23, BR-37, BR-38 (bổ sung 22/10/2026, migration V5; hỏi kỹ hơn từ 04/11/2026, migration V11; V12 thêm "Phụ kiện, vệ sinh giày" vào đáp án Phụ kiện của đồ nữ). Câu hỏi rẽ nhánh theo câu trả lời trước, dựa trên thang kiểu người mua Sproles & Kendall (rút gọn). Cây câu hỏi là dữ liệu nạp sẵn trong migration, chưa có trang quản trị để sửa.*
 
 Đường đi (V11): mua cho bản thân Q1 → loại đồ cần tìm (N1 đồ nam / F1 đồ nữ, chọn tối đa 3, có "Chưa biết") → gu ăn mặc (AM / AF) → dịp sử dụng (Q2) → điều quan trọng nhất (Q3) → nhánh theo kiểu người mua (tiết kiệm S1-S2, thương hiệu B1-B2-P1, cầu toàn C1-P1, xu hướng P1): 6 đến 8 câu. Tìm quà Q1 → giới tính người nhận (G1) → loại quà (GN / GF, bỏ qua nếu "Không muốn nói") → dịp (G2) → ngân sách (G3): 4 đến 5 câu. Dịp sử dụng **thu hẹp** từng loại đồ đã chọn về danh mục hợp dịp; loại nào không có danh mục hợp dịp thì giữ nguyên, nên không mất loại đồ khách đã chọn.
 

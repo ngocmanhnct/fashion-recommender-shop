@@ -115,14 +115,6 @@ def load_tree(conn: Connection) -> SurveyTree:
     return SurveyTree({q.code: q for q in questions.values()}, questions)
 
 
-def occasion_categories(tree: SurveyTree, question_code: str = "Q2") -> dict[str, list[str]]:
-    """Dịp sử dụng (đáp án câu Q2) và tên các danh mục ứng với từng dịp."""
-    question = tree.by_code.get(question_code)
-    if question is None:
-        return {}
-    return {code: list(o.category_names) for code, o in question.options.items()}
-
-
 Chooser = Callable[[Question, list[int]], list[str] | int | None]
 """Chọn đáp án cho 1 câu: danh sách mã đáp án, hoặc mã thương hiệu (câu BRAND, None = bỏ qua).
 

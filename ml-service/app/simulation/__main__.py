@@ -18,9 +18,9 @@ from app.config import Settings
 from app.db import create_db_engine
 from app.simulation import writer
 from app.simulation.catalog import load_catalog
-from app.simulation.generator import Generator
+from app.simulation.generator import OCCASION_CATEGORIES, Generator
 from app.simulation.personas import DEMO_ACCOUNTS, PERSONAS, assign_personas
-from app.simulation.survey import load_tree, make_runner, occasion_categories
+from app.simulation.survey import load_tree, make_runner
 
 DEFAULT_CUSTOMERS = 300
 DEFAULT_SEED = 2026
@@ -66,7 +66,7 @@ def run(engine: Engine, args: argparse.Namespace, now: datetime | None = None) -
         tree = load_tree(conn)
         generator = Generator(
             catalog,
-            occasion_categories(tree),
+            OCCASION_CATEGORIES,
             now or local_now(),
             args.seed,
             make_runner(conn, tree, catalog) if tree.by_code else None,
