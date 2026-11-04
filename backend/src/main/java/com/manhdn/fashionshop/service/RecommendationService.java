@@ -106,8 +106,9 @@ public class RecommendationService {
    *
    * <p>Có thử nghiệm A/B đang chạy thì khách có danh sách riêng được chia nhóm ở lần gọi đầu (vì
    * vậy phương thức này có ghi); nhóm CONTROL nhận sản phẩm bán chạy trừ sản phẩm đã mua hoặc đang
-   * trong giỏ, không có hàng hành động gần nhất. {@code abVariant} cho biết nhóm của khách, null
-   * khi không tham gia thử nghiệm.
+   * trong giỏ. Khách của cả 2 nhóm đều không có hàng hành động gần nhất, để 2 nhóm thấy cùng một
+   * giao diện và chỉ khác cách chọn sản phẩm trong khối chính. {@code abVariant} cho biết nhóm của
+   * khách, null khi không tham gia thử nghiệm.
    *
    * @param accountId mã tài khoản khách hàng
    * @return nguồn, danh sách sản phẩm kèm lý do, hàng hành động gần nhất và trạng thái cập nhật
@@ -129,7 +130,7 @@ public class RecommendationService {
           SOURCE_POPULAR, bestSellers(owned), null, null, false, abVariant);
     }
 
-    RecentActivityResponse recent = recentActivity(accountId);
+    RecentActivityResponse recent = variant.isPresent() ? null : recentActivity(accountId);
     Set<Long> inRecent =
         recent == null
             ? Set.of()

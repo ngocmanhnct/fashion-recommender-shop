@@ -78,12 +78,16 @@ class AbTestIntegrationTest {
     long forControl = product("Sản phẩm gợi ý C", 2).id();
     store(treatment, forTreatment);
     store(control, forControl);
+    // Mọi khách vừa xem 1 sản phẩm: ngoài thử nghiệm sẽ có hàng "Vì bạn vừa xem".
+    viewed(treatment, forControl);
+    viewed(newcomer, forTreatment);
     reload();
 
     customer(get(HOME), treatment)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.abVariant").value("TREATMENT"))
         .andExpect(jsonPath("$.source").value("SURVEY"))
+        .andExpect(jsonPath("$.recent").doesNotExist())
         .andExpect(jsonPath("$.products[0].product.id").value(forTreatment));
     customer(get(HOME), control)
         .andExpect(status().isOk())
@@ -95,6 +99,7 @@ class AbTestIntegrationTest {
     // Khách chưa có danh sách riêng không được chia nhóm.
     customer(get(HOME), newcomer)
         .andExpect(jsonPath("$.abVariant").doesNotExist())
+        .andExpect(jsonPath("$.recent.product.id").value(forTreatment))
         .andExpect(jsonPath("$.source").value("POPULAR"));
     // Gọi lại vẫn giữ nhóm cũ, không thêm dòng.
     customer(get(HOME), control).andExpect(jsonPath("$.abVariant").value("CONTROL"));
@@ -164,7 +169,7 @@ class AbTestIntegrationTest {
     customer(get(HOME), control).andExpect(status().isOk());
 
     LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-    // Trước lúc chia nhóm và ở vị trí khác trang chủ: không tính.
+    // Trước lúc chia nhóm, ở vị trí khác khối chính trang chủ: không tính.
     event(treatment, other, "RECOMMENDATION_CLICKED", "HOME", now.minusHours(1));
     event(treatment, other, "RECOMMENDATION_CLICKED", "PRODUCT_DETAIL", now);
     event(treatment, clicked.id(), "RECOMMENDATION_SHOWN", "HOME", now);
@@ -182,9 +187,9 @@ class AbTestIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.experiment.running").value(true))
         .andExpect(jsonPath("$.treatment.users").value(1))
-        .andExpect(jsonPath("$.treatment.shown").value(3))
+        .andExpect(jsonPath("$.treatment.shown").value(2))
         .andExpect(jsonPath("$.treatment.clicks").value(1))
-        .andExpect(jsonPath("$.treatment.ctr").value(33.33))
+        .andExpect(jsonPath("$.treatment.ctr").value(50.0))
         .andExpect(jsonPath("$.treatment.usersClicked").value(1))
         .andExpect(jsonPath("$.treatment.clickRate").value(100.0))
         .andExpect(jsonPath("$.treatment.usersOrdered").value(1))
@@ -299,6 +304,14 @@ class AbTestIntegrationTest {
         "INSERT INTO recommendation"
             + " (account_id, product_id, rank_position, score, reason, generated_at)"
             + " VALUES (?, ?, 1, 1, 'Lý do thử', ?)",
+        accountId,
+        productId,
+        LocalDateTime.now());
+  }
+
+  private void viewed(long accountId, long productId) {
+    jdbcTemplate.update(
+        "INSERT INTO product_view_log (account_id, product_id, viewed_at) VALUES (?, ?, ?)",
         accountId,
         productId,
         LocalDateTime.now());

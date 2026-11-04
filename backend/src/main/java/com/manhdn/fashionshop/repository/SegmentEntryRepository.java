@@ -12,6 +12,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class SegmentEntryRepository {
 
+  /** Mỗi khách nhận tối đa 1 mã tự tặng trong chừng này ngày, dù đổi nhóm nhiều lần (BR-45). */
+  public static final int AUTO_OFFER_COOLDOWN_DAYS = 30;
+
   private final NamedParameterJdbcTemplate jdbc;
 
   /** Nhận NamedParameterJdbcTemplate qua constructor. */
@@ -41,9 +44,11 @@ public class SegmentEntryRepository {
 
   /**
    * Thêm vào danh sách nhận mã của mỗi chương trình tự tặng đang chạy các khách đang thuộc nhóm và
-   * vào nhóm sau lúc bật chương trình, chưa nhận mã đó. Hạn riêng của khách là validDays ngày kể từ
-   * bây giờ, không quá hạn của mã. Chương trình có mã đã ngừng, chưa tới ngày hoặc hết hạn thì bỏ
-   * qua.
+   * vào nhóm sau lúc bật chương trình, chưa nhận mã đó và chưa nhận mã tự tặng nào trong {@link
+   * #AUTO_OFFER_COOLDOWN_DAYS} ngày qua (lượt phân nhóm lại có thể chuyển nhiều khách qua lại giữa
+   * các nhóm; không có giới hạn này khách sẽ nhận mã của mỗi nhóm đi qua). Hạn riêng của khách là
+   * validDays ngày kể từ bây giờ, không quá hạn của mã. Chương trình có mã đã ngừng, chưa tới ngày
+   * hoặc hết hạn thì bỏ qua.
    *
    * @param nowVn giờ Việt Nam, như thời hạn của mã
    * @return số khách vừa được tặng
@@ -61,8 +66,12 @@ public class SegmentEntryRepository {
             + " WHERE c.auto_enabled AND v.is_active"
             + " AND v.valid_from <= :nowVn AND v.valid_until > :nowVn"
             + " AND NOT EXISTS (SELECT 1 FROM voucher_recipient r"
-            + " WHERE r.voucher_id = c.voucher_id AND r.account_id = e.account_id)",
-        Map.of("nowVn", nowVn));
+            + " WHERE r.voucher_id = c.voucher_id AND r.account_id = e.account_id)"
+            + " AND NOT EXISTS (SELECT 1 FROM voucher_recipient recent"
+            + " JOIN segment_campaign auto ON auto.voucher_id = recent.voucher_id"
+            + " WHERE auto.target = 'AUTO' AND recent.account_id = e.account_id"
+            + " AND recent.granted_at > DATE_SUB(:nowVn, INTERVAL :cooldown DAY))",
+        Map.of("nowVn", nowVn, "cooldown", AUTO_OFFER_COOLDOWN_DAYS));
   }
 
   /** Cập nhật số khách đã nhận mã của các chương trình tự tặng. */

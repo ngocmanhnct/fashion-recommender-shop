@@ -16,6 +16,10 @@ const SUBTITLES = {
   POPULAR: 'Sản phẩm bán chạy nhất cửa hàng.',
 };
 
+/** Dòng mô tả chung cho cả 2 nhóm của thử nghiệm A/B, để khách không biết mình ở nhóm nào. */
+const EXPERIMENT_SUBTITLE = 'Những sản phẩm có thể bạn sẽ thích.';
+const NO_NEW_IDS = new Set();
+
 /** ml-service còn đang tính lại thì tải lại sau chừng này mili giây, tối đa MAX_POLLS lần. */
 const POLL_MS = 2500;
 const MAX_POLLS = 6;
@@ -28,8 +32,9 @@ const MAX_POLLS = 6;
  *   nhật và nhãn "Mới" cho sản phẩm chưa có ở lần khách thấy trước. Khi backend báo đang tính lại,
  *   khối tự tải lại sau vài giây để khách thấy danh sách mới mà không phải tải lại trang.
  * Chưa có danh sách riêng, chưa đăng nhập, hay tải lỗi thì hiện phần khảo sát thay danh sách.
- * Khách thuộc nhóm CONTROL của thử nghiệm A/B (US-27) thấy sản phẩm bán chạy trong cùng khối "Gợi
- * ý cho bạn", để 2 nhóm chỉ khác nhau ở cách chọn sản phẩm.
+ * Khách trong thử nghiệm A/B (US-27) thấy cùng một giao diện ở cả 2 nhóm: không có hàng "Vì bạn
+ * vừa xem" (backend không gửi), cùng dòng mô tả, không lý do, giờ cập nhật hay nhãn "Mới". Nhóm
+ * CONTROL nhận sản phẩm bán chạy trong khối "Gợi ý cho bạn", nên 2 nhóm chỉ khác cách chọn sản phẩm.
  */
 function PersonalRecommendations() {
   const { user } = useAuth();
@@ -49,6 +54,7 @@ function PersonalRecommendations() {
     [accountId]
   );
 
+  const inExperiment = Boolean(shown?.abVariant);
   const personal = Boolean(
     shown &&
     shown.products.length > 0 &&
@@ -92,8 +98,8 @@ function PersonalRecommendations() {
             <Link to="/survey">Làm lại khảo sát ›</Link>
           </div>
           <p className="muted small recommendation-status">
-            <span>{SUBTITLES[shown.source]}</span>
-            {shown.updating && polls < MAX_POLLS ? (
+            <span>{inExperiment ? EXPERIMENT_SUBTITLE : SUBTITLES[shown.source]}</span>
+            {inExperiment ? null : shown.updating && polls < MAX_POLLS ? (
               <span className="recommendation-updating" role="status">
                 Đang cập nhật theo hoạt động mới của bạn...
               </span>
@@ -103,7 +109,12 @@ function PersonalRecommendations() {
               )
             )}
           </p>
-          <RecommendationGrid items={shown.products} placement="HOME" newIds={newIds} />
+          <RecommendationGrid
+            items={shown.products}
+            placement="HOME"
+            newIds={inExperiment ? NO_NEW_IDS : newIds}
+            showReasons={!inExperiment}
+          />
         </section>
       ) : (
         <SurveyHome />
