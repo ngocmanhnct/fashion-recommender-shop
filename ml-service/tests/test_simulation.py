@@ -1,6 +1,7 @@
 import json
 from collections import Counter
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import bcrypt
 import pytest
@@ -9,7 +10,12 @@ from sqlalchemy import text
 from app.simulation import writer
 from app.simulation.__main__ import main, parse_args
 from app.simulation.catalog import Product, Variant, build_catalog, category_gender, variant_label
-from app.simulation.generator import FREE_SHIPPING_THRESHOLD, SHIPPING_FEE, Generator
+from app.simulation.generator import (
+    FREE_SHIPPING_THRESHOLD,
+    OCCASION_CATEGORIES,
+    SHIPPING_FEE,
+    Generator,
+)
 from app.simulation.personas import (
     DEMO_ACCOUNTS,
     PERSONAS,
@@ -419,3 +425,11 @@ def test_parse_args_rejects_negative_customers():
     assert parse_args([]).customers == 300
     with pytest.raises(SystemExit):
         parse_args(["--customers", "-1"])
+
+
+def test_occasion_categories_exist_in_the_seed_catalog():
+    """Bản đồ dịp -> danh mục của khách mô phỏng phải khớp tên danh mục trong danh mục mẫu."""
+    seed = Path(__file__).parents[2] / "backend/src/main/resources/seed/tiki-catalog.json"
+    names = {p["category"] for p in json.loads(seed.read_text(encoding="utf-8"))["products"]}
+    assert set(OCCASION_CATEGORIES) == {"SCHOOL", "WORK", "TRAVEL", "SPORT", "OUTING"}
+    assert {n for v in OCCASION_CATEGORIES.values() for n in v} <= names
