@@ -316,6 +316,44 @@ class SegmentProfileIntegrationTest {
   }
 
   @Test
+  void customerGetsAtMostOneAutoOfferIn30DaysWhenMovingBetweenGroups() throws Exception {
+    long loyalAuto =
+        idOf(
+            adminDo(autoCampaign("LOYAL", "VAO-LOYAL-" + marker, "7"))
+                .andExpect(status().isCreated()));
+    long newAuto =
+        idOf(
+            adminDo(autoCampaign("NEW", "VAO-NEW-" + marker, "7")).andExpect(status().isCreated()));
+    startedAMinuteAgo(loyalAuto);
+    startedAMinuteAgo(newAuto);
+    long newSegment =
+        jdbcTemplate.queryForObject(
+            "SELECT segment_id FROM account_segment WHERE account_id = ?", Long.class, other);
+
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ? WHERE account_id = ?", loyalSegment, other);
+    assertThat(campaignService.grantAutoOffers()).isEqualTo(1);
+    // Lượt phân nhóm sau đưa khách về nhóm cũ: chưa đủ 30 ngày nên không nhận thêm mã.
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ? WHERE account_id = ?", newSegment, other);
+    assertThat(campaignService.grantAutoOffers()).isZero();
+    // Mã trước đã nhận từ 31 ngày trước: lượt sau tặng mã của nhóm hiện tại.
+    jdbcTemplate.update(
+        "UPDATE voucher_recipient SET granted_at = granted_at - INTERVAL 31 DAY"
+            + " WHERE account_id = ?",
+        other);
+    assertThat(campaignService.grantAutoOffers()).isEqualTo(1);
+    assertThat(
+            jdbcTemplate.queryForList(
+                "SELECT v.code FROM voucher_recipient r JOIN voucher v ON v.id = r.voucher_id"
+                    + " WHERE r.account_id = ? ORDER BY r.granted_at",
+                String.class,
+                other))
+        .containsExactly(
+            ("VAO-LOYAL-" + marker).toUpperCase(), ("VAO-NEW-" + marker).toUpperCase());
+  }
+
+  @Test
   void autoOfferNeedsDaysRunsOneAtATimeAndStops() throws Exception {
     adminDo(autoCampaign("LOYAL", "THIEU-" + marker, null))
         .andExpect(status().isBadRequest())

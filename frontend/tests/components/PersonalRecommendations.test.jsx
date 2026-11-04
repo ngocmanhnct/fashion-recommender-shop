@@ -179,8 +179,28 @@ describe('PersonalRecommendations', () => {
     renderHome();
 
     expect(await screen.findByRole('heading', { name: 'Gợi ý cho bạn' })).toBeInTheDocument();
-    expect(screen.getByText('Sản phẩm bán chạy nhất cửa hàng.')).toBeInTheDocument();
+    expect(screen.getByText('Những sản phẩm có thể bạn sẽ thích.')).toBeInTheDocument();
+    expect(screen.queryByText('Sản phẩm bán chạy nhất cửa hàng.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sản phẩm bán chạy')).not.toBeInTheDocument();
     expect(card('Sản phẩm 7')).toHaveAttribute('href', '/products/7');
     expect(screen.queryByText('Làm khảo sát')).not.toBeInTheDocument();
+  });
+
+  it('khách nhóm gợi ý của thử nghiệm A/B thấy cùng giao diện với nhóm bán chạy', async () => {
+    getMyRecommendations.mockResolvedValue(
+      response({
+        abVariant: 'TREATMENT',
+        updatedSecondsAgo: 30,
+        updating: true,
+        products: [item(8, { reason: 'Vì bạn đã xem Giày A' })],
+      })
+    );
+    renderHome();
+
+    expect(await screen.findByText('Những sản phẩm có thể bạn sẽ thích.')).toBeInTheDocument();
+    expect(screen.queryByText('Vì bạn đã xem Giày A')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Đang cập nhật/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/^Cập nhật/)).not.toBeInTheDocument();
+    expect(within(card('Sản phẩm 8')).queryByText('Mới')).not.toBeInTheDocument();
   });
 });

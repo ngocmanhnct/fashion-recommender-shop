@@ -44,7 +44,7 @@ function CustomerListPage() {
   const tabs = [
     { value: '', label: 'Tất cả' },
     ...(overview?.segments ?? []).map((s) => ({ value: s.code, label: s.name })),
-    { value: UNSEGMENTED, label: 'Chưa đủ dữ liệu' },
+    { value: UNSEGMENTED, label: 'Chưa phân nhóm' },
   ];
 
   return (

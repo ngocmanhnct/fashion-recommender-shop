@@ -135,7 +135,7 @@ describe('Pagination, SegmentBadge', () => {
 
   it('nhãn nhóm theo mã, chưa phân nhóm theo BR-24', () => {
     const { rerender } = render(<SegmentBadge segment={null} />);
-    expect(screen.getByText('Khách hàng mới / chưa đủ dữ liệu')).toBeInTheDocument();
+    expect(screen.getByText('Chưa phân nhóm (chưa có đơn Đã giao)')).toBeInTheDocument();
     rerender(<SegmentBadge segment={{ code: 'AT_RISK', name: 'Có nguy cơ rời bỏ' }} />);
     expect(screen.getByText('Có nguy cơ rời bỏ')).toHaveClass('segment-at-risk');
   });

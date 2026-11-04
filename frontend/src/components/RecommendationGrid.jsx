@@ -22,9 +22,10 @@ function logShownOnce(loggedKey, key, placement, items) {
  * Lưới sản phẩm gợi ý kèm lý do, có ghi nhật ký để tính tỷ lệ bấm (CTR): một lượt hiện khi khối lọt
  * vào màn hình lần đầu, một lượt bấm khi bấm vào sản phẩm. Quản trị viên không được ghi.
  * items: [{ product, reason, source }] từ API gợi ý. placement: HOME, HOME_RECENT, PRODUCT_DETAIL,
- * SURVEY_RESULT. newIds: tập mã sản phẩm hiện nhãn "Mới", không bắt buộc.
+ * SURVEY_RESULT. newIds: tập mã sản phẩm hiện nhãn "Mới", không bắt buộc. showReasons: false thì
+ * ẩn lý do gợi ý (khách trong thử nghiệm A/B), mặc định true.
  */
-function RecommendationGrid({ items, placement, newIds }) {
+function RecommendationGrid({ items, placement, newIds, showReasons = true }) {
   const { user } = useAuth();
   const tracked = user?.role !== 'ADMIN';
   const containerRef = useRef(null);
@@ -58,7 +59,9 @@ function RecommendationGrid({ items, placement, newIds }) {
     logRecommendationEvent('CLICKED', placement, [toEventItem(items[index], index)]);
   };
 
-  const reasons = Object.fromEntries(items.map((item) => [item.product.id, item.reason]));
+  const reasons = showReasons
+    ? Object.fromEntries(items.map((item) => [item.product.id, item.reason]))
+    : undefined;
   return (
     <div ref={containerRef}>
       <ProductGrid

@@ -271,7 +271,8 @@ function NextAction({ profile, campaigns }) {
           <>
             <p className="muted small">
               Khách vừa được xếp vào nhóm (sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm) tự nhận mã
-              riêng, không cần admin bấm mỗi lần. Khách đang ở trong nhóm lúc bật không nhận.
+              riêng, không cần admin bấm mỗi lần. Khách đang ở trong nhóm lúc bật không nhận; mỗi
+              khách nhận tối đa 1 mã tự tặng trong 30 ngày, dù đổi qua nhiều nhóm.
             </p>
             <button
               type="button"

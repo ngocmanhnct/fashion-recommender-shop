@@ -16,8 +16,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class AbAssignmentRepository {
 
-  /** Các khối gợi ý ở trang chủ được tính vào thử nghiệm. */
-  public static final List<String> HOME_PLACEMENTS = List.of("HOME", "HOME_RECENT");
+  /**
+   * Khối gợi ý được tính vào thử nghiệm: chỉ khối chính ở trang chủ, nơi 2 nhóm khác nhau duy nhất
+   * ở cách chọn sản phẩm (khách trong thử nghiệm không thấy hàng HOME_RECENT).
+   */
+  public static final List<String> HOME_PLACEMENTS = List.of("HOME");
 
   private static final String WINDOW =
       " e.account_id = a.account_id AND e.created_at >= a.assigned_at AND e.created_at < :end"
