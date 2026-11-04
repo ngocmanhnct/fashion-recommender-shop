@@ -3,7 +3,7 @@
 # sang image JRE gọn hơn (không cần trình biên dịch lúc chạy).
 
 # ---- Giai đoạn 1: build ----
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 
 # Chép riêng file Maven trước, tải dependency trước khi chép mã nguồn: sửa code mà không sửa
@@ -18,7 +18,7 @@ COPY src/ src/
 RUN sh ./mvnw -B -q package -DskipTests
 
 # ---- Giai đoạn 2: chạy ----
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:25-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
