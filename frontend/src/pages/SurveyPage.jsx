@@ -9,6 +9,7 @@ import * as surveyApi from '../services/surveyApi';
 import { readLocalSurvey, writeLocalSurvey } from '../services/surveyStorage';
 
 const NO_BRAND = 'NO_BRAND';
+const ANY_OPTION = 'ANY';
 
 /** Câu tiếp theo sau khi chọn: câu chọn thương hiệu đi theo câu hỏi, còn lại theo đáp án đầu. */
 function nextCodeOf(question, selected) {
@@ -99,8 +100,12 @@ function SurveyRunner({ survey }) {
     }
     if (selected.includes(code)) {
       setSelected(selected.filter((c) => c !== code));
-    } else if (selected.length < question.maxChoices) {
-      setSelected([...selected, code]);
+    } else if (code === ANY_OPTION) {
+      // "Chưa biết, gợi ý giúp mình" không chọn cùng đáp án khác.
+      setSelected([code]);
+    } else {
+      const others = selected.filter((c) => c !== ANY_OPTION);
+      if (others.length < question.maxChoices) setSelected([...others, code]);
     }
   }
 

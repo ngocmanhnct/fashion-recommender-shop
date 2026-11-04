@@ -91,10 +91,11 @@ class SurveyIntegrationTest {
         .perform(get("/api/survey"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.startQuestionCode").value("Q1"))
-        .andExpect(jsonPath("$.questions.length()").value(12))
+        .andExpect(jsonPath("$.questions.length()").value(18))
         .andExpect(jsonPath("$.questions[0].code").value("Q1"))
         .andExpect(jsonPath("$.questions[0].options[0].code").value("SELF_MALE"))
-        .andExpect(jsonPath("$.questions[0].options[0].nextQuestionCode").value("Q2"))
+        .andExpect(jsonPath("$.questions[0].options[0].nextQuestionCode").value("N1"))
+        .andExpect(jsonPath("$.questions[0].options[1].nextQuestionCode").value("F1"))
         .andExpect(jsonPath("$.questions[0].options[2].code").value("GIFT"))
         .andExpect(jsonPath("$.questions[0].options[2].nextQuestionCode").value("G1"))
         .andExpect(jsonPath("$.questions[1].answerType").value("MULTIPLE"))
@@ -103,7 +104,84 @@ class SurveyIntegrationTest {
         .andExpect(jsonPath("$.questions[5].answerType").value("BRAND"))
         .andExpect(jsonPath("$.questions[5].nextQuestionCode").value("B2"))
         .andExpect(jsonPath("$.questions[5].options.length()").value(0))
-        .andExpect(jsonPath("$.questions[4].options[2].nextQuestionCode").doesNotExist());
+        .andExpect(jsonPath("$.questions[4].options[2].nextQuestionCode").doesNotExist())
+        .andExpect(jsonPath("$.questions[12].code").value("N1"))
+        .andExpect(jsonPath("$.questions[12].answerType").value("MULTIPLE"))
+        .andExpect(jsonPath("$.questions[12].options[0].nextQuestionCode").value("AM"))
+        .andExpect(jsonPath("$.questions[14].options[0].nextQuestionCode").value("Q2"))
+        .andExpect(jsonPath("$.questions[1].options[5].code").value("PARTY"))
+        .andExpect(jsonPath("$.questions[1].options[5].nextQuestionCode").value("Q3"));
+  }
+
+  @Test
+  void womenNeverGetMenProductsEvenWhenFillingWithBestSellers() throws Exception {
+    long menBag = product(bags, null, 300_000L, "Balo nam công sở");
+    long womenBag = product(bags, null, 320_000L, "Balo nữ năng động");
+    long unisexBag = product(bags, null, 340_000L, "Balo unisex đi học");
+    long menShoe = product(menShoes, null, 100_000L, "Giày chạy bộ");
+    String answers =
+        path(
+            "Q1",
+            "SELF_FEMALE",
+            "F1",
+            "BACKPACK",
+            "AF",
+            "SPORTY",
+            "Q2",
+            "SCHOOL",
+            "Q3",
+            "TREND",
+            "P1",
+            "OVER_1M");
+
+    mockMvc
+        .perform(evaluate(answers))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.products[?(@.product.id == " + womenBag + ")]").exists())
+        .andExpect(jsonPath("$.products[?(@.product.id == " + unisexBag + ")]").exists())
+        .andExpect(jsonPath("$.products[?(@.product.id == " + menBag + ")]").isEmpty())
+        .andExpect(jsonPath("$.products[?(@.product.id == " + menShoe + ")]").isEmpty());
+
+    long account = account();
+    perform(account, put("/api/survey/me"), "{\"answers\":" + answers + "}")
+        .andExpect(status().isOk());
+    assertThat(
+            count(
+                "SELECT COUNT(*) FROM survey_result WHERE account_id = ? AND gender = 'FEMALE'"
+                    + " AND keywords LIKE '%năng động%' AND keywords LIKE '%đi học%'",
+                account))
+        .isEqualTo(1);
+  }
+
+  @Test
+  void occasionNarrowsEachChosenItemTypeButNeverDropsOne() throws Exception {
+    long handbags = category("Túi xách nữ");
+    long totes = category("Túi tote nữ");
+    String answers =
+        path(
+            "Q1",
+            "SELF_FEMALE",
+            "F1",
+            "SNEAKER",
+            "F1+",
+            "BAG",
+            "AF",
+            "ELEGANT",
+            "Q2",
+            "WORK",
+            "Q3",
+            "TREND",
+            "P1",
+            "OVER_1M");
+
+    mockMvc
+        .perform(evaluate(answers))
+        .andExpect(status().isOk())
+        // Giày thể thao không hợp dịp đi làm nhưng khách đã chọn nên vẫn giữ.
+        .andExpect(jsonPath("$.profile.categories[?(@.id == " + womenShoes + ")]").exists())
+        .andExpect(jsonPath("$.profile.categories[?(@.id == " + handbags + ")]").exists())
+        .andExpect(jsonPath("$.profile.categories[?(@.id == " + totes + ")]").isEmpty())
+        .andExpect(jsonPath("$.profile.categories[?(@.id == " + menShoes + ")]").isEmpty());
   }
 
   @Test
@@ -141,13 +219,7 @@ class SurveyIntegrationTest {
     product(bags, null, 300_000L);
     long branded = product(bags, brand, 400_000L);
     String beforeBrand =
-        "["
-            + answer("Q1", "SELF_FEMALE")
-            + ","
-            + answer("Q2", "SCHOOL")
-            + ","
-            + answer("Q3", "BRAND")
-            + "]";
+        path("Q1", "SELF_FEMALE", "F1", "ANY", "AF", "ANY", "Q2", "SCHOOL", "Q3", "BRAND");
 
     mockMvc
         .perform(publicPost("/api/survey/brands", "{\"answers\":" + beforeBrand + "}"))
@@ -186,16 +258,7 @@ class SurveyIntegrationTest {
 
   @Test
   void giftPathIsEvaluatedButNeverSaved() throws Exception {
-    String gift =
-        "["
-            + answer("Q1", "GIFT")
-            + ","
-            + answer("G1", "FEMALE")
-            + ","
-            + answer("G2", "SCHOOL")
-            + ","
-            + answer("G3", "OVER_1M")
-            + "]";
+    String gift = path("Q1", "GIFT", "G1", "FEMALE", "GF", "ANY", "G2", "SCHOOL", "G3", "OVER_1M");
     mockMvc
         .perform(evaluate(gift))
         .andExpect(status().isOk())
@@ -232,9 +295,9 @@ class SurveyIntegrationTest {
         .perform(evaluate("[{\"questionCode\":\"Q1\",\"optionCodes\":[\"SELF_MALE\",\"GIFT\"]}]"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.detail").value("Câu Q1 cần chọn đúng 1 đáp án"));
+    String beforeOccasion = path("Q1", "SELF_MALE", "N1", "ANY", "AM", "ANY");
     String fourOccasions =
-        "["
-            + answer("Q1", "SELF_MALE")
+        beforeOccasion.substring(0, beforeOccasion.length() - 1)
             + ",{\"questionCode\":\"Q2\",\"optionCodes\":"
             + "[\"SCHOOL\",\"WORK\",\"TRAVEL\",\"SPORT\"]}]";
     mockMvc
@@ -294,20 +357,24 @@ class SurveyIntegrationTest {
     perform(account, get("/api/survey/me"), null)
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("COMPLETED"))
-        .andExpect(jsonPath("$.answers.length()").value(5))
+        .andExpect(jsonPath("$.answers.length()").value(7))
         .andExpect(jsonPath("$.answers[0].questionCode").value("Q1"))
         .andExpect(jsonPath("$.profile.priceMax").value(650_000));
 
     String trend =
-        "["
-            + answer("Q1", "SELF_FEMALE")
-            + ","
-            + answer("Q2", "SPORT")
-            + ","
-            + answer("Q3", "TREND")
-            + ","
-            + answer("P1", "OVER_1M")
-            + "]";
+        path(
+            "Q1",
+            "SELF_FEMALE",
+            "F1",
+            "ANY",
+            "AF",
+            "ANY",
+            "Q2",
+            "SPORT",
+            "Q3",
+            "TREND",
+            "P1",
+            "OVER_1M");
     perform(account, put("/api/survey/me"), "{\"answers\":" + trend + "}")
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.profile.style").value("TREND"));
@@ -357,17 +424,39 @@ class SurveyIntegrationTest {
   }
 
   private static String saverAnswers() {
-    return "["
-        + answer("Q1", "SELF_MALE")
-        + ","
-        + answer("Q2", "SCHOOL")
-        + ","
-        + answer("Q3", "PRICE")
-        + ","
-        + answer("S1", "200K_500K")
-        + ","
-        + answer("S2", "BUY_ANYWAY")
-        + "]";
+    return path(
+        "Q1",
+        "SELF_MALE",
+        "N1",
+        "ANY",
+        "AM",
+        "BASIC",
+        "Q2",
+        "SCHOOL",
+        "Q3",
+        "PRICE",
+        "S1",
+        "200K_500K",
+        "S2",
+        "BUY_ANYWAY");
+  }
+
+  /**
+   * Danh sách câu trả lời từ các cặp (mã câu, mã đáp án); mã câu kết thúc bằng "+" thêm đáp án vào
+   * câu ngay trước (câu chọn nhiều).
+   */
+  private static String path(String... pairs) {
+    List<String> answers = new ArrayList<>();
+    for (int i = 0; i < pairs.length; i += 2) {
+      String option = "\"" + pairs[i + 1] + "\"";
+      if (pairs[i].endsWith("+")) {
+        String last = answers.remove(answers.size() - 1);
+        answers.add(last.substring(0, last.length() - 2) + "," + option + "]}");
+      } else {
+        answers.add("{\"questionCode\":\"" + pairs[i] + "\",\"optionCodes\":[" + option + "]}");
+      }
+    }
+    return "[" + String.join(",", answers) + "]";
   }
 
   private static String answer(String question, String option) {
@@ -426,11 +515,15 @@ class SurveyIntegrationTest {
   }
 
   private long product(long categoryId, Long brandId, long price) {
+    return product(categoryId, brandId, price, "Sản phẩm khảo sát");
+  }
+
+  private long product(long categoryId, Long brandId, long price, String name) {
     long id =
         productService
             .create(
                 new ProductCreateRequest(
-                    "Sản phẩm khảo sát " + UUID.randomUUID(),
+                    name + " " + UUID.randomUUID(),
                     null,
                     null,
                     null,

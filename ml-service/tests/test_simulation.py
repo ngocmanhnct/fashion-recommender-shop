@@ -1,3 +1,4 @@
+import json
 from collections import Counter
 from datetime import UTC, datetime, timedelta
 
@@ -344,17 +345,18 @@ def test_survey_results_follow_the_question_tree(sim_db):
     with sim_db.connect() as conn:
         results = conn.execute(
             text(
-                "SELECT a.gender, s.style, s.answers, a.id FROM survey_result s "
-                "JOIN account a ON a.id = s.account_id WHERE s.status = 'COMPLETED'"
+                "SELECT s.gender, s.style, s.keywords, s.answers, s.account_id "
+                "FROM survey_result s WHERE s.status = 'COMPLETED'"
             )
         ).all()
         assert results
-        for gender, style, answers, account_id in results:
-            import json
-
+        for gender, style, keywords, answers, account_id in results:
             path = [a["questionCode"] for a in json.loads(answers)]
-            assert path[:3] == ["Q1", "Q2", "Q3"]
+            # Đồ nam: loại đồ N1, gu AM; đồ nữ: F1, AF; rồi dịp sử dụng và điều quan trọng nhất.
+            expected = ["N1", "AM"] if gender == "MALE" else ["F1", "AF"]
+            assert path[:5] == ["Q1", *expected, "Q2", "Q3"]
             assert path[-1] in ("P1", "S2")
+            assert keywords  # mọi dịp sử dụng đều có từ khóa
             categories = conn.execute(
                 text(
                     "SELECT c.name FROM user_preference u JOIN category c ON c.id = u.category_id "
@@ -362,7 +364,7 @@ def test_survey_results_follow_the_question_tree(sim_db):
                 ),
                 {"a": account_id},
             ).scalars()
-            other = {"MALE": "FEMALE", "FEMALE": "MALE"}.get(gender)
+            other = {"MALE": "FEMALE", "FEMALE": "MALE"}[gender]
             assert all(category_gender(name) != other for name in categories)
             assert style in ("SAVER", "BRAND", "QUALITY", "TREND")
 

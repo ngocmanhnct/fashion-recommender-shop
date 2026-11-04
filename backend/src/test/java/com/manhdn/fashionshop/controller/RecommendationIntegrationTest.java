@@ -329,6 +329,8 @@ class RecommendationIntegrationTest {
 
     evaluate(
             answer("Q1", "SELF_MALE"),
+            answer("N1", "BACKPACK"),
+            answer("AM", "BASIC"),
             answer("Q2", "SCHOOL"),
             answer("Q3", "PRICE"),
             answer("S1", "200K_500K"),
@@ -346,6 +348,8 @@ class RecommendationIntegrationTest {
     assertThat(request.getValue().priceMin()).isEqualTo(200_000);
     assertThat(request.getValue().priceMax()).isEqualTo(650_000);
     assertThat(request.getValue().limit()).isEqualTo(8);
+    assertThat(request.getValue().gender()).isEqualTo("MALE");
+    assertThat(request.getValue().keywords()).contains("đơn giản", "đi học");
   }
 
   @Test
@@ -360,6 +364,7 @@ class RecommendationIntegrationTest {
     evaluate(
             answer("Q1", "GIFT"),
             answer("G1", "FEMALE"),
+            answer("GF", "BACKPACK"),
             answer("G2", "SCHOOL"),
             answer("G3", "OVER_1M"))
         .andExpect(status().isOk())
@@ -369,6 +374,7 @@ class RecommendationIntegrationTest {
     verify(mlServiceClient).forSurvey(request.capture());
     assertThat(request.getValue().style()).isNull();
     assertThat(request.getValue().priceMax()).isNull();
+    assertThat(request.getValue().gender()).isEqualTo("FEMALE");
   }
 
   @Test
