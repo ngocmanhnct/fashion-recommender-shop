@@ -310,7 +310,7 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 ### 2.6 Phân nhóm khách hàng (ML, Admin — US-19, US-25)
 
 - **BR-23**: Mô hình phân nhóm (K-Means) được huấn luyện lại mỗi tuần trên toàn bộ khách hàng có ít nhất 1 đơn hoàn tất, vì K-Means cần chạy trên toàn bộ tập khách hàng cùng lúc. Khi một đơn chuyển sang Đã giao, R, F, M của khách đó được tính lại và khách được gán ngay vào nhóm có tâm gần nhất của mô hình hiện tại, không huấn luyện lại; việc gán chạy nền qua `recompute_request` (loại việc `SEGMENT_ASSIGN`) như BR-20. Mỗi đêm, nếu chưa đến hạn huấn luyện lại, mọi khách được gán lại vào nhóm có tâm gần nhất theo R, F, M tại thời điểm đó (R tăng theo ngày dù khách không mua). **\[Giả định\]** tần suất huấn luyện lại.  
-- **BR-24**: Khách hàng chưa có đơn hàng hoàn tất nào không được đưa vào phân cụm — hiển thị riêng là "Khách hàng mới / chưa đủ dữ liệu" thay vì gán cưỡng vào một cụm gây sai lệch tâm cụm. *(US-19)*  
+- **BR-24**: Khách hàng chưa có đơn hàng hoàn tất nào không được đưa vào phân cụm — hiển thị riêng là "Chưa phân nhóm (chưa có đơn Đã giao)" thay vì gán cưỡng vào một cụm gây sai lệch tâm cụm. Nhãn này cố ý khác tên nhóm K-Means "Khách mới" (mã NEW: khách đã có 1-2 đơn Đã giao gần đây) để 2 khái niệm không bị nhầm *(sửa 04/11/2026)*. *(US-19)*  
 - **BR-43 — Khách cần chăm sóc:** khách mua từ 2 đơn Đã giao trở lên có nhịp mua riêng = (ngày đơn Đã giao gần nhất − ngày đơn Đã giao đầu tiên) ÷ (số đơn − 1). Khách cần chăm sóc khi số ngày từ đơn Đã giao gần nhất đến hôm nay vượt **cả** 1,5 lần nhịp mua riêng **và** 30 ngày (ngưỡng 30 ngày để khách mua dồn nhiều đơn trong vài ngày không bị báo ngay). Danh sách xếp theo số lần quá nhịp (số ngày chưa mua ÷ nhịp mua), lâu nhất trước. Khách mới mua 1 đơn chưa có nhịp nên không xét. **\[Giả định\]** hệ số 1,5 và ngưỡng 30 ngày. *(US-25)*
 
 ### 2.7 Quy tắc chung
@@ -592,7 +592,7 @@ UNIQUE(account\_id, product\_id).
 | account\_segment | rfm\_monetary | BIGINT UNSIGNED | NOT NULL | M: tổng `total_amount` các đơn Đã giao, VNĐ |
 | account\_segment | computed\_at | DATETIME | NOT NULL | Lần phân cụm gần nhất cho tài khoản này (BR-23: batch hàng tuần) |
 
-*Một tài khoản **có dòng** trong `account_segment` khi và chỉ khi đã được phân cụm thành công. Tài khoản chưa có đơn hoàn tất nào (BR-24) đơn giản là **không có dòng** — admin đọc "không tìm thấy" và hiển thị "Khách hàng mới / chưa đủ dữ liệu" (US-18/19). Chỉ lưu kết quả phân cụm mới nhất (ghi đè mỗi lần batch chạy), không lưu lịch sử qua các lần; riêng `segment_model` giữ 1 dòng cho mỗi lần huấn luyện.*
+*Một tài khoản **có dòng** trong `account_segment` khi và chỉ khi đã được phân cụm thành công. Tài khoản chưa có đơn hoàn tất nào (BR-24) đơn giản là **không có dòng** — admin đọc "không tìm thấy" và hiển thị "Chưa phân nhóm (chưa có đơn Đã giao)" (US-18/19). Chỉ lưu kết quả phân cụm mới nhất (ghi đè mỗi lần batch chạy), không lưu lịch sử qua các lần; riêng `segment_model` giữ 1 dòng cho mỗi lần huấn luyện.*
 
 *Cách chọn K (cài đặt 28/10/2026): K-Means với K = 1..8 trên ln(1 + R), ln(1 + F), ln(1 + M) đã chuẩn hóa; chọn K lớn nhất trong 3..6 không nhỏ hơn điểm gãy Elbow, có Silhouette ≥ 0,3 và kém Silhouette tốt nhất không quá 0,05; cần ít nhất 20 khách có đơn Đã giao. Tên nhóm gán bằng cách ghép tâm nhóm với kiểu khách mẫu gần nhất, không trùng tên.*
 
