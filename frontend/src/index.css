@@ -102,6 +102,13 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Liên kết nằm giữa đoạn chữ luôn gạch chân: màu xanh và chữ xám gần nhau, chỉ khác màu thì
+   người nhìn màu kém khó nhận ra (Lighthouse: link-in-text-block). */
+p a:not(.btn) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 input,
 select,
 textarea {
@@ -1045,8 +1052,9 @@ legend {
   gap: 12px;
 }
 
+/* Nền đồng sáng hơn --accent: chữ xanh đậm trên nền đồng đạt tương phản 5,3:1 (cần ≥ 4,5:1). */
 .home-hero .btn-primary {
-  background: var(--accent);
+  background: var(--accent-on-deep);
   color: var(--deep);
 }
 
@@ -1569,6 +1577,11 @@ legend {
   font-size: 0.9rem;
   color: var(--muted);
   overflow-wrap: anywhere;
+}
+
+.breadcrumb a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .product-detail {

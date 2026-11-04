@@ -5,6 +5,9 @@ backend/target/
 
 # Node / React
 frontend/node_modules/
+perf/node_modules/
+perf/package*.json
+perf/.chrome-profile/
 frontend/build/
 frontend/.env
 

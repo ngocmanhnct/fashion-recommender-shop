@@ -136,7 +136,13 @@ function CartLine({ item }) {
 
   return (
     <li className="cart-line">
-      <Link to={`/products/${item.productId}`} className="cart-line-image">
+      <Link
+        to={`/products/${item.productId}`}
+        className="cart-line-image"
+        // Trùng đích với tên sản phẩm ngay bên cạnh: bỏ khỏi thứ tự Tab và trình đọc màn hình.
+        tabIndex={-1}
+        aria-hidden="true"
+      >
         <ProductImage
           src={item.thumbnailUrl}
           productId={item.productId}

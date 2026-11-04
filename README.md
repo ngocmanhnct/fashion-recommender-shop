@@ -22,6 +22,8 @@ Website thương mại điện tử (dữ liệu sản phẩm Tiki) tích hợp 
 
 - **Staging:** https://fashionshop-staging.eastasia.cloudapp.azure.com. Mỗi lần merge vào `main`, CI tự build và deploy lên đây.
 - **Giám sát:** UptimeRobot (gói miễn phí) kiểm tra `/actuator/health` (phải có `"status":"UP"`) và trang chủ staging mỗi 5 phút, gửi email khi lỗi. Trang trạng thái công khai: https://stats.uptimerobot.com/hOhfzy7MHT.
+- **Sao lưu và rollback:** staging tự sao lưu CSDL mỗi đêm (giữ 7 bản); quay về bản cũ bằng workflow "Rollback staging" trong tab Actions. Hướng dẫn khôi phục: [deploy/staging/README.md](deploy/staging/README.md).
+- **Cập nhật thư viện:** Dependabot (`.github/dependabot.yml`) mở PR nâng phiên bản mỗi thứ Hai.
 - **Tài khoản test:** tài khoản quản trị viên và tài khoản khách hàng mẫu được gửi riêng cho hội đồng. Mật khẩu không ghi trong repository để đảm bảo 0 secret bị lộ.
 - **Thanh toán:** VNPay sandbox (thẻ test của VNPay, không trừ tiền thật).
 
