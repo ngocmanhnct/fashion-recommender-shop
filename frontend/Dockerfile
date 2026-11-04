@@ -2,7 +2,7 @@
 # 2 giai đoạn: (1) Node build ra file tĩnh trong dist/, (2) Nginx phục vụ đúng các file đó.
 
 # ---- Giai đoạn 1: build ----
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 
 COPY package.json package-lock.json ./
