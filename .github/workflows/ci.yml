@@ -171,7 +171,7 @@ jobs:
       # setup-uv không còn tag rút gọn kiểu @v10 nên ghi đủ phiên bản.
       # uv cùng phiên bản với ml-service/Dockerfile; Python lấy theo ml-service/.python-version.
       # Đường dẫn cache-dependency-glob tính từ working-directory (ml-service/), không phải gốc repo.
-      - uses: astral-sh/setup-uv@v10.1.0
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           version: "0.12.24"
           working-directory: ml-service

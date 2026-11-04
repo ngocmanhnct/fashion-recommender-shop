@@ -49,6 +49,71 @@ RANDOM_SURVEY = "RANDOM"  # để Generator tự chọn trạng thái khảo sá
 HOUR_WEIGHTS = [0.2, 0.1, 0.05, 0.05, 0.05, 0.1, 0.3, 0.6, 0.9, 1.0, 1.1, 1.3,
                 1.5, 1.2, 1.0, 1.0, 1.1, 1.3, 1.6, 2.0, 2.4, 2.6, 2.0, 1.0]  # fmt: skip
 
+# Danh mục khách mô phỏng hay mua theo dịp sử dụng (bản đồ của cây khảo sát V5). Cố định ở đây,
+# không đọc từ cây khảo sát trong CSDL: sửa cây (thêm câu, thêm danh mục cho một dịp) không được làm
+# đổi dữ liệu hành vi đã dùng để đánh giá gợi ý và phân nhóm. Thứ tự dịp ảnh hưởng tới việc chọn dịp.
+OCCASION_CATEGORIES = {
+    "SCHOOL": [
+        "Balo laptop",
+        "Balo thời trang",
+        "Giày thể thao nam",
+        "Giày thể thao nữ",
+        "Khẩu trang",
+        "Ví nam",
+        "Ví nữ",
+        "Vớ nam",
+        "Vớ nữ",
+    ],
+    "WORK": [
+        "Cặp, túi chống sốc laptop",
+        "Ghim cài áo",
+        "Giày búp bê nữ",
+        "Giày cao gót nữ",
+        "Giày lười nam",
+        "Giày lười nữ",
+        "Giày tây nam",
+        "Gọng kính",
+        "Thắt lưng nam",
+        "Thắt lưng nữ",
+        "Túi xách nam",
+        "Túi xách nữ",
+    ],
+    "TRAVEL": [
+        "Balo du lịch",
+        "Khăn",
+        "Kính mát",
+        "Nón nam",
+        "Nón nữ",
+        "Phụ kiện du lịch",
+        "Túi đựng đồ du lịch",
+        "Vali",
+    ],
+    "SPORT": [
+        "Găng tay",
+        "Giày thể thao nam",
+        "Giày thể thao nữ",
+        "Nón nam",
+        "Nón nữ",
+        "Phụ kiện, vệ sinh giày",
+        "Vớ nam",
+        "Vớ nữ",
+    ],
+    "OUTING": [
+        "Dép nam",
+        "Dép nữ",
+        "Giày boots nam",
+        "Giày boots nữ",
+        "Giày đế xuồng nữ",
+        "Kính mát",
+        "Phụ kiện tóc",
+        "Sandal nam",
+        "Sandal nữ",
+        "Túi đeo chéo nam",
+        "Túi đeo chéo nữ",
+        "Túi tote nữ",
+    ],
+}
+
 OCCASION_WEIGHTS = {
     "young": {"SCHOOL": 3.0, "SPORT": 2.0, "OUTING": 3.0, "TRAVEL": 1.0, "WORK": 0.5},
     "adult": {"SCHOOL": 0.3, "SPORT": 1.5, "OUTING": 2.0, "TRAVEL": 2.0, "WORK": 3.0},

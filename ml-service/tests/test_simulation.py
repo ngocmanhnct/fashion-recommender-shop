@@ -1,5 +1,7 @@
+import json
 from collections import Counter
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import bcrypt
 import pytest
@@ -8,7 +10,12 @@ from sqlalchemy import text
 from app.simulation import writer
 from app.simulation.__main__ import main, parse_args
 from app.simulation.catalog import Product, Variant, build_catalog, category_gender, variant_label
-from app.simulation.generator import FREE_SHIPPING_THRESHOLD, SHIPPING_FEE, Generator
+from app.simulation.generator import (
+    FREE_SHIPPING_THRESHOLD,
+    OCCASION_CATEGORIES,
+    SHIPPING_FEE,
+    Generator,
+)
 from app.simulation.personas import (
     DEMO_ACCOUNTS,
     PERSONAS,
@@ -344,17 +351,18 @@ def test_survey_results_follow_the_question_tree(sim_db):
     with sim_db.connect() as conn:
         results = conn.execute(
             text(
-                "SELECT a.gender, s.style, s.answers, a.id FROM survey_result s "
-                "JOIN account a ON a.id = s.account_id WHERE s.status = 'COMPLETED'"
+                "SELECT s.gender, s.style, s.keywords, s.answers, s.account_id "
+                "FROM survey_result s WHERE s.status = 'COMPLETED'"
             )
         ).all()
         assert results
-        for gender, style, answers, account_id in results:
-            import json
-
+        for gender, style, keywords, answers, account_id in results:
             path = [a["questionCode"] for a in json.loads(answers)]
-            assert path[:3] == ["Q1", "Q2", "Q3"]
+            # Đồ nam: loại đồ N1, gu AM; đồ nữ: F1, AF; rồi dịp sử dụng và điều quan trọng nhất.
+            expected = ["N1", "AM"] if gender == "MALE" else ["F1", "AF"]
+            assert path[:5] == ["Q1", *expected, "Q2", "Q3"]
             assert path[-1] in ("P1", "S2")
+            assert keywords  # mọi dịp sử dụng đều có từ khóa
             categories = conn.execute(
                 text(
                     "SELECT c.name FROM user_preference u JOIN category c ON c.id = u.category_id "
@@ -362,7 +370,7 @@ def test_survey_results_follow_the_question_tree(sim_db):
                 ),
                 {"a": account_id},
             ).scalars()
-            other = {"MALE": "FEMALE", "FEMALE": "MALE"}.get(gender)
+            other = {"MALE": "FEMALE", "FEMALE": "MALE"}[gender]
             assert all(category_gender(name) != other for name in categories)
             assert style in ("SAVER", "BRAND", "QUALITY", "TREND")
 
@@ -417,3 +425,11 @@ def test_parse_args_rejects_negative_customers():
     assert parse_args([]).customers == 300
     with pytest.raises(SystemExit):
         parse_args(["--customers", "-1"])
+
+
+def test_occasion_categories_exist_in_the_seed_catalog():
+    """Bản đồ dịp -> danh mục của khách mô phỏng phải khớp tên danh mục trong danh mục mẫu."""
+    seed = Path(__file__).parents[2] / "backend/src/main/resources/seed/tiki-catalog.json"
+    names = {p["category"] for p in json.loads(seed.read_text(encoding="utf-8"))["products"]}
+    assert set(OCCASION_CATEGORIES) == {"SCHOOL", "WORK", "TRAVEL", "SPORT", "OUTING"}
+    assert {n for v in OCCASION_CATEGORIES.values() for n in v} <= names

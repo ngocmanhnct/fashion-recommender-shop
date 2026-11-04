@@ -688,7 +688,9 @@ Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu 
 
 ### 3.16 Cây khảo sát và kết quả — `survey_question`, `survey_option`, `survey_option_category`, `survey_result`
 
-*Nguồn: US-23, BR-37, BR-38 (bổ sung 22/10/2026, migration V5). Câu hỏi rẽ nhánh theo câu trả lời trước, dựa trên thang kiểu người mua Sproles & Kendall (rút gọn). Cây câu hỏi là dữ liệu nạp sẵn trong migration, chưa có trang quản trị để sửa.*
+*Nguồn: US-23, BR-37, BR-38 (bổ sung 22/10/2026, migration V5; hỏi kỹ hơn từ 04/11/2026, migration V11; V12 thêm "Phụ kiện, vệ sinh giày" vào đáp án Phụ kiện của đồ nữ). Câu hỏi rẽ nhánh theo câu trả lời trước, dựa trên thang kiểu người mua Sproles & Kendall (rút gọn). Cây câu hỏi là dữ liệu nạp sẵn trong migration, chưa có trang quản trị để sửa.*
+
+Đường đi (V11): mua cho bản thân Q1 → loại đồ cần tìm (N1 đồ nam / F1 đồ nữ, chọn tối đa 3, có "Chưa biết") → gu ăn mặc (AM / AF) → dịp sử dụng (Q2) → điều quan trọng nhất (Q3) → nhánh theo kiểu người mua (tiết kiệm S1-S2, thương hiệu B1-B2-P1, cầu toàn C1-P1, xu hướng P1): 6 đến 8 câu. Tìm quà Q1 → giới tính người nhận (G1) → loại quà (GN / GF, bỏ qua nếu "Không muốn nói") → dịp (G2) → ngân sách (G3): 4 đến 5 câu. Dịp sử dụng **thu hẹp** từng loại đồ đã chọn về danh mục hợp dịp; loại nào không có danh mục hợp dịp thì giữ nguyên, nên không mất loại đồ khách đã chọn.
 
 `survey_question` — câu hỏi:
 
@@ -700,6 +702,7 @@ Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu 
 | hint | VARCHAR(255) | NULLABLE | Gợi ý cách trả lời |
 | answer\_type | ENUM('SINGLE','MULTIPLE','BRAND') | NOT NULL | Chọn 1, chọn nhiều, hoặc chọn 1 thương hiệu trong các danh mục đã chọn |
 | max\_choices | INT | NOT NULL, DEFAULT 1, CHECK ≥ 1 | Số đáp án tối đa của câu MULTIPLE |
+| category\_mode | ENUM('ADD','NARROW') | NOT NULL, DEFAULT 'ADD' | ADD: mỗi đáp án thêm 1 nhóm danh mục (loại đồ); NARROW: thu hẹp các nhóm đã có (dịp sử dụng), chưa có nhóm thì thêm như ADD |
 | next\_question\_id | BIGINT UNSIGNED | FK → survey\_question.id, NULLABLE | Câu tiếp theo của câu BRAND (câu khác đi theo đáp án) |
 
 `survey_option` — đáp án và ý nghĩa của đáp án:
@@ -719,8 +722,9 @@ Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu 
 | price\_flexible | BOOLEAN | NULLABLE | Chấp nhận giá cao hơn 30% |
 | brand\_loyalty | ENUM('STRONG','OPEN') | NULLABLE | Trung thành hay sẵn sàng thử thương hiệu khác |
 | min\_rating | DECIMAL(2,1) | NULLABLE | Điểm đánh giá tối thiểu |
+| keywords | VARCHAR(255) | NULLABLE | Từ khóa gu, dịp sử dụng (vd "thanh lịch công sở"), đưa vào khối chữ TF-IDF của vector sở thích |
 
-`survey_option_category` — danh mục ứng với mỗi dịp sử dụng: khóa chính (option\_id, category\_name), option\_id FK → survey\_option.id, category\_name VARCHAR(100). Nối theo **tên** danh mục vì danh mục mẫu được nạp sau migration; đổi tên danh mục thì sửa cả bảng này.
+`survey_option_category` — danh mục ứng với mỗi loại đồ và mỗi dịp sử dụng: khóa chính (option\_id, category\_name), option\_id FK → survey\_option.id, category\_name VARCHAR(100). Nối theo **tên** danh mục vì danh mục mẫu được nạp sau migration; đổi tên danh mục thì sửa cả bảng này.
 
 `survey_result` — kết quả khảo sát của tài khoản:
 
@@ -728,11 +732,15 @@ Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu 
 | :---- | :---- | :---- | :---- |
 | account\_id | BIGINT UNSIGNED | PK, FK → account.id | Mỗi tài khoản 1 dòng |
 | status | ENUM('COMPLETED','SKIPPED') | NOT NULL | Bỏ qua thì không hỏi lại (BR-37); đã làm xong mà bấm bỏ qua thì giữ kết quả cũ |
+| gender | ENUM('MALE','FEMALE') | NULLABLE | Đồ nam hay đồ nữ (Q1); gợi ý không lấy sản phẩm của giới tính kia, trừ khi khách đã mua, thêm giỏ hoặc yêu thích đồ đó |
 | style | ENUM('SAVER','BRAND','QUALITY','TREND') | NULLABLE | Kiểu người mua rút ra từ câu trả lời |
 | brand\_loyalty | ENUM('STRONG','OPEN') | NULLABLE |  |
 | min\_rating | DECIMAL(2,1) | NULLABLE |  |
+| keywords | VARCHAR(500) | NULLABLE | Từ khóa gu và dịp đã chọn |
 | answers | JSON | NULLABLE | Câu trả lời theo đúng thứ tự trên cây, để hiện lại và tính lại |
 | created\_at, updated\_at | DATETIME | NOT NULL |  |
+
+Giới tính của sản phẩm: danh mục kết thúc bằng " nam"/" nữ" theo danh mục; danh mục dùng chung (Balo, Kính mát...) theo tên sản phẩm (chỉ ghi "nam" là đồ nam, chỉ ghi "nữ" là đồ nữ); tên ghi cả hai hoặc "unisex" là đồ dùng chung (`ProductGender` ở backend, `gender.py` ở dịch vụ học máy).
 
 Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result` hay `user_preference` (BR-38: sở thích là của người mua, không phải của người nhận quà). Lưu khảo sát ghi một yêu cầu tính lại RECOMMENDATION (Mục 3.15).
 

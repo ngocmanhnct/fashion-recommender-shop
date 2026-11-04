@@ -31,6 +31,7 @@ from scipy import sparse
 
 from app.recommendation.data import ProductStats, SurveyProfile, UserSignals
 from app.recommendation.features import CatalogItem, ItemVectors
+from app.recommendation.gender import FEMALE, MALE
 
 # Trọng số theo loại tương tác mạnh nhất với sản phẩm (đã mua > trong giỏ > yêu thích > đã xem),
 # vector khảo sát nhẹ nhất (BR-38). Chốt bằng đánh giá trên dữ liệu mô phỏng (evaluate.py).
@@ -278,7 +279,11 @@ class Recommender:
             None
             if survey is None
             else self.vectors.survey_vector(
-                survey.category_ids, survey.brand_id, survey.price_min, survey.price_max
+                survey.category_ids,
+                survey.brand_id,
+                survey.price_min,
+                survey.price_max,
+                survey.keywords,
             )
         )
         if survey_vector is not None:
@@ -299,6 +304,18 @@ class Recommender:
             + self.weights.style * self.style_bonus(survey)
         )
         allowed = self._allowed(signals.purchased | signals.cart, survey)
+        if survey is not None and survey.gender is not None:
+            # Khách đã chọn đồ nam/nữ ở khảo sát: chỉ gợi ý đồ giới tính kia khi khách đã mua, thêm
+            # vào giỏ hoặc yêu thích đồ đó (vd mua quà). Lượt xem không tính: khách có thể chỉ bấm
+            # thử một gợi ý.
+            other = FEMALE if survey.gender == MALE else MALE
+            chosen = [
+                self.vectors.index[p]
+                for p in signals.purchased | signals.cart | signals.wishlist
+                if p in self.vectors.index
+            ]
+            if not np.any(self.vectors.genders[chosen] == other):
+                allowed &= self._fits_gender(survey.gender)
         picked = self._pick(score, allowed, limit)
 
         result = []
@@ -355,10 +372,16 @@ class Recommender:
     ) -> list[Suggestion]:
         """Gợi ý theo sở thích khảo sát: cos(s(u), v(j)) + w_s · pop(j) + λ · b(j).
 
-        Sản phẩm trong khoảng giá khách chọn đứng trước; thiếu thì lấp bằng sản phẩm ngoài khoảng.
+        Chỉ gợi ý đồ đúng giới tính khách chọn (và đồ dùng chung). Thứ tự theo tầng, trong mỗi tầng
+        theo điểm: trong danh mục quan tâm và trong khoảng giá, trong danh mục nhưng ngoài khoảng
+        giá, rồi mới tới danh mục khác (lấp khi danh mục quan tâm không đủ sản phẩm).
         """
         vector = self.vectors.survey_vector(
-            survey.category_ids, survey.brand_id, survey.price_min, survey.price_max
+            survey.category_ids,
+            survey.brand_id,
+            survey.price_min,
+            survey.price_max,
+            survey.keywords,
         )
         if vector is None:
             return []
@@ -369,12 +392,19 @@ class Recommender:
             + self.weights.style * bonus
         )
         ranking = score + TIE_BREAK * self.popularity
-        allowed = self._allowed(excluded, survey)
+        allowed = self._allowed(excluded, survey) & self._fits_gender(survey.gender)
         in_budget = self._in_budget(survey)
-        picked = self._pick(ranking, allowed & in_budget, limit)
-        if len(picked) < limit:
-            # Không đủ sản phẩm trong khoảng giá thì lấp bằng sản phẩm ngoài khoảng giá.
-            picked += self._pick(ranking, allowed & ~in_budget, limit - len(picked))
+        in_interest = np.isin(self.vectors.category_ids, survey.category_ids)
+        picked: list[int] = []
+        for tier in (
+            in_interest & in_budget,
+            in_interest & ~in_budget,
+            ~in_interest & in_budget,
+            ~in_interest & ~in_budget,
+        ):
+            if len(picked) >= limit:
+                break
+            picked += self._pick(ranking, allowed & tier, limit - len(picked))
         return [
             Suggestion(
                 int(self.vectors.ids[row]),
@@ -384,6 +414,13 @@ class Recommender:
             )
             for row in picked
         ]
+
+    def _fits_gender(self, gender: str | None) -> np.ndarray:
+        """Sản phẩm dùng chung hoặc đúng giới tính `gender`; None thì mọi sản phẩm."""
+        genders = self.vectors.genders
+        if gender is None:
+            return np.ones(len(genders), dtype=bool)
+        return (genders == "") | (genders == gender)
 
     def _in_budget(self, survey: SurveyProfile) -> np.ndarray:
         """Sản phẩm có giá thấp nhất nằm trong khoảng giá khách chọn ở khảo sát."""

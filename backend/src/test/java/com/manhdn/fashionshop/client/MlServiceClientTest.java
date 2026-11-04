@@ -54,13 +54,14 @@ class MlServiceClientTest {
   void surveySendsCamelCaseJson() {
     respond("/recommendations/survey", 200, SUGGESTIONS, Duration.ZERO);
     SurveyRequest request =
-        new SurveyRequest(List.of(1L, 2L), null, 200_000, null, "SAVER", 4.0, List.of(), 8);
+        new SurveyRequest(
+            List.of(1L, 2L), null, 200_000, null, "SAVER", 4.0, "FEMALE", "công sở", List.of(), 8);
 
     assertThat(client(true).forSurvey(request)).isPresent();
     assertThat(lastRequest.get()).isEqualTo("POST /recommendations/survey");
     assertThat(lastBody.get())
         .contains("\"categoryIds\":[1,2]", "\"priceMin\":200000", "\"style\":\"SAVER\"")
-        .contains("\"minRating\":4.0", "\"limit\":8");
+        .contains("\"minRating\":4.0", "\"gender\":\"FEMALE\"", "\"limit\":8");
     // Không xin nâng lên HTTP/2: uvicorn của ml-service sẽ bỏ mất thân request.
     assertThat(lastUpgrade.get()).isNull();
   }
