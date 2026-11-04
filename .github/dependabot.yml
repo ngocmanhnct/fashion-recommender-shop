@@ -46,7 +46,8 @@ updates:
       day: monday
       timezone: Asia/Ho_Chi_Minh
     open-pull-requests-limit: 3
-    # Giữ Java 21 (java.version trong pom.xml): image JRE 25 làm backend không khởi động (PR #116).
+    # Image backend giữ Java 21 cho khớp java.version trong pom.xml. Thử 25-jre (PR #116): backend
+    # chạy được nhưng image không có curl nên healthcheck của compose luôn báo unhealthy.
     ignore:
       - dependency-name: eclipse-temurin
         versions: [">= 22"]
