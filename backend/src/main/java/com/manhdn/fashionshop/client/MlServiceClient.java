@@ -147,6 +147,8 @@ public class MlServiceClient {
    * @param priceMax giá cao nhất, VNĐ; null = không giới hạn
    * @param style SAVER, BRAND, QUALITY, TREND; null = không cộng điểm theo phong cách
    * @param minRating ngưỡng điểm đánh giá, có thể null
+   * @param gender MALE, FEMALE (chỉ gợi ý đồ của giới tính này và đồ dùng chung); null = không lọc
+   * @param keywords từ khóa gu và dịp sử dụng, cách nhau bằng dấu cách; có thể null
    * @param excludeProductIds sản phẩm không gợi ý
    * @param limit số sản phẩm tối đa
    */
@@ -157,6 +159,8 @@ public class MlServiceClient {
       Long priceMax,
       String style,
       Double minRating,
+      String gender,
+      String keywords,
       List<Long> excludeProductIds,
       int limit) {}
 }

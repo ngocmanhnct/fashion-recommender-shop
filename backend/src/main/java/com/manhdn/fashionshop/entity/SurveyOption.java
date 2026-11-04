@@ -66,6 +66,9 @@ public class SurveyOption {
   @Column(precision = 2, scale = 1)
   private BigDecimal minRating;
 
+  /** Từ khóa mô tả gu, dịp sử dụng (cách nhau bằng dấu cách), null nếu không có. */
+  private String keywords;
+
   /** Tên các danh mục ứng với đáp án dịp sử dụng, bảng survey_option_category. */
   @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "survey_option_category", joinColumns = @JoinColumn(name = "option_id"))
@@ -129,6 +132,10 @@ public class SurveyOption {
 
   public BigDecimal getMinRating() {
     return minRating;
+  }
+
+  public String getKeywords() {
+    return keywords;
   }
 
   public Set<String> getCategoryNames() {

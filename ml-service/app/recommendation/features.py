@@ -65,6 +65,8 @@ class CatalogItem:
     description: str
     price: int
     """Giá thấp nhất trong các biến thể."""
+    gender: str | None = None
+    """MALE, FEMALE hoặc None (dùng chung), xem `gender.product_gender`."""
 
 
 def normalize_text(value: str) -> str:
@@ -86,6 +88,7 @@ class ItemVectors:
             [-1 if item.brand_id is None else item.brand_id for item in items], dtype=np.int64
         )
         self.prices = np.array([item.price for item in items], dtype=np.int64)
+        self.genders = np.array([item.gender or "" for item in items], dtype=object)
 
         text = self._fit_text([f"{item.name} {item.description}" for item in items])
         self.text_width = text.shape[1]
@@ -175,10 +178,11 @@ class ItemVectors:
         brand_id: int | None,
         price_min: int,
         price_max: int | None,
+        keywords: str | None = None,
     ) -> np.ndarray | None:
         """Vector sở thích s(u) cùng dạng vector sản phẩm, từ các câu trả lời khảo sát.
 
-        Khối chữ bằng 0; khối danh mục chia đều cho các danh mục đã chọn; khối thương hiệu là
+        Khối chữ là TF-IDF của từ khóa gu và dịp sử dụng (bằng 0 nếu không có); khối danh mục chia đều cho các danh mục đã chọn; khối thương hiệu là
         thương hiệu đã chọn (nếu có); khối giá là các khoảng giá giao với tầm giá đã chọn. Trả về
         None nếu không có danh mục nào còn trong danh mục sản phẩm.
         """
@@ -191,7 +195,7 @@ class ItemVectors:
         if brand_id is not None and brand_id in self.brand_columns:
             brand[self.brand_columns[brand_id]] = 1.0
         price = self._price_range_weights(price_min, price_max)
-        text = np.zeros(self.text_width)
+        text = self.keyword_vector(keywords)
         blocks = {"text": text, "category": category, "brand": brand, "price": price}
         parts = []
         for name, weight in BLOCK_WEIGHTS.items():
@@ -200,6 +204,12 @@ class ItemVectors:
             parts.append(block / norm * math.sqrt(weight) if norm > 0 else block)
         vector = np.concatenate(parts)
         return vector / np.linalg.norm(vector)
+
+    def keyword_vector(self, keywords: str | None) -> np.ndarray:
+        """TF-IDF của các từ khóa trên bộ từ của tên + mô tả sản phẩm; từ không có thì bỏ qua."""
+        if not keywords or self.vectorizer is None or self.text_width == 0:
+            return np.zeros(self.text_width)
+        return self.vectorizer.transform([keywords]).toarray().ravel()
 
     def _price_range_weights(self, price_min: int, price_max: int | None) -> np.ndarray:
         """Khoảng giá giao với [price_min, price_max] được 1; không giới hạn trên thì tới cuối."""

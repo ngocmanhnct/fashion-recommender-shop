@@ -1,4 +1,4 @@
-"""Đi cây câu hỏi khảo sát lần đầu (migration V5) như khách thật, để lưu kết quả mô phỏng.
+"""Đi cây câu hỏi khảo sát lần đầu (migration V5, V11) như khách thật, để lưu kết quả mô phỏng.
 
 Cây câu hỏi đọc từ CSDL; cách gộp thông tin từ đáp án và lọc danh mục theo giới tính làm giống
 SurveyService của backend, nên trang /survey của khách mô phỏng hiện đúng hồ sơ đã lưu.
@@ -31,6 +31,7 @@ class Option:
     price_flexible: bool | None
     brand_loyalty: str | None
     min_rating: float | None
+    keywords: str | None = None
     category_names: list[str] = field(default_factory=list)
 
 
@@ -43,6 +44,8 @@ class Question:
     answer_type: str
     max_choices: int
     next_question_id: int | None
+    category_mode: str = "ADD"
+    """ADD: mỗi đáp án thêm 1 nhóm danh mục; NARROW: thu hẹp các nhóm đã có (dịp sử dụng)."""
     options: dict[str, Option] = field(default_factory=dict)
 
 
@@ -59,6 +62,8 @@ class SurveyOutcome:
     """Kết quả đi hết khảo sát: câu trả lời (lưu JSON) và hồ sơ ghi vào user_preference."""
 
     answers: list[dict]
+    gender: str | None
+    keywords: str | None
     style: str | None
     brand_loyalty: str | None
     min_rating: float | None
@@ -71,22 +76,23 @@ class SurveyOutcome:
 def load_tree(conn: Connection) -> SurveyTree:
     """Đọc toàn bộ câu hỏi, đáp án và danh mục của đáp án."""
     questions: dict[int, Question] = {}
-    for qid, code, answer_type, max_choices, next_id in conn.execute(
+    for qid, code, answer_type, max_choices, next_id, mode in conn.execute(
         text(
-            "SELECT id, code, answer_type, max_choices, next_question_id "
+            "SELECT id, code, answer_type, max_choices, next_question_id, category_mode "
             "FROM survey_question ORDER BY id"
         )
     ):
-        questions[qid] = Question(qid, code, answer_type, max_choices, next_id)
+        questions[qid] = Question(qid, code, answer_type, max_choices, next_id, mode)
     options: dict[int, Option] = {}
     for row in conn.execute(
         text(
             "SELECT id, question_id, code, next_question_id, purpose, gender, style, price_min, "
-            "price_max, price_flexible, brand_loyalty, min_rating "
+            "price_max, price_flexible, brand_loyalty, min_rating, keywords "
             "FROM survey_option ORDER BY question_id, display_order"
         )
     ):
-        oid, qid, code, next_id, purpose, gender, style, pmin, pmax, flexible, loyalty, rating = row
+        oid, qid, code, next_id, purpose, gender, style, pmin, pmax, flexible, loyalty = row[:11]
+        rating, keywords = row[11:]
         option = Option(
             code,
             next_id,
@@ -98,6 +104,7 @@ def load_tree(conn: Connection) -> SurveyTree:
             None if flexible is None else bool(flexible),
             loyalty,
             None if rating is None else float(rating),
+            keywords,
         )
         options[oid] = option
         questions[qid].options[code] = option
@@ -144,7 +151,7 @@ def walk(tree: SurveyTree, catalog: Catalog, choose: Chooser) -> SurveyOutcome:
     Câu MULTIPLE đi tiếp theo đáp án chọn đầu tiên; câu BRAND theo câu tiếp theo của câu hỏi.
     """
     answers: list[dict] = []
-    state: dict = {"categories": []}
+    state: dict = {"groups": [], "keywords": []}
     current = tree.by_code[START_QUESTION]
     while current is not None:
         if current.answer_type == "BRAND":
@@ -159,8 +166,17 @@ def walk(tree: SurveyTree, catalog: Catalog, choose: Chooser) -> SurveyOutcome:
             if not codes or len(codes) > limit or len(set(codes)) != len(codes):
                 raise ValueError(f"Chọn đáp án không hợp lệ ở câu {current.code}: {codes}")
             answers.append({"questionCode": current.code, "optionCodes": codes, "brandId": None})
+            chosen: list[str] = []
             for code in codes:
-                _apply(state, current.options[code])
+                option = current.options[code]
+                _apply(state, option)
+                if current.category_mode == "ADD":
+                    if option.category_names:
+                        state["groups"].append(sorted(option.category_names))
+                else:
+                    chosen += [n for n in option.category_names if n not in chosen]
+            if current.category_mode == "NARROW":
+                _narrow(state, chosen)
             next_id = current.options[codes[0]].next_question_id
         current = None if next_id is None else tree.by_id[next_id]
 
@@ -171,6 +187,8 @@ def walk(tree: SurveyTree, catalog: Catalog, choose: Chooser) -> SurveyOutcome:
         price_max = price_max * 13 // 10
     return SurveyOutcome(
         answers=answers,
+        gender=state.get("gender"),
+        keywords=" ".join(state["keywords"]) or None,
         style=state.get("style"),
         brand_loyalty=state.get("brand_loyalty"),
         min_rating=state.get("min_rating"),
@@ -187,9 +205,10 @@ def _apply(state: dict, option: Option) -> None:
         value = getattr(option, key)
         if value is not None:
             state[key] = value
-    for name in option.category_names:
-        if name not in state["categories"]:
-            state["categories"].append(name)
+    if option.keywords:
+        for word in option.keywords.split():
+            if word not in state["keywords"]:
+                state["keywords"].append(word)
     if option.price_min is not None or option.price_max is not None:
         state["price_min"] = option.price_min
         state["price_max"] = option.price_max
@@ -197,17 +216,30 @@ def _apply(state: dict, option: Option) -> None:
         state["price_flexible"] = option.price_flexible
 
 
-def _category_ids(catalog: Catalog, state: dict) -> list[int]:
-    """Danh mục của các dịp đã chọn, bỏ danh mục của giới tính còn lại (SurveyService)."""
+def _fits_gender(state: dict, name: str) -> bool:
+    """Danh mục dùng chung hoặc đúng giới tính đã chọn (SurveyService.Walk.fitsGender)."""
     gender = state.get("gender")
-    names = {
-        name
-        for name in state["categories"]
-        if not (
-            (gender == "MALE" and category_gender(name) == "FEMALE")
-            or (gender == "FEMALE" and category_gender(name) == "MALE")
-        )
-    }
+    return not (
+        (gender == "MALE" and category_gender(name) == "FEMALE")
+        or (gender == "FEMALE" and category_gender(name) == "MALE")
+    )
+
+
+def _narrow(state: dict, names: list[str]) -> None:
+    """Thu hẹp các nhóm theo danh mục của dịp đã chọn (SurveyService.Walk.narrow)."""
+    if not state["groups"]:
+        if names:
+            state["groups"].append(sorted(names))
+        return
+    for group in state["groups"]:
+        kept = [n for n in group if n in names]
+        if any(_fits_gender(state, n) for n in kept):
+            group[:] = kept
+
+
+def _category_ids(catalog: Catalog, state: dict) -> list[int]:
+    """Danh mục của các nhóm đã chọn, bỏ danh mục của giới tính còn lại (SurveyService)."""
+    names = {n for group in state["groups"] for n in group if _fits_gender(state, n)}
     return sorted(cid for cid, name in catalog.categories.items() if name in names)
 
 
@@ -231,6 +263,8 @@ def make_runner(conn: Connection, tree: SurveyTree, catalog: Catalog) -> Callabl
                     return offered[0]
                 return None
             options = list(question.options.values())
+            if question.answer_type == "MULTIPLE" and question.category_mode == "ADD":
+                return _choose_types(options, question.max_choices, catalog, customer, rng)
             if question.answer_type == "MULTIPLE":
                 picked = [o.code for o in options if o.code in customer.occasions]
                 return picked[: question.max_choices] or [rng.choice(options).code]
@@ -239,6 +273,20 @@ def make_runner(conn: Connection, tree: SurveyTree, catalog: Catalog) -> Callabl
         return walk(tree, catalog, choose)
 
     return run
+
+
+def _choose_types(
+    options: list[Option], limit: int, catalog: Catalog, customer, rng: random.Random
+) -> list[str]:
+    """Loại đồ (câu ADD chọn nhiều): các đáp án có danh mục khách quan tâm, nhiều danh mục trước;
+    không có thì đáp án không mang danh mục ("chưa biết") để câu dịp sử dụng chọn danh mục."""
+    interest = {catalog.categories[cid] for cid in customer.interest if cid in catalog.categories}
+    overlap = {o.code: len(interest & set(o.category_names)) for o in options}
+    picked = sorted((o for o in options if overlap[o.code]), key=lambda o: -overlap[o.code])
+    if picked:
+        return [o.code for o in picked[:limit]]
+    blank = [o.code for o in options if not o.category_names]
+    return blank[:1] or [rng.choice(options).code]
 
 
 def _choose_single(options: list[Option], customer, budget: int, rng: random.Random) -> Option:

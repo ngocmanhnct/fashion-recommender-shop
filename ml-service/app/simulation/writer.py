@@ -227,13 +227,15 @@ def _insert_survey(conn: Connection, account_id: int, customer: SimCustomer) -> 
     outcome = survey.outcome
     conn.execute(
         text(
-            "INSERT INTO survey_result (account_id, status, style, brand_loyalty, min_rating, "
-            "answers, created_at, updated_at) VALUES (:a, :status, :style, :loyalty, :rating, "
-            ":answers, :at, :at)"
+            "INSERT INTO survey_result (account_id, status, gender, style, brand_loyalty, "
+            "min_rating, keywords, answers, created_at, updated_at) VALUES (:a, :status, "
+            ":gender, :style, :loyalty, :rating, :keywords, :answers, :at, :at)"
         ),
         {
             "a": account_id,
             "status": survey.status,
+            "gender": outcome.gender if outcome else None,
+            "keywords": outcome.keywords if outcome else None,
             "style": outcome.style if outcome else None,
             "loyalty": outcome.brand_loyalty if outcome else None,
             "rating": outcome.min_rating if outcome else None,

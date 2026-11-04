@@ -247,7 +247,9 @@ class Generator:
 
     def _occasions(self, rng: random.Random, age: int) -> list[str]:
         weights = OCCASION_WEIGHTS["young" if age < 25 else "adult"]
-        codes = [c for c in self.occasions if self.occasions[c]]
+        # Chỉ các dịp có trong OCCASION_WEIGHTS (dịp thêm sau, vd đi tiệc, không đổi dữ liệu mô
+        # phỏng đã dùng để đánh giá).
+        codes = [c for c in self.occasions if self.occasions[c] and c in weights]
         if not codes:
             return []
         picked = [rng.choices(codes, [weights.get(c, 1.0) for c in codes])[0]]

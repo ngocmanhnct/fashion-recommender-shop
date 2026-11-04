@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import Connection, text
 
 from app.recommendation.features import CatalogItem
+from app.recommendation.gender import product_gender
 
 VIEW_WINDOW_DAYS = 30
 """Lượt xem trong 30 ngày gần nhất mới được tính (BR-19)."""
@@ -35,6 +36,10 @@ class SurveyProfile:
     price_max: int | None
     style: str | None
     min_rating: float | None = None
+    gender: str | None = None
+    """MALE / FEMALE: chỉ gợi ý đồ của giới tính này và đồ dùng chung; None = không lọc."""
+    keywords: str | None = None
+    """Từ khóa gu và dịp sử dụng đã chọn, cách nhau bằng dấu cách."""
 
 
 @dataclass
@@ -69,16 +74,25 @@ def load_catalog(conn: Connection) -> list[CatalogItem]:
     rows = conn.execute(
         text(
             "SELECT p.id, p.category_id, p.brand_id, p.name, COALESCE(p.description, ''), "
-            "       MIN(v.price) "
+            "       MIN(v.price), c.name "
             "FROM product p JOIN product_variant v ON v.product_id = p.id "
+            "JOIN category c ON c.id = p.category_id "
             "WHERE p.deleted_at IS NULL "
-            "GROUP BY p.id, p.category_id, p.brand_id, p.name, p.description "
+            "GROUP BY p.id, p.category_id, p.brand_id, p.name, p.description, c.name "
             "ORDER BY p.id"
         )
     )
     return [
-        CatalogItem(int(pid), int(cid), None if bid is None else int(bid), name, desc, int(price))
-        for pid, cid, bid, name, desc, price in rows
+        CatalogItem(
+            int(pid),
+            int(cid),
+            None if bid is None else int(bid),
+            name,
+            desc,
+            int(price),
+            product_gender(category, name),
+        )
+        for pid, cid, bid, name, desc, price, category in rows
     ]
 
 
@@ -222,7 +236,7 @@ def load_survey(conn: Connection, account_id: int) -> SurveyProfile | None:
     """Sở thích của lần làm khảo sát gần nhất; None nếu chưa làm hoặc đã bỏ qua."""
     result = conn.execute(
         text(
-            "SELECT style, min_rating FROM survey_result "
+            "SELECT style, min_rating, gender, keywords FROM survey_result "
             "WHERE account_id = :id AND status = 'COMPLETED'"
         ),
         {"id": account_id},
@@ -239,7 +253,7 @@ def load_survey(conn: Connection, account_id: int) -> SurveyProfile | None:
     if not rows:
         return None
     _, brand_id, price_min, price_max = rows[0]
-    style, min_rating = result
+    style, min_rating, gender, keywords = result
     return SurveyProfile(
         category_ids=tuple(int(r[0]) for r in rows),
         brand_id=None if brand_id is None else int(brand_id),
@@ -247,6 +261,8 @@ def load_survey(conn: Connection, account_id: int) -> SurveyProfile | None:
         price_max=None if price_max is None else int(price_max),
         style=style,
         min_rating=None if min_rating is None else float(min_rating),
+        gender=gender,
+        keywords=keywords,
     )
 
 
