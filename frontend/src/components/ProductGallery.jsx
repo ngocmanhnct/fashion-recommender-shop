@@ -3,7 +3,7 @@ import ProductImage from './ProductImage';
 
 /**
  * Ảnh lớn của sản phẩm và dãy ảnh nhỏ để đổi ảnh lớn (chỉ hiện khi có từ 2 ảnh khác nhau). Chưa có
- * ảnh thì hiện ảnh minh họa vẽ theo danh mục.
+ * ảnh thì hiện ảnh minh họa theo danh mục, kèm dòng ghi rõ đó là ảnh minh họa.
  */
 function ProductGallery({ imageUrls, productId, categoryName }) {
   const urls = [...new Set(imageUrls)];
@@ -16,6 +16,11 @@ function ProductGallery({ imageUrls, productId, categoryName }) {
         categoryName={categoryName}
         className="product-gallery-main"
       />
+      {urls.length === 0 && (
+        <p className="muted small product-gallery-note">
+          Ảnh minh họa theo danh mục, không phải ảnh thật của sản phẩm.
+        </p>
+      )}
       {urls.length > 1 && (
         <div className="product-gallery-thumbs">
           {urls.map((url, index) => (

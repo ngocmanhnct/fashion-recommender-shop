@@ -1,0 +1,166 @@
+{
+  "Balo du lịch": {
+    "slug": "balo-du-lich",
+    "count": 5
+  },
+  "Balo laptop": {
+    "slug": "balo-laptop",
+    "count": 3
+  },
+  "Balo thời trang": {
+    "slug": "balo-thoi-trang",
+    "count": 3
+  },
+  "Cặp, túi chống sốc laptop": {
+    "slug": "cap-tui-chong-soc-laptop",
+    "count": 3
+  },
+  "Dép nam": {
+    "slug": "dep-nam",
+    "count": 4
+  },
+  "Dép nữ": {
+    "slug": "dep-nu",
+    "count": 4
+  },
+  "Ghim cài áo": {
+    "slug": "ghim-cai-ao",
+    "count": 5
+  },
+  "Giày boots nam": {
+    "slug": "giay-boots-nam",
+    "count": 4
+  },
+  "Giày boots nữ": {
+    "slug": "giay-boots-nu",
+    "count": 4
+  },
+  "Giày búp bê nữ": {
+    "slug": "giay-bup-be-nu",
+    "count": 4
+  },
+  "Giày cao gót nữ": {
+    "slug": "giay-cao-got-nu",
+    "count": 5
+  },
+  "Giày lười nam": {
+    "slug": "giay-luoi-nam",
+    "count": 4
+  },
+  "Giày lười nữ": {
+    "slug": "giay-luoi-nu",
+    "count": 3
+  },
+  "Giày thể thao nam": {
+    "slug": "giay-the-thao-nam",
+    "count": 4
+  },
+  "Giày thể thao nữ": {
+    "slug": "giay-the-thao-nu",
+    "count": 4
+  },
+  "Giày tây nam": {
+    "slug": "giay-tay-nam",
+    "count": 4
+  },
+  "Găng tay": {
+    "slug": "gang-tay",
+    "count": 4
+  },
+  "Gọng kính": {
+    "slug": "gong-kinh",
+    "count": 4
+  },
+  "Khăn": {
+    "slug": "khan",
+    "count": 4
+  },
+  "Khẩu trang": {
+    "slug": "khau-trang",
+    "count": 4
+  },
+  "Kính mát": {
+    "slug": "kinh-mat",
+    "count": 5
+  },
+  "Nón nam": {
+    "slug": "non-nam",
+    "count": 4
+  },
+  "Nón nữ": {
+    "slug": "non-nu",
+    "count": 5
+  },
+  "Phụ kiện du lịch": {
+    "slug": "phu-kien-du-lich",
+    "count": 3
+  },
+  "Phụ kiện tóc": {
+    "slug": "phu-kien-toc",
+    "count": 4
+  },
+  "Phụ kiện, vệ sinh giày": {
+    "slug": "phu-kien-ve-sinh-giay",
+    "count": 2
+  },
+  "Sandal nam": {
+    "slug": "sandal-nam",
+    "count": 4
+  },
+  "Sandal nữ": {
+    "slug": "sandal-nu",
+    "count": 5
+  },
+  "Thắt lưng nam": {
+    "slug": "that-lung-nam",
+    "count": 3
+  },
+  "Thắt lưng nữ": {
+    "slug": "that-lung-nu",
+    "count": 3
+  },
+  "Túi tote nữ": {
+    "slug": "tui-tote-nu",
+    "count": 3
+  },
+  "Túi xách nam": {
+    "slug": "tui-xach-nam",
+    "count": 4
+  },
+  "Túi xách nữ": {
+    "slug": "tui-xach-nu",
+    "count": 4
+  },
+  "Túi đeo chéo nam": {
+    "slug": "tui-deo-cheo-nam",
+    "count": 3
+  },
+  "Túi đeo chéo nữ": {
+    "slug": "tui-deo-cheo-nu",
+    "count": 3
+  },
+  "Túi đựng đồ du lịch": {
+    "slug": "tui-dung-do-du-lich",
+    "count": 2
+  },
+  "Vali": {
+    "slug": "vali",
+    "count": 4
+  },
+  "Ví nam": {
+    "slug": "vi-nam",
+    "count": 4
+  },
+  "Ví nữ": {
+    "slug": "vi-nu",
+    "count": 4
+  },
+  "Vớ nam": {
+    "slug": "vo-nam",
+    "count": 3
+  },
+  "Vớ nữ": {
+    "slug": "vo-nu",
+    "count": 4
+  }
+}
