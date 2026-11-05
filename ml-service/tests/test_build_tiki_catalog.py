@@ -7,6 +7,7 @@ from scripts.build_tiki_catalog import (
     brand_of,
     clean_description,
     clean_name,
+    colors_of,
     fold,
     is_near_duplicate,
     select,
@@ -19,11 +20,13 @@ MEN_SPORT = next(c for c in CATEGORIES if c.name == "Giày thể thao nam")
 WOMEN_WALLET = next(c for c in CATEGORIES if c.name == "Ví nữ")
 
 
-def row(id_, name, category, file="men_shoes", sold="10", price="150000", brand="OEM"):
+def row(
+    id_, name, category, file="men_shoes", sold="10", price="150000", brand="OEM", desc="Mô tả ngắn"
+):
     return {
         "id": id_,
         "name": name,
-        "description": "Mô tả ngắn",
+        "description": desc,
         "price": price,
         "brand": brand,
         "review_count": "3",
@@ -130,3 +133,41 @@ def test_category_takes_rows_from_several_files():
         ("Phụ kiện, vệ sinh giày", 21),
     ]
     assert products[0]["variationName1"] is None
+
+
+def test_colors_of_reads_listed_colours():
+    assert colors_of("Da mềm. Màu: đen, kem, vàng bò -Size: 35-39") == ["Đen", "Kem", "Vàng bò"]
+    assert colors_of("Màu sắc: Đen - Hồng. Form ôm") == ["Đen", "Hồng"]
+    assert colors_of("Màu sắc: XANH, ĐEN-XÁMSize: 39") == ["Xanh", "Đen - xám"]
+    assert colors_of("Màu sắc : Đen - đen, đen - xanh navy") == ["Đen", "Đen - xanh navy"]
+    assert colors_of("Màu: đen,xanh, đen") == ["Đen", "Xanh"]
+    assert colors_of("Màu: Xanh\ufe0f, Đỏ đô, đỏ tươi") == ["Xanh", "Đỏ đô", "Đỏ tươi"]
+
+
+def test_colors_of_needs_two_named_colours():
+    assert colors_of("Màu sắc trẻ trung, dễ phối đồ") == []
+    assert colors_of("Màu sắc: Đen. Kiểu dáng: giày xỏ") == []
+    assert colors_of("Có 3 màu như hình") == []
+    assert colors_of(None) == []
+
+
+def test_shoe_with_colours_gets_colour_then_size_tier():
+    product = to_product(
+        MEN_SPORT, row("9", "Giày chạy", "Giày thể thao nam cổ thấp", desc="Màu sắc: Đen, Trắng")
+    )
+    assert (product["variationName1"], product["variationName2"]) == ("Màu sắc", "Kích cỡ")
+    assert len(product["variants"]) == 10
+    first = product["variants"][0]
+    assert (first["option1Value"], first["option2Value"]) == ("Đen", "39")
+    assert first["skuCode"] == "TK9-DEN-39"
+    assert product["variants"][-1]["skuCode"] == "TK9-TRANG-43"
+
+
+def test_wallet_with_colours_gets_one_colour_tier():
+    product = to_product(
+        WOMEN_WALLET,
+        row("10", "Ví dài nữ", "Ví dài", file="women_bags", desc="Màu sắc: Xanh dương/Hồng"),
+    )
+    assert (product["variationName1"], product["variationName2"]) == ("Màu sắc", None)
+    assert [v["option1Value"] for v in product["variants"]] == ["Xanh dương", "Hồng"]
+    assert [v["skuCode"] for v in product["variants"]] == ["TK10-XANHDUONG", "TK10-HONG"]

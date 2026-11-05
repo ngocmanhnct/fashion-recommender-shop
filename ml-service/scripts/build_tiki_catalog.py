@@ -12,9 +12,11 @@ phẩm phải có từ khóa của danh mục và không có từ bị loại (l
 trong "Kính mát nữ", giày đi mưa trong "Giày búp bê"); bỏ hàng combo và sản phẩm gần trùng tên
 với sản phẩm đã chọn; trong mỗi danh mục lấy các sản phẩm bán nhiều nhất trên Tiki.
 
-Phần sinh thêm (ghi rõ trong báo cáo): giày dép có 1 tầng phân loại "Kích cỡ" (nam 39-43, nữ
-35-39), sản phẩm khác không có phân loại; tồn kho 0-40 sinh giả ngẫu nhiên nhưng cố định theo mã
-sản phẩm; mã SKU "TK<mã Tiki>[-<cỡ>]". Thương hiệu "OEM", "No Brand" để trống. Số lượng đã bán,
+Phần sinh thêm (ghi rõ trong báo cáo): giày dép có tầng phân loại "Kích cỡ" (nam 39-43, nữ
+35-39); sản phẩm có mô tả liệt kê từ 2 màu trở lên (vd "Màu sắc: Đen, Kem") có thêm tầng "Màu sắc"
+đứng trước (giày: màu × cỡ), vì bộ Tiki không có màu theo biến thể, chỉ có chữ trong mô tả (xem
+colors_of); sản phẩm khác không có phân loại; tồn kho 0-40 sinh giả ngẫu nhiên nhưng cố định theo
+mã sản phẩm; mã SKU "TK<mã Tiki>[-<mã màu>][-<cỡ>]". Thương hiệu "OEM", "No Brand" để trống. Số lượng đã bán,
 điểm đánh giá của Tiki chỉ ghi vào file để đối chứng khi đánh giá gợi ý, không nạp vào CSDL.
 
 Chạy trong ml-service/:
@@ -51,6 +53,19 @@ OUT_FILE = REPO_ROOT / "backend" / "src" / "main" / "resources" / "seed" / "tiki
 MEN_SIZES = ["39", "40", "41", "42", "43"]
 WOMEN_SIZES = ["35", "36", "37", "38", "39"]
 SIZE_TIER = "Kích cỡ"
+COLOR_TIER = "Màu sắc"
+MAX_COLORS = 8
+# Từ chỉ màu (đã bỏ dấu) mở đầu mỗi giá trị màu, và từ bổ nghĩa đi sau ("xanh dương", "nâu đậm").
+COLOR_WORDS = {
+    "den", "trang", "nau", "xanh", "do", "vang", "hong", "xam", "be", "kem", "tim", "cam", "bac",
+    "ghi", "reu", "bo", "navy", "kaki", "ruou", "nude",
+}  # fmt: skip
+COLOR_MODIFIERS = {
+    "dam", "nhat", "sang", "toi", "tuoi", "do", "duong", "la", "ngoc", "bong", "cafe", "sua",
+    "than", "hong", "reu", "den", "trang", "xam", "nau", "vang", "kem", "be",
+}  # fmt: skip
+COLOR_LABEL = re.compile(r"màu(?:\s*sắc)?\s*:?\s*", re.IGNORECASE)
+COLOR_LIST_END = re.compile(r"[.;:(…]|size|kích|chất|kiểu|form|mã|chiều", re.IGNORECASE)
 MAX_STOCK = 40
 NEAR_DUPLICATE = 0.6
 NO_BRAND = {"oem", "no brand", "khong su dung", ""}
@@ -494,6 +509,65 @@ def stock_of(tiki_id: str, option: str | None) -> int:
     return int.from_bytes(digest[:4], "big") % (MAX_STOCK + 1)
 
 
+def color_item(text: str) -> str | None:
+    """1 giá trị màu: các từ màu đứng đầu (vd "nâu cafe", "đen - xám"), viết hoa chữ đầu.
+
+    Dừng ở từ đầu tiên không chỉ màu; không mở đầu bằng từ màu thì None.
+    """
+    tokens = text.replace("-", " - ").replace("–", " - ").split()
+    kept: list[str] = []
+    for raw in tokens:
+        token = raw if raw == "-" else "".join(ch for ch in raw if ch.isalnum()).lower()
+        colors = [t for t in kept if t != "-"]
+        if token == "-":
+            kept.append(token)
+        elif fold(token) in (COLOR_WORDS | COLOR_MODIFIERS if colors else COLOR_WORDS):
+            if colors and colors[-1] == token:
+                while kept and kept[-1] == "-":
+                    kept.pop()
+            else:
+                kept.append(token)
+        else:
+            break
+    while kept and kept[-1] == "-":
+        kept.pop()
+    if not kept or kept[0] == "-":
+        return None
+    value = " ".join(kept)
+    return value[:1].upper() + value[1:]
+
+
+def colors_of(description: str | None) -> list[str]:
+    """Các màu mô tả liệt kê sau chữ "Màu"/"Màu sắc", vd "Màu: đen, kem, xanh" -> [Đen, Kem, Xanh].
+
+    Danh sách dừng ở dấu chấm hay thông tin khác (Size, Chất liệu...). Có dấu phẩy hoặc "/" thì tách
+    theo đó, gạch nối nằm trong 1 giá trị ("Đen - xám"); chỉ có gạch nối thì tách theo gạch nối
+    ("Đen - Hồng"). Bỏ màu trùng (so không dấu). Trả danh sách đầu tiên có từ 2 màu, không có thì [].
+    """
+    if not description:
+        return []
+    for label in COLOR_LABEL.finditer(description):
+        rest = description[label.end() :]
+        end = COLOR_LIST_END.search(rest)
+        segment = rest[: end.start()] if end else rest
+        parts = re.split(r"[,/]" if re.search(r"[,/]", segment) else r"\s[-–]\s|[-–]", segment)
+        colors: list[str] = []
+        for part in parts:
+            value = color_item(part.strip())
+            if value is None:
+                break
+            if fold(value) not in {fold(c) for c in colors}:
+                colors.append(value)
+        if len(colors) >= 2:
+            return colors[:MAX_COLORS]
+    return []
+
+
+def color_code(color: str) -> str:
+    """Mã màu trong SKU: bỏ dấu, viết hoa, chỉ chữ và số ("Xanh dương" -> "XANHDUONG")."""
+    return re.sub(r"[^A-Z0-9]", "", fold(color).upper())
+
+
 def is_near_duplicate(name: str, chosen: list[set[str]]) -> bool:
     """Tên gần trùng (độ giống Jaccard trên tập từ) với một sản phẩm đã chọn trong danh mục."""
     current = words(name)
@@ -508,21 +582,34 @@ def matches(category: ShopCategory, name: str) -> bool:
     return any(has_phrase(folded, w) for w in category.keywords)
 
 
+def variants_of(
+    tiki_id: str, price: int, description: str | None, sizes: list[str]
+) -> tuple[list[str], list[dict]]:
+    """Tên các tầng phân loại và các biến thể: màu (nếu mô tả liệt kê) × kích cỡ (nếu là giày)."""
+    colors = colors_of(description)
+    tiers = ([COLOR_TIER] if colors else []) + ([SIZE_TIER] if sizes else [])
+    variants = []
+    for color in colors or [None]:
+        for size in sizes or [None]:
+            values = [v for v in (color, size) if v is not None]
+            codes = [color_code(color)] if color else []
+            variants.append(
+                {
+                    "option1Value": values[0] if values else None,
+                    "option2Value": values[1] if len(values) > 1 else None,
+                    "price": price,
+                    "stock": stock_of(tiki_id, "/".join(values) if color else size),
+                    "skuCode": "-".join([f"TK{tiki_id}", *codes, *([size] if size else [])]),
+                }
+            )
+    return tiers, variants
+
+
 def to_product(category: ShopCategory, row: dict[str, str]) -> dict:
     """Chuyển 1 dòng CSV của Tiki thành 1 sản phẩm của file mẫu."""
     tiki_id = row["id"].strip()
-    price = int(row["price"])
-    options = list(category.sizes) or [None]
-    variants = [
-        {
-            "option1Value": option,
-            "option2Value": None,
-            "price": price,
-            "stock": stock_of(tiki_id, option),
-            "skuCode": f"TK{tiki_id}" + (f"-{option}" if option else ""),
-        }
-        for option in options
-    ]
+    description = clean_description(row["description"])
+    tiers, variants = variants_of(tiki_id, int(row["price"]), description, list(category.sizes))
     return {
         "tikiId": int(tiki_id),
         "tikiCategory": row["category"].strip(),
@@ -532,9 +619,9 @@ def to_product(category: ShopCategory, row: dict[str, str]) -> dict:
         "category": category.name,
         "brand": brand_of(row["brand"]),
         "name": clean_name(row["name"]),
-        "description": clean_description(row["description"]),
-        "variationName1": SIZE_TIER if category.sizes else None,
-        "variationName2": None,
+        "description": description,
+        "variationName1": tiers[0] if tiers else None,
+        "variationName2": tiers[1] if len(tiers) > 1 else None,
         "variants": variants,
     }
 

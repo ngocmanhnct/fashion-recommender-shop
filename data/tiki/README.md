@@ -20,7 +20,10 @@ Danh mục sản phẩm của cửa hàng lấy từ bộ **TIKI E-Commerce Fash
    ```
 
    Script ghi `backend/src/main/resources/seed/tiki-catalog.json` (1.050 sản phẩm, 42 danh mục).
-   Cách chọn sản phẩm và phần dữ liệu sinh thêm (kích cỡ giày, tồn kho, mã SKU) ghi ở đầu script.
+   Cách chọn sản phẩm và phần dữ liệu sinh thêm (kích cỡ giày, màu, tồn kho, mã SKU) ghi ở đầu
+   script. Màu: bộ dữ liệu không có màu theo biến thể, chỉ có chữ trong mô tả, nên sản phẩm có mô tả
+   liệt kê từ 2 màu trở lên (vd "Màu: đen, kem, xanh") có thêm tầng "Màu sắc" (giày: màu × cỡ). Mô
+   tả chỉ ghi số màu ("có 3 màu như hình") thì không thêm, vì không biết tên màu.
 3. Backend tự nạp file này lúc khởi động nếu bảng `product` chưa có dòng nào
    (`CATALOG_SEED_ENABLED=false` để tắt). Muốn nạp lại từ đầu trên máy dev: `docker compose down -v`
    (xóa luôn dữ liệu MySQL), `docker compose up -d mysql`, rồi chạy lại backend.
