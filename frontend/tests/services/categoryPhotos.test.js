@@ -13,11 +13,21 @@ describe('categoryPhotoUrl', () => {
     expect(categoryPhotoUrl('Balo du lịch', 7, PHOTOS)).toBe(url);
   });
 
-  it('sản phẩm có mã cách đều nhau (cùng danh mục mẫu) vẫn ra nhiều ảnh khác nhau', () => {
-    const urls = new Set(
-      Array.from({ length: 25 }, (_, i) => categoryPhotoUrl('Balo du lịch', 3 + i * 25, PHOTOS))
+  it('sản phẩm có mã liên tiếp (cùng danh mục mẫu) ra các ảnh khác nhau, hết ảnh mới lặp', () => {
+    const urls = Array.from({ length: 5 }, (_, i) =>
+      categoryPhotoUrl('Balo du lịch', 51 + i, PHOTOS)
     );
-    expect(urls.size).toBeGreaterThanOrEqual(4);
+    expect(new Set(urls).size).toBe(5);
+    expect(categoryPhotoUrl('Balo du lịch', 56, PHOTOS)).toBe(urls[0]);
+  });
+
+  it('mã sản phẩm dạng chuỗi số dùng như số, mã không phải số thì về ảnh đầu', () => {
+    expect(categoryPhotoUrl('Balo du lịch', '52', PHOTOS)).toBe(
+      categoryPhotoUrl('Balo du lịch', 52, PHOTOS)
+    );
+    expect(categoryPhotoUrl('Balo du lịch', 'abc', PHOTOS)).toBe(
+      '/anh-danh-muc/balo-du-lich/1.webp'
+    );
   });
 
   it('tên danh mục dạng tách dấu (NFD) vẫn khớp', () => {
