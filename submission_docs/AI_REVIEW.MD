@@ -68,6 +68,7 @@ Ngày 31/10, sinh viên cho phép Claude Code (chạy trên môi trường cloud
 | A3 | Mỗi lỗi một issue | Lỗi CI, SonarQube hay tổng duyệt bắt được đều mở issue theo mẫu, PR sửa ghi `Fixes #n` |
 | A4 | Không đưa secret cho AI | Giữ nguyên P1: khóa VNPay, mật khẩu Gmail, mật khẩu admin, khóa SSH do sinh viên tự đặt trong `.env` và GitHub Secrets |
 | A5 | Rà soát độc lập định kỳ | 01–03/11: tổng duyệt bằng 3 agent rà code và 1 agent đóng vai hội đồng; tìm 17 lỗi (#93–#106, #108, #109, #111), trong đó có lỗi rò rỉ nhãn khi đánh giá gợi ý (#99) |
-| A6 | Sinh viên kiểm chứng sau | Sinh viên dùng thử trên staging và tự giải thích được các phần quan trọng trước buổi bảo vệ (R1) |
+| A6 | Sinh viên kiểm chứng sau | Sinh viên dùng thử trên staging và tự giải thích được các phần quan trọng trước buổi bảo vệ (R1). Ngày 04–05/11 sinh viên tự dùng thử và tìm ra 3 lỗi (#124 khảo sát gợi ý sai giới tính, #130 ảnh trùng, #132 thiếu lựa chọn màu) cùng luồng đánh giá sản phẩm quá rườm rà (sửa ở PR #134) |
+| A7 | Cập nhật thư viện không tự động merge | PR Dependabot chỉ merge từng cái sau khi CI xanh trên bản đã gộp `main` mới nhất; PR làm đỏ CI thì đóng và ghi lý do (04/11: merge 8 PR, đóng #116 nâng Java 25 vì healthcheck backend báo unhealthy, chặn đề xuất Java lớn hơn 21 ở PR #128) |
 
-Rủi ro của giai đoạn này: sinh viên không đọc từng dòng trước khi merge, nên R1 được bù bằng A5, A6 và bộ câu hỏi ôn tập về các PR #68–#110.
+Rủi ro của giai đoạn này: sinh viên không đọc từng dòng trước khi merge, nên R1 được bù bằng A5, A6 và bộ câu hỏi ôn tập về các PR #68–#110. Các lỗi AI gây ra trong giai đoạn này và cách phát hiện ghi ở `AI_LOG.MD` Mục 2 (d) và (e).

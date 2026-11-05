@@ -4,7 +4,7 @@
 
 - **Sinh viên:** Đoàn Ngọc Mạnh (23110124). **Công cụ AI:** Claude (Anthropic). Tuần 1–3 ghi theo phiên bản hiển thị lúc đó (Sonnet 5); ngày 30/09 có dùng thêm Claude Code trên máy sinh viên; từ 31/10 dùng Claude Code chạy trên môi trường cloud, có quyền ghi vào repository (xem Quy ước).
 - **Phạm vi:** chỉ ghi các buổi dùng AI cho mã nguồn, cấu hình, CI/CD và tài liệu kỹ thuật trong repository. Các buổi dùng AI cho nội dung báo cáo (file tiểu luận, báo cáo tuần, khảo sát) không ghi ở đây.
-- **Nguồn:** tổng hợp ngày 22/10/2026, cập nhật 30/10/2026 và 04/11/2026, từ Mục B "AI Usage Log" của báo cáo tuần (`docs/bao-cao-tuan-01.docx` đến `-08.docx`, ghi trong từng tuần), nhật ký quyết định của dự án và lịch sử Git/PR/Issues trên GitHub. Bảng dưới là bản tóm tắt; chi tiết từng buổi xem Mục B của báo cáo tuần tương ứng.
+- **Nguồn:** tổng hợp ngày 22/10/2026, cập nhật 30/10/2026, 04/11/2026 và 06/11/2026, từ Mục B "AI Usage Log" của báo cáo tuần (`docs/bao-cao-tuan-01.docx` đến `-10.docx`), nhật ký quyết định của dự án và lịch sử Git/PR/Issues trên GitHub. Bảng dưới là bản tóm tắt; chi tiết từng buổi xem Mục B của báo cáo tuần tương ứng.
 - **Quy ước:**
   - Ngày theo giờ Việt Nam, là ngày làm việc thật.
   - Mã commit là commit trên `main` chứa phần việc đó.
@@ -13,7 +13,7 @@
     - Từ 31/10 (dòng 36 trở đi): sinh viên giao cho Claude quyền tạo nhánh, commit, push, mở PR, mở issue và merge, dưới tài khoản GitHub của sinh viên. Commit ghi tên tác giả "Ngoc Manh" theo yêu cầu của sinh viên, nên lịch sử Git không phân biệt được; bảng dưới là nơi kê khai.
     - Điều kiện merge: đủ 6 job CI xanh và SonarQube 0 issue mới. Sinh viên chọn chức năng, chọn phương án khi có nhiều lựa chọn, và kiểm tra lại sau khi merge.
     - Quy trình kiểm soát cho giai đoạn này ghi ở `AI_REVIEW.MD` Mục 6.
-  - Dòng đánh dấu (\*): các buổi từ 28/10 sau khi chốt báo cáo Tuần 8, chưa có trong Mục B báo cáo tuần, soạn từ lịch sử trao đổi và lịch sử Git; sẽ ghi vào báo cáo Tuần 9.
+  - Dòng đánh dấu (\*): các buổi từ 28/10 sau khi chốt báo cáo Tuần 8, không ghi ngay trong tuần mà soạn sau từ lịch sử trao đổi và lịch sử Git; đã đưa vào Mục B báo cáo Tuần 9 (đến 04/11) và Tuần 10 (từ 05/11).
   - Cột "Phần SV tinh chỉnh" ở dòng 36 trở đi ghi đúng phần sinh viên làm; phần còn lại, kể cả merge, do AI làm.
 
 ## 1. Bảng nhật ký
@@ -70,6 +70,16 @@
 | 48 (\*) | Claude Code | 31/10. Hồ sơ cá nhân, đổi mật khẩu, quên mật khẩu qua email US-29 (Flyway V10) | Làm hồ sơ cá nhân và lấy lại mật khẩu qua email | `PasswordResetService`, V10, 3 trang, test, Postman | Tự tạo mật khẩu ứng dụng Gmail và đặt `MAIL_*` trong `.env` trên máy và máy ảo (không qua AI); tự thử email đặt lại mật khẩu ngày 01/11; AI merge PR #91 | `ea58c8f` |
 | 49 (\*) | Claude Code | 01–03/11. Tổng duyệt toàn hệ thống: 3 agent rà code (backend, frontend, ml-service + hạ tầng), 1 agent đóng vai hội đồng vấn đáp 18 câu; sửa 14 lỗi (issue #93–#106) | Tổng duyệt lại toàn bộ hệ thống với 2–3 agent hỗ trợ; thêm 1 agent đóng vai hội đồng để vấn đáp, ghi sai sót và hội ý với sinh viên | 14 bản sửa, test hồi quy, số liệu đánh giá gợi ý mới | Đề ra cách tổng duyệt; AI merge PR #107 | `61e7871` |
 | 50 (\*) | Claude Code | 04/11. A/B cùng giao diện cho 2 nhóm; tối đa 1 mã tự tặng mỗi 30 ngày; đổi nhãn "Chưa phân nhóm" (issue #108, #109, #111); sửa luận văn cho khớp code | Áp dụng 4 phương án AI khuyên sau buổi vấn đáp thử | `RecommendationService`, `SegmentEntryRepository`, giao diện, đặc tả | Chọn "theo phương án AI khuyên"; AI merge PR #110 | `2e70260` |
+| 51 (\*) | Claude Code | 04/11. Vận hành staging: sao lưu CSDL mỗi ngày và khôi phục, workflow rollback, Dependabot; đo tải 50 người dùng (P95) và Lighthouse; sửa 3 lỗi trợ năng Lighthouse báo (issue #113) | Làm tiếp các mục rubric còn thiếu ở phần vận hành và kiểm thử phi chức năng | `deploy/staging` (sao lưu, khôi phục), workflow rollback, `.github/dependabot.yml`, kịch bản đo tải, sửa giao diện | Chọn hạng mục; AI merge PR #114 | `9899ed9` |
+| 52 (\*) | Claude Code | 04/11. Khảo sát hỏi kỹ hơn (Flyway V11) và không gợi ý đồ của giới tính kia (issue #124) | Sinh viên tự làm khảo sát, chọn "Tìm đồ nữ" mà vẫn ra sản phẩm nam; yêu cầu hỏi chi tiết hơn | Migration V11, lọc theo giới tính ở backend và ml-service, test | Tự test, phát hiện lỗi, yêu cầu thêm câu hỏi; AI merge PR #125 | `1a4db0a` |
+| 53 (\*) | Claude Code | 04/11. Quét toàn bộ 7.377 đường trả lời khảo sát; cố định dữ liệu mô phỏng khi sửa cây khảo sát; thêm phụ kiện giày cho đồ nữ (Flyway V12, issue #126); sửa luận văn | Kiểm tra thêm các trường hợp khác của khảo sát và sửa Google Doc cho khớp | Script quét, bản đồ dịp sử dụng cố định trong `app/simulation`, migration V12 | Yêu cầu kiểm tra mọi trường hợp; AI merge PR #127 | `3ad5686` |
+| 54 (\*) | Claude Code | 04–05/11. Xử lý 9 PR Dependabot: merge lần lượt 8 PR có CI xanh, đóng PR #116 (Java 25), chặn Dependabot đề xuất image Java lớn hơn 21 | Hỏi vì sao còn nhiều PR chưa merge | `.github/dependabot.yml` (khối `ignore`), gộp `main` vào nhánh Dependabot, kiểm tra `uv lock --check` | Chọn phương án 1; AI merge PR #115, #117–#123, #128 | `11be2fe`, `4e65b6c` |
+| 55 (\*) | Claude Code | 04–05/11. Ảnh minh họa theo danh mục lấy từ ảnh CC0/public domain qua Openverse, kèm nguồn ảnh | Thay hình vẽ SVG bằng ảnh thật miễn phí | Script tải và dựng ảnh, `nguon-anh.md`, `categoryPhotos.json` | Thêm 2 tên miền vào danh sách mạng cho môi trường AI; tự merge PR #129 | `d8b7fe9` |
+| 56 (\*) | Claude Code | 05/11. Sửa ảnh trùng nhau giữa các sản phẩm cùng danh mục (issue #130) | Sinh viên báo các sản phẩm liên quan hiện cùng 1 ảnh | Cách chọn ảnh trong `services/categoryPhotos.js`, test | Phát hiện lỗi; AI merge PR #131 | `f0ad245` |
+| 57 (\*) | Claude Code | 05/11. Thêm tầng phân loại "Màu sắc" cho sản phẩm mẫu có mô tả nhiều màu (issue #132) | Sinh viên báo mô tả ghi nhiều màu mà không có lựa chọn màu; chọn thêm tầng màu | `build_tiki_catalog.py`, `tiki-catalog.json`, dữ liệu mô phỏng | Phát hiện lỗi, chọn phương án, tự chạy lệnh nạp lại CSDL và đặt `SIM_DEMO_PASSWORD`; AI merge PR #133 | `df7dafd` |
+| 58 (\*) | Claude Code | 05–06/11. Đánh giá sản phẩm ngay sau khi nhận hàng (đánh giá nhanh từ trang đơn hàng) | Sinh viên thấy luồng đánh giá cũ quá rườm rà | Form đánh giá nhanh, API, test | Nêu vấn đề, đọc lại rồi bảo "merge đi"; AI merge PR #134 | `bba43c0` |
+| 59 (\*) | Claude Code | 05–06/11. Bổ sung ảnh minh họa cho các danh mục còn thiếu, đủ 42/42 danh mục | Làm tiếp phần ảnh còn thiếu | Ảnh WebP, `categoryPhotos.json`, `nguon-anh.md` | Xem kết quả; AI merge PR #135 | `c415b14` |
+| 60 (\*) | Claude Code | 06/11. Viết `TEST_PLAN_AND_CASES.MD`; cập nhật AI_LOG, AI_REVIEW, LIST_TASK, PROGRESS_LOG đến PR #135 | "Làm cả 1, 2 và 3" (cập nhật log, báo cáo tuần 9–10, kế hoạch kiểm thử) | Kế hoạch kiểm thử 4 tầng, bảng truy vết 70 ca kiểm thử, các dòng nhật ký | Đọc lại và tự merge PR #112 | (PR #112) |
 
 ## 2. Danh mục lỗi / ảo giác của AI đã phát hiện và sửa chữa
 
@@ -141,17 +151,30 @@ Chỉ tính lỗi lọt qua bước giao bài (sinh viên đã nhận file hoặ
 39. **Ba chỗ thiết kế chưa hợp lý do agent đóng vai hội đồng chỉ ra:** A/B cho nhóm A thêm hàng "Vì bạn vừa xem" nên hai nhóm không cùng giao diện; khách đổi nhóm nhiều lần thì nhận nhiều mã tự tặng; nhãn "Khách hàng mới / chưa đủ dữ liệu" trùng nghĩa với nhóm "Khách mới". (Sửa ở `2e70260`; issue #108, #109, #111.)
 40. **AI_LOG và AI_REVIEW không được cập nhật khi quy trình đổi ngày 31/10.** Hai file vẫn ghi "AI không có quyền ghi vào repository" trong khi AI đã push và merge 17 PR. AI phát hiện khi tự chấm theo rubric ngày 04/11. Đã sửa trong lần cập nhật này; sinh viên chọn ghi đúng sự thật.
 
+**e) Lỗi từ 04/11 đến 06/11:**
+
+41. **Khảo sát chọn "Tìm đồ nữ" vẫn gợi ý sản phẩm nam.** Cả gợi ý theo quy tắc lẫn điểm khảo sát của ml-service không lọc theo giới tính khách chọn; trên CSDL mô phỏng có đường trả lời ra 4/8 sản phẩm nam. Sinh viên phát hiện khi tự làm khảo sát. (Gây lỗi ở `8ed1681`, `a575690`; sửa ở `1a4db0a`; issue #124.)
+42. **Sửa cây khảo sát làm đổi dữ liệu mô phỏng.** Bộ sinh dữ liệu do AI viết đọc danh mục theo dịp sử dụng từ cây khảo sát đang có trong CSDL, nên V11 thêm danh mục vào câu hỏi là đổi luôn sở thích của khách mô phỏng và các số đánh giá đã ghi trong luận văn; khách nữ cũng không được gợi ý phụ kiện giày. AI phát hiện khi quét 7.377 đường trả lời. (Gây lỗi ở `8265c70`, sửa ở `3ad5686`; issue #126.)
+43. **Ba lỗi trợ năng:** nút trang chủ tương phản 3,61:1 (cần ≥ 4,5:1), liên kết trong đoạn chữ không gạch chân, ảnh giỏ hàng là liên kết không tên. AI phát hiện khi đo Lighthouse. (Sửa ở `9899ed9`; issue #113.)
+44. **Các sản phẩm cùng danh mục hiện trùng ảnh minh họa** (vd khối sản phẩm liên quan). Sinh viên phát hiện sau khi merge PR #129. (Gây lỗi ở `d8b7fe9`, sửa ở `f0ad245`; issue #130.)
+45. **Mô tả sản phẩm mẫu ghi nhiều màu nhưng không có lựa chọn màu.** Script dựng danh mục mẫu do AI viết sinh phân loại kích cỡ mà bỏ qua màu ghi trong mô tả. Sinh viên phát hiện. (Gây lỗi ở `39647d3`, `a0d5b8d`; sửa ở `df7dafd`; issue #132.)
+46. **Các ô chấm sao trên cùng trang đơn hàng dùng chung `name="rating"`**, nên chọn sao ở sản phẩm này làm mất lựa chọn ở sản phẩm kia khi có nhiều form đánh giá cùng lúc. AI phát hiện khi làm đánh giá nhanh và sửa luôn trong PR #134; lỗi này không mở issue riêng, là thiếu sót so với quy trình. (Gây lỗi ở `cee24ee`, sửa ở `bba43c0`.)
+47. **Chẩn đoán sai PR Dependabot #116 (Java 25).** AI báo với sinh viên rằng backend không khởi động được; đọc lại log thì backend đã khởi động xong, chỉ có healthcheck của Docker Compose báo unhealthy. AI tự sửa lại tin nhắn (gạch bỏ câu sai) và ghi nguyên nhân thận trọng hơn trong `.github/dependabot.yml`. Lỗi quy trình, không ảnh hưởng mã nguồn.
+
 ## 3. Tổng hợp
 
-- **Số lỗi lọt qua bước giao bài:** 40 mục.
+- **Số lỗi lọt qua bước giao bài:** 47 mục.
   - Mục 1–28 (đến 30/10): 22 lỗi mã nguồn, cấu hình; 1 lỗi do kiến thức cũ; 5 lỗi quy trình.
   - Mục 29–40 (30/10–04/11): gộp 27 issue (#65–#111), trong đó 1 lỗi Critical.
+  - Mục 41–47 (04/11–06/11): 5 issue (#113, #124, #126, #130, #132), 1 lỗi không mở issue, 1 lỗi quy trình.
   - Rubric yêu cầu ≥ 5.
 - **Ai phát hiện:** SonarQube Cloud 10 lỗi (4, 5, 6, 8, 10, 13, 16, 17, 18, 27); AI tự phát hiện khi đọc lại CI, diff, log hoặc khi đo, rà soát 9 lỗi (2, 11, 12, 15, 19, 20, 21, 25, 28); sinh viên tự test hoặc kiểm tra 6 lỗi (3, 7, 9, 23, 24, 26); test tự động trong CI 2 lỗi (14, 22); lộ ra khi cùng chạy lệnh dựng backend 1 lỗi (1).
 - **Ai phát hiện (mục 29–40):** trợ giảng khi xem demo 1 (29); CI 2 (30, 32); SonarQube 1 (31); CI và SonarQube trước khi merge 1 (34); đối chiếu đặc tả sau khi merge 1 (33); buổi tổng duyệt với agent rà code và agent đóng vai hội đồng 5 (35–39); AI tự chấm theo rubric 1 (40).
+- **Ai phát hiện (mục 41–47):** sinh viên tự test 3 (41, 44, 45); AI khi quét khảo sát, đo Lighthouse, làm chức năng hoặc đọc lại log 4 (42, 43, 46, 47).
 - **Bài học đã thành quy tắc:**
   - Trong `AI_REVIEW.MD`: đọc kết quả SonarQube trước khi merge (R5, sau lỗi 4); AI không ghi vào repository (Nguyên tắc chung, sau lỗi 25); không đưa secret vào prompt (P1: khóa VNPay, khóa SSH, token SonarQube, mật khẩu tài khoản demo do sinh viên tự nhập).
   - Trong quy tắc làm việc của AI ở dự án: luôn `await run(...)` (sau lỗi 8); giữ LF cho file tài liệu (sau lỗi 11); so md5 sau mỗi lần ghi file sang máy sinh viên (sau lỗi 26); đưa lệnh cho đúng loại terminal (sau lỗi 24); thử test CSDL trên MySQL mới trống giống CI (sau lỗi 14); đọc đúng dòng SonarQube chỉ ra rồi mới sửa (sau lỗi 27).
   - Từ 30/10: test chờ kết quả effect bằng `waitFor` (sau lỗi 30); không tính `Duration` trên `LocalDateTime` (sau lỗi 31); kết quả đánh giá tốt bất thường thì kiểm tra rò rỉ nhãn trước khi báo (sau lỗi 35); quy trình làm việc đổi thì cập nhật AI_LOG và AI_REVIEW cùng ngày (sau lỗi 40).
+  - Từ 04/11: dữ liệu mô phỏng không đọc cấu hình đang sửa được trong CSDL (sau lỗi 42); lỗi tìm thấy trong lúc làm PR khác vẫn mở issue (sau lỗi 46); nói nguyên nhân CI đỏ chỉ sau khi đọc đúng bước báo lỗi trong log (sau lỗi 47).
   - Lỗi lặp lại (lỗi 6 và 17, lỗi 4 và 8) cho thấy bài học chỉ có tác dụng khi được ghi thành quy tắc; lỗi 22 cho thấy test thành phần không bắt được lỗi phối hợp giữa các phần, nên test đầu cuối được đưa vào CI từ PR #64.
 - **Đối chiếu Git:** mỗi dòng có mã commit đều kiểm tra được bằng `git show <mã>`. Danh sách issue lỗi: https://github.com/ngocmanhnct/fashion-recommender-shop/issues?q=label%3Abug
