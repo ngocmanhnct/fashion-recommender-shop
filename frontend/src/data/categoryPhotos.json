@@ -5,15 +5,15 @@
   },
   "Balo laptop": {
     "slug": "balo-laptop",
-    "count": 3
+    "count": 6
   },
   "Balo thời trang": {
     "slug": "balo-thoi-trang",
-    "count": 4
+    "count": 7
   },
   "Cặp, túi chống sốc laptop": {
     "slug": "cap-tui-chong-soc-laptop",
-    "count": 3
+    "count": 5
   },
   "Dép nam": {
     "slug": "dep-nam",
@@ -29,7 +29,7 @@
   },
   "Giày boots nam": {
     "slug": "giay-boots-nam",
-    "count": 4
+    "count": 8
   },
   "Giày boots nữ": {
     "slug": "giay-boots-nu",
@@ -63,6 +63,10 @@
     "slug": "giay-tay-nam",
     "count": 5
   },
+  "Giày đế xuồng nữ": {
+    "slug": "giay-de-xuong-nu",
+    "count": 2
+  },
   "Găng tay": {
     "slug": "gang-tay",
     "count": 7
@@ -93,7 +97,7 @@
   },
   "Phụ kiện du lịch": {
     "slug": "phu-kien-du-lich",
-    "count": 3
+    "count": 6
   },
   "Phụ kiện tóc": {
     "slug": "phu-kien-toc",
@@ -101,7 +105,7 @@
   },
   "Phụ kiện, vệ sinh giày": {
     "slug": "phu-kien-ve-sinh-giay",
-    "count": 2
+    "count": 6
   },
   "Sandal nam": {
     "slug": "sandal-nam",
@@ -113,7 +117,7 @@
   },
   "Thắt lưng nam": {
     "slug": "that-lung-nam",
-    "count": 4
+    "count": 7
   },
   "Thắt lưng nữ": {
     "slug": "that-lung-nu",
@@ -133,19 +137,19 @@
   },
   "Túi đeo chéo nam": {
     "slug": "tui-deo-cheo-nam",
-    "count": 3
+    "count": 6
   },
   "Túi đeo chéo nữ": {
     "slug": "tui-deo-cheo-nu",
-    "count": 3
+    "count": 7
   },
   "Túi đựng đồ du lịch": {
     "slug": "tui-dung-do-du-lich",
-    "count": 2
+    "count": 4
   },
   "Vali": {
     "slug": "vali",
-    "count": 4
+    "count": 8
   },
   "Ví nam": {
     "slug": "vi-nam",
@@ -157,7 +161,7 @@
   },
   "Vớ nam": {
     "slug": "vo-nam",
-    "count": 3
+    "count": 6
   },
   "Vớ nữ": {
     "slug": "vo-nu",
