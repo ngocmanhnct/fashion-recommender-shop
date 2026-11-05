@@ -23,6 +23,10 @@ public class SurveyResult {
   @Column(nullable = false)
   private SurveyStatus status;
 
+  /** Giới tính của đồ cần tìm (Q1), null nếu không rõ. */
+  @Enumerated(EnumType.STRING)
+  private Gender gender;
+
   @Enumerated(EnumType.STRING)
   private ShoppingStyle style;
 
@@ -31,6 +35,9 @@ public class SurveyResult {
 
   @Column(precision = 2, scale = 1)
   private BigDecimal minRating;
+
+  /** Từ khóa gu và dịp sử dụng đã chọn, cách nhau bằng dấu cách, null nếu không có. */
+  private String keywords;
 
   /** Các câu trả lời đã chọn, dạng JSON. */
   @Column(columnDefinition = "json")
@@ -55,15 +62,19 @@ public class SurveyResult {
 
   /** Ghi kết quả của lần làm khảo sát mới nhất (lần đầu hoặc làm lại). */
   public void complete(
+      Gender gender,
       ShoppingStyle style,
       BrandLoyalty brandLoyalty,
       BigDecimal minRating,
+      String keywords,
       String answers,
       LocalDateTime now) {
     this.status = SurveyStatus.COMPLETED;
+    this.gender = gender;
     this.style = style;
     this.brandLoyalty = brandLoyalty;
     this.minRating = minRating;
+    this.keywords = keywords;
     this.answers = answers;
     this.updatedAt = now;
   }
@@ -76,6 +87,10 @@ public class SurveyResult {
     return status;
   }
 
+  public Gender getGender() {
+    return gender;
+  }
+
   public ShoppingStyle getStyle() {
     return style;
   }
@@ -86,6 +101,10 @@ public class SurveyResult {
 
   public BigDecimal getMinRating() {
     return minRating;
+  }
+
+  public String getKeywords() {
+    return keywords;
   }
 
   public String getAnswers() {

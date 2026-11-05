@@ -102,6 +102,13 @@ a:hover {
   text-decoration: underline;
 }
 
+/* Liên kết nằm giữa đoạn chữ luôn gạch chân: màu xanh và chữ xám gần nhau, chỉ khác màu thì
+   người nhìn màu kém khó nhận ra (Lighthouse: link-in-text-block). */
+p a:not(.btn) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 input,
 select,
 textarea {
@@ -1045,8 +1052,9 @@ legend {
   gap: 12px;
 }
 
+/* Nền đồng sáng hơn --accent: chữ xanh đậm trên nền đồng đạt tương phản 5,3:1 (cần ≥ 4,5:1). */
 .home-hero .btn-primary {
-  background: var(--accent);
+  background: var(--accent-on-deep);
   color: var(--deep);
 }
 
@@ -1571,6 +1579,11 @@ legend {
   overflow-wrap: anywhere;
 }
 
+.breadcrumb a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .product-detail {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -1593,6 +1606,10 @@ legend {
 .product-gallery-main svg {
   width: 30%;
   height: 30%;
+}
+
+.product-gallery-note {
+  margin: 6px 0 0;
 }
 
 .product-gallery-thumbs {
@@ -3313,6 +3330,82 @@ legend {
   .offers-banner-link {
     padding-left: 38px;
   }
+}
+
+/* Đánh giá ngay sau khi nhận hàng (US-15) */
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.875rem;
+}
+
+.pending-reviews {
+  margin: 0 0 28px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.pending-reviews h2 {
+  margin: 0 0 4px;
+}
+
+.pending-review-list {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pending-review {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.pending-review-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pending-review-image {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.pending-review-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pending-review-info p {
+  margin: 2px 0 0;
+}
+
+.pending-review-done {
+  color: var(--primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pending-review .review-form,
+.order-item-review .review-form {
+  margin: 12px 0 4px;
+}
+
+.order-item-review {
+  margin-top: 6px;
+}
+
+/* Ô đánh giá đang mở: giá và thành tiền đứng ở đầu dòng, không trôi xuống giữa */
+.order-line:has(.review-form) {
+  align-items: start;
+}
+
+.review-reminder > svg {
+  color: var(--star);
 }
 
 /* Hiệu quả gợi ý: thử nghiệm A/B (US-27) */

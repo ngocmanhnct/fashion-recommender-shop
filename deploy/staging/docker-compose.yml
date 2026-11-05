@@ -39,6 +39,29 @@ services:
       timeout: 5s
       retries: 20
 
+  # Sao lưu CSDL mỗi ngày lúc 02:30 giờ Việt Nam, giữ 7 bản trong thư mục backup/ cạnh file này
+  # (script sao-luu.sh; khôi phục: deploy/staging/README.md). Dùng lại image mysql:8.4 vì có sẵn
+  # mysqldump đúng phiên bản. Mật khẩu qua MYSQL_PWD, không nằm trên dòng lệnh.
+  backup:
+    image: mysql:8.4
+    restart: unless-stopped
+    entrypoint: ["bash", "/sao-luu.sh"]
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      MYSQL_PWD: ${MYSQL_ROOT_PASSWORD}
+      BACKUP_AT: "02:30"
+      BACKUP_KEEP_DAYS: "7"
+    volumes:
+      - ./sao-luu.sh:/sao-luu.sh:ro
+      - ./backup:/backup
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    depends_on:
+      mysql:
+        condition: service_healthy
+
   ml-service:
     image: ghcr.io/ngocmanhnct/fashion-recommender-shop/ml-service:${IMAGE_TAG:-latest}
     restart: unless-stopped

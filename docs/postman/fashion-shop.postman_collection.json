@@ -872,7 +872,7 @@
             "description": "Thương hiệu có nhiều sản phẩm nhất trong các danh mục ứng với câu trả lời đến trước câu chọn thương hiệu (B1). Câu tiếp theo không phải câu chọn thương hiệu thì 400.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_FEMALE\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SPORT\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"BRAND\"] }\n  ]\n}",
+              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_FEMALE\"] },\n    { \"questionCode\": \"F1\", \"optionCodes\": [\"SNEAKER\", \"BACKPACK\"] },\n    { \"questionCode\": \"AF\", \"optionCodes\": [\"SPORTY\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SPORT\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"BRAND\"] }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -919,7 +919,7 @@
             "description": "Kiểu người mua, tóm tắt và tối đa 8 sản phẩm gợi ý kèm lý do theo câu trả lời, không lưu gì (dùng cho khách chưa đăng nhập và tìm quà). Câu trả lời phải theo đúng thứ tự trên cây và trả lời hết, sai thì 400 kèm detail.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_MALE\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SCHOOL\", \"TRAVEL\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"PRICE\"] },\n    { \"questionCode\": \"S1\", \"optionCodes\": [\"200K_500K\"] },\n    { \"questionCode\": \"S2\", \"optionCodes\": [\"CHEAPER\"] }\n  ]\n}",
+              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_MALE\"] },\n    { \"questionCode\": \"N1\", \"optionCodes\": [\"BACKPACK\", \"BAG\"] },\n    { \"questionCode\": \"AM\", \"optionCodes\": [\"BASIC\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SCHOOL\", \"TRAVEL\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"PRICE\"] },\n    { \"questionCode\": \"S1\", \"optionCodes\": [\"200K_500K\"] },\n    { \"questionCode\": \"S2\", \"optionCodes\": [\"CHEAPER\"] }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1193,7 +1193,7 @@
             "description": "Lưu câu trả lời vào sở thích (user_preference) và yêu cầu tính lại gợi ý sau 3 giây. Làm lại thì thay toàn bộ sở thích cũ. Nhánh tìm quà thì 400.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_MALE\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SCHOOL\", \"TRAVEL\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"PRICE\"] },\n    { \"questionCode\": \"S1\", \"optionCodes\": [\"200K_500K\"] },\n    { \"questionCode\": \"S2\", \"optionCodes\": [\"CHEAPER\"] }\n  ]\n}",
+              "raw": "{\n  \"answers\": [\n    { \"questionCode\": \"Q1\", \"optionCodes\": [\"SELF_MALE\"] },\n    { \"questionCode\": \"N1\", \"optionCodes\": [\"BACKPACK\", \"BAG\"] },\n    { \"questionCode\": \"AM\", \"optionCodes\": [\"BASIC\"] },\n    { \"questionCode\": \"Q2\", \"optionCodes\": [\"SCHOOL\", \"TRAVEL\"] },\n    { \"questionCode\": \"Q3\", \"optionCodes\": [\"PRICE\"] },\n    { \"questionCode\": \"S1\", \"optionCodes\": [\"200K_500K\"] },\n    { \"questionCode\": \"S2\", \"optionCodes\": [\"CHEAPER\"] }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2088,6 +2088,36 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Gửi đánh giá (200 nếu đã nhận hàng, 409 nếu chưa)', () => pm.expect(pm.response.code).to.be.oneOf([200, 409]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sản phẩm chờ đánh giá",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "pending"
+              ]
+            },
+            "description": "Sản phẩm thuộc đơn Đã giao mà khách chưa đánh giá (mỗi sản phẩm 1 lần, theo đơn mới nhất; bỏ sản phẩm ngừng bán): total và tối đa 20 items (productId, productName, categoryName, variantLabel, orderId, orderedAt). 200; 401 không token; 403 token ADMIN."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem sản phẩm chờ đánh giá thành công', () => pm.response.to.have.status(200));"
                 ]
               }
             }

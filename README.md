@@ -22,6 +22,8 @@ Website thương mại điện tử (dữ liệu sản phẩm Tiki) tích hợp 
 
 - **Staging:** https://fashionshop-staging.eastasia.cloudapp.azure.com. Mỗi lần merge vào `main`, CI tự build và deploy lên đây.
 - **Giám sát:** UptimeRobot (gói miễn phí) kiểm tra `/actuator/health` (phải có `"status":"UP"`) và trang chủ staging mỗi 5 phút, gửi email khi lỗi. Trang trạng thái công khai: https://stats.uptimerobot.com/hOhfzy7MHT.
+- **Sao lưu và rollback:** staging tự sao lưu CSDL mỗi đêm (giữ 7 bản); quay về bản cũ bằng workflow "Rollback staging" trong tab Actions. Hướng dẫn khôi phục: [deploy/staging/README.md](deploy/staging/README.md).
+- **Cập nhật thư viện:** Dependabot (`.github/dependabot.yml`) mở PR nâng phiên bản mỗi thứ Hai.
 - **Tài khoản test:** tài khoản quản trị viên và tài khoản khách hàng mẫu được gửi riêng cho hội đồng. Mật khẩu không ghi trong repository để đảm bảo 0 secret bị lộ.
 - **Thanh toán:** VNPay sandbox (thẻ test của VNPay, không trừ tiền thật).
 
@@ -67,7 +69,7 @@ npm run dev
 
 | Vị trí / Mô-đun | Vấn đề hiện tại | Rủi ro | Kế hoạch xử lý |
 |---|---|---|---|
-| Ảnh sản phẩm | Đang dùng ảnh SVG minh họa tạm (PR #38, issue #39) | Giao diện chưa giống thật khi thực nghiệm người dùng | Thay bằng ảnh thật (ảnh miễn phí tải tay theo danh mục), SVG giữ làm ảnh dự phòng |
+| Ảnh sản phẩm | Dữ liệu mẫu không có ảnh: dùng ảnh minh họa theo danh mục (ảnh CC0/public domain qua Openverse, `data/anh-san-pham/`), nhiều sản phẩm cùng danh mục chung 1 ảnh; trang chi tiết ghi rõ là ảnh minh họa | Ảnh có thể không khớp màu, kiểu của sản phẩm | Khi bán thật, admin nhập ảnh riêng cho từng sản phẩm (đã có ô ảnh trong trang quản trị sản phẩm) |
 | SonarQube Cloud | Cổng chất lượng mới chỉ để báo cáo, chưa chặn merge | Lỗi mới có thể lọt vào `main` nếu không đọc kết quả | Bắt buộc đọc kết quả trước khi merge (AI_REVIEW, R5); xem lại việc chặn merge ở giai đoạn kiểm thử |
 | Phiên đăng nhập | JWT sống 24 giờ, chưa có refresh token (NFR-03) | Token lộ thì dùng được đến hết hạn | Ngoài phạm vi tiểu luận; ghi vào hướng phát triển |
 | Hạ tầng staging | Máy ảo Azure for Students 4 GB, chạy bằng credit có hạn | Hết credit thì máy dừng, mất môi trường demo | Tắt máy khi không dùng; theo dõi credit trước buổi bảo vệ |

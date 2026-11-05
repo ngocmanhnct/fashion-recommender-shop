@@ -165,6 +165,48 @@ class ReviewIntegrationTest {
   }
 
   @Test
+  void pendingListsDeliveredUnreviewedProductsOnceUntilReviewed() throws Exception {
+    long reviewed = product();
+    long twice = product();
+    long shipping = product();
+    long deleted = product();
+    long buyer = account("Khách Chờ Đánh Giá");
+    deliver(buyer, reviewed, "DELIVERED");
+    deliver(buyer, twice, "DELIVERED");
+    deliver(buyer, twice, "DELIVERED");
+    deliver(buyer, shipping, "SHIPPING");
+    deliver(buyer, deleted, "DELIVERED");
+    perform(buyer, review(reviewed, "{\"rating\": 4}")).andExpect(status().isOk());
+    productService.delete(deleted);
+
+    perform(buyer, get(PENDING))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.total").value(1))
+        .andExpect(jsonPath("$.items.length()").value(1))
+        .andExpect(jsonPath("$.items[0].productId").value(twice))
+        .andExpect(jsonPath("$.items[0].categoryName").isNotEmpty())
+        .andExpect(jsonPath("$.items[0].orderId").isNumber());
+
+    perform(buyer, review(twice, "{\"rating\": 5}")).andExpect(status().isOk());
+    perform(buyer, get(PENDING))
+        .andExpect(jsonPath("$.total").value(0))
+        .andExpect(jsonPath("$.items").isEmpty());
+  }
+
+  @Test
+  void pendingIsForCustomersOnly() throws Exception {
+    mockMvc.perform(get(PENDING)).andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(
+            get(PENDING)
+                .with(
+                    jwt()
+                        .jwt(j -> j.subject("1"))
+                        .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
   void ownReviewIsForCustomersOnly() throws Exception {
     mockMvc.perform(get(mine(1))).andExpect(status().isUnauthorized());
     mockMvc
@@ -176,6 +218,8 @@ class ReviewIntegrationTest {
                         .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
         .andExpect(status().isForbidden());
   }
+
+  private static final String PENDING = "/api/reviews/pending";
 
   private static String reviews(long productId) {
     return "/api/products/" + productId + "/reviews";

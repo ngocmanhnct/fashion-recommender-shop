@@ -1,0 +1,67 @@
+# Dependabot: mỗi tuần kiểm tra thư viện mới và mở PR nâng phiên bản (CI chạy như PR thường).
+# Bản vá và bản nhỏ (minor, patch) của cùng 1 hệ sinh thái gộp thành 1 PR để đỡ nhiều PR.
+# Bản lớn (major) tách PR riêng vì dễ đổi API (vd Spring Boot 4 -> 5), xem kỹ trước khi merge.
+# Cảnh báo lỗ hổng bảo mật: bật thêm ở Settings -> Code security -> Dependabot alerts và
+# Dependabot security updates (PR vá lỗ hổng được mở ngay, không chờ lịch hằng tuần).
+# Ghi chú: PR của Dependabot không đọc được secret SONAR_TOKEN nên job SonarQube Cloud bỏ qua.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /backend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 3
+    groups:
+      maven-nho:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 3
+    groups:
+      npm-nho:
+        update-types: [minor, patch]
+
+  - package-ecosystem: uv
+    directory: /ml-service
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 3
+    groups:
+      uv-nho:
+        update-types: [minor, patch]
+
+  - package-ecosystem: docker
+    directories: [/backend, /frontend, /ml-service]
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 3
+    # Image backend giữ Java 21 cho khớp java.version trong pom.xml. Thử 25-jre (PR #116): backend
+    # khởi động xong nhưng healthcheck (curl) của compose báo unhealthy, nhiều khả năng image mới thiếu curl.
+    ignore:
+      - dependency-name: eclipse-temurin
+        versions: [">= 22"]
+    groups:
+      docker-nho:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: Asia/Ho_Chi_Minh
+    open-pull-requests-limit: 3
+    groups:
+      actions:
+        patterns: ["*"]

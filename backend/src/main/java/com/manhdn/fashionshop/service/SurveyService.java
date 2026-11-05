@@ -33,6 +33,7 @@ import com.manhdn.fashionshop.entity.Product;
 import com.manhdn.fashionshop.entity.RecomputeTask;
 import com.manhdn.fashionshop.entity.ShoppingStyle;
 import com.manhdn.fashionshop.entity.SurveyAnswerType;
+import com.manhdn.fashionshop.entity.SurveyCategoryMode;
 import com.manhdn.fashionshop.entity.SurveyOption;
 import com.manhdn.fashionshop.entity.SurveyPurpose;
 import com.manhdn.fashionshop.entity.SurveyQuestion;
@@ -76,15 +77,17 @@ import tools.jackson.databind.json.JsonMapper;
 /**
  * Khảo sát lần đầu dạng rẽ nhánh theo phong cách mua sắm (US-23, BR-37, BR-38, BR-41, BR-42).
  *
- * <p>Cây câu hỏi lưu trong CSDL (migration V5). Client gửi các câu trả lời theo đúng thứ tự đã đi
- * qua cây; service đi lại cây từ câu đầu tiên để kiểm tra và dựng hồ sơ mua sắm: mục đích, phong
- * cách, danh mục (từ dịp sử dụng, lọc theo đồ nam hoặc nữ), thương hiệu, khoảng giá, ngưỡng đánh
- * giá. Kết quả nhánh mua cho bản thân được lưu (user_preference, survey_result) và yêu cầu tính lại
- * gợi ý (BR-20); kết quả nhánh tìm quà chỉ dùng để gợi ý ngay, không lưu (BR-42).
+ * <p>Cây câu hỏi lưu trong CSDL (migration V5, V11). Client gửi các câu trả lời theo đúng thứ tự đã
+ * đi qua cây; service đi lại cây từ câu đầu tiên để kiểm tra và dựng hồ sơ mua sắm: mục đích, giới
+ * tính, phong cách, danh mục (loại đồ cần tìm, thu hẹp theo dịp sử dụng, lọc theo đồ nam hoặc nữ),
+ * từ khóa gu và dịp, thương hiệu, khoảng giá, ngưỡng đánh giá. Kết quả nhánh mua cho bản thân được
+ * lưu (user_preference, survey_result) và yêu cầu tính lại gợi ý (BR-20); kết quả nhánh tìm quà chỉ
+ * dùng để gợi ý ngay, không lưu (BR-42).
  *
  * <p>Sản phẩm gợi ý ngay sau khảo sát do dịch vụ học máy xếp hạng (công thức 1.4: độ tương đồng với
  * hồ sơ khảo sát, cộng điểm bán chạy và điểm theo phong cách), thiếu thì lấp bằng sản phẩm bán chạy
  * trong danh mục quan tâm. Không gọi được dịch vụ học máy thì xếp theo quy tắc của từng phong cách.
+ * Khách chọn đồ nam hoặc nữ thì mọi tầng đều bỏ sản phẩm của giới tính kia ({@link ProductGender}).
  */
 @Service
 public class SurveyService {
@@ -94,6 +97,9 @@ public class SurveyService {
 
   /** Số sản phẩm gợi ý trả về sau khảo sát. */
   public static final int RECOMMENDATION_LIMIT = 8;
+
+  /** Số câu trả lời tối đa của một lần làm khảo sát (đường dài nhất hiện có 8 câu). */
+  public static final int MAX_ANSWERS = 12;
 
   /** Số thương hiệu tối đa hiện ở câu chọn thương hiệu. */
   public static final int BRAND_CHOICE_LIMIT = 15;
@@ -276,9 +282,11 @@ public class SurveyService {
             .findById(accountId)
             .orElseGet(() -> new SurveyResult(accountId, SurveyStatus.COMPLETED, now));
     result.complete(
+        profile.gender,
         profile.style,
         profile.brandLoyalty,
         profile.minRating,
+        profile.keywords,
         jsonMapper.writeValueAsString(answers),
         now);
     resultRepository.save(result);
@@ -337,13 +345,15 @@ public class SurveyService {
     ShoppingStyle style = walk.purpose == SurveyPurpose.GIFT ? ShoppingStyle.GIFT : walk.style;
     return new Profile(
         walk.purpose,
+        walk.gender,
         style,
         categories,
         brand,
         walk.brandLoyalty,
         priceMin,
         priceMax,
-        walk.minRating);
+        walk.minRating,
+        walk.keywords.isEmpty() ? null : String.join(" ", walk.keywords));
   }
 
   /** Đi cây câu hỏi từ câu đầu tiên theo các câu trả lời, gộp thông tin của từng đáp án. */
@@ -399,6 +409,7 @@ public class SurveyService {
         question.getOptions().stream()
             .collect(Collectors.toMap(SurveyOption::getCode, Function.identity()));
     Long nextId = null;
+    Set<String> chosenCategories = new LinkedHashSet<>();
     for (int i = 0; i < codes.size(); i++) {
       SurveyOption option = options.get(codes.get(i));
       if (option == null) {
@@ -406,23 +417,26 @@ public class SurveyService {
             "Đáp án " + codes.get(i) + " không có trong câu " + question.getCode());
       }
       walk.apply(option);
+      if (question.getCategoryMode() == SurveyCategoryMode.ADD) {
+        walk.addGroup(option.getCategoryNames());
+      } else {
+        chosenCategories.addAll(option.getCategoryNames());
+      }
       if (i == 0) {
         nextId = option.getNextQuestionId();
       }
     }
+    if (question.getCategoryMode() == SurveyCategoryMode.NARROW) {
+      walk.narrow(chosenCategories);
+    }
     return nextId;
   }
 
-  /** Danh mục ứng với các dịp đã chọn, bỏ danh mục của giới tính còn lại. */
+  /** Danh mục của các nhóm loại đồ và dịp đã chọn, bỏ danh mục của giới tính còn lại. */
   private List<Category> categoriesOf(Walk walk) {
     Set<String> names = new LinkedHashSet<>();
-    for (String name : walk.categoryNames) {
-      boolean excluded =
-          (walk.gender == Gender.MALE && name.endsWith(FEMALE_SUFFIX))
-              || (walk.gender == Gender.FEMALE && name.endsWith(MALE_SUFFIX));
-      if (!excluded) {
-        names.add(name);
-      }
+    for (Set<String> group : walk.groups) {
+      group.stream().filter(walk::fitsGender).forEach(names::add);
     }
     return names.isEmpty() ? List.of() : categoryRepository.findByNameInOrderByIdAsc(names);
   }
@@ -444,7 +458,7 @@ public class SurveyService {
   private List<RelatedProductResponse> recommend(Profile profile) {
     List<Long> categoryIds = profile.categories.stream().map(Category::getId).toList();
     Specification<Product> inInterest = forSale().and(inStock()).and(inCategories(categoryIds));
-    Picks picks = new Picks();
+    Picks picks = new Picks(profile.gender);
     Optional<List<MlSuggestion>> suggestions =
         categoryIds.isEmpty() ? Optional.empty() : mlServiceClient.forSurvey(toRequest(profile));
     if (suggestions.isPresent()) {
@@ -475,6 +489,8 @@ public class SurveyService {
         profile.priceMax,
         style,
         profile.minRating == null ? null : profile.minRating.doubleValue(),
+        profile.gender == null ? null : profile.gender.name(),
+        profile.keywords,
         List.of(),
         RECOMMENDATION_LIMIT);
   }
@@ -540,10 +556,22 @@ public class SurveyService {
         : "Được đánh giá " + String.valueOf(rating).replace('.', ',') + " sao";
   }
 
-  /** Danh sách gợi ý đang dựng: thêm theo từng tầng đến khi đủ, không lặp sản phẩm. */
+  /**
+   * Danh sách gợi ý đang dựng: thêm theo từng tầng đến khi đủ, không lặp sản phẩm, bỏ sản phẩm của
+   * giới tính khác giới tính khách chọn.
+   */
   private final class Picks {
+    /** Số lần đọc thêm tối đa của một tầng khi sản phẩm đọc được bị loại vì khác giới tính. */
+    private static final int MAX_ROUNDS = 5;
+
     private final List<RelatedProductResponse> result = new ArrayList<>();
     private final Set<Long> chosen = new HashSet<>();
+    private final Set<Long> rejected = new HashSet<>();
+    private final Gender gender;
+
+    Picks(Gender gender) {
+      this.gender = gender;
+    }
 
     /**
      * Thêm sản phẩm dịch vụ học máy gợi ý (còn bán, còn hàng) theo đúng thứ tự. Với quà tặng, lý do
@@ -555,7 +583,10 @@ public class SurveyService {
               productRepository, suggestions.stream().map(MlSuggestion::productId).toList());
       for (MlSuggestion s : suggestions) {
         ProductCardResponse card = cards.get(s.productId());
-        if (card != null && result.size() < RECOMMENDATION_LIMIT && chosen.add(card.id())) {
+        if (card != null
+            && result.size() < RECOMMENDATION_LIMIT
+            && ProductGender.fits(gender, card.categoryName(), card.name())
+            && chosen.add(card.id())) {
           String reason =
               gift && ML_REASON_FITS_SURVEY.equals(s.reason()) ? REASON_GIFT_FITS : s.reason();
           result.add(new RelatedProductResponse(card, reason, s.source()));
@@ -565,16 +596,34 @@ public class SurveyService {
 
     /** Thêm sản phẩm thỏa điều kiện theo thứ tự cho trước; lý do null = lý do theo đánh giá. */
     void add(Specification<Product> filter, Sort order, String reason, String source) {
-      int missing = RECOMMENDATION_LIMIT - result.size();
-      if (missing <= 0) {
-        return;
-      }
-      Specification<Product> spec = filter.and(idNotIn(Set.copyOf(chosen)));
-      for (Product p : productRepository.findBy(spec, q -> q.sortBy(order).limit(missing).all())) {
-        chosen.add(p.getId());
-        result.add(
-            new RelatedProductResponse(
-                ProductCardResponse.from(p), reason == null ? qualityReason(p) : reason, source));
+      for (int round = 0; round < MAX_ROUNDS; round++) {
+        int missing = RECOMMENDATION_LIMIT - result.size();
+        if (missing <= 0) {
+          return;
+        }
+        // Đọc dư để bù sản phẩm bị loại vì khác giới tính.
+        int fetch = gender == null ? missing : missing * 3;
+        Set<Long> skip = new HashSet<>(chosen);
+        skip.addAll(rejected);
+        Specification<Product> spec = filter.and(idNotIn(skip));
+        List<Product> found =
+            productRepository.findBy(spec, q -> q.sortBy(order).limit(fetch).all());
+        for (Product p : found) {
+          if (result.size() >= RECOMMENDATION_LIMIT) {
+            return;
+          }
+          if (!ProductGender.fits(gender, p.getCategory().getName(), p.getName())) {
+            rejected.add(p.getId());
+            continue;
+          }
+          chosen.add(p.getId());
+          result.add(
+              new RelatedProductResponse(
+                  ProductCardResponse.from(p), reason == null ? qualityReason(p) : reason, source));
+        }
+        if (found.size() < fetch) {
+          return;
+        }
       }
     }
   }
@@ -621,7 +670,11 @@ public class SurveyService {
     private SurveyPurpose purpose;
     private Gender gender;
     private ShoppingStyle style;
-    private final Set<String> categoryNames = new LinkedHashSet<>();
+
+    /** Các nhóm danh mục: mỗi loại đồ đã chọn 1 nhóm, hoặc 1 nhóm theo dịp nếu chưa chọn loại. */
+    private final List<Set<String>> groups = new ArrayList<>();
+
+    private final Set<String> keywords = new LinkedHashSet<>();
     private Long priceMin;
     private Long priceMax;
     private Boolean priceFlexible;
@@ -640,7 +693,9 @@ public class SurveyService {
       if (option.getStyle() != null) {
         style = option.getStyle();
       }
-      categoryNames.addAll(option.getCategoryNames().stream().sorted().toList());
+      if (option.getKeywords() != null) {
+        keywords.addAll(List.of(option.getKeywords().trim().split("\\s+")));
+      }
       if (option.getPriceMin() != null || option.getPriceMax() != null) {
         priceMin = option.getPriceMin();
         priceMax = option.getPriceMax();
@@ -655,18 +710,52 @@ public class SurveyService {
         minRating = option.getMinRating();
       }
     }
+
+    /** Thêm 1 nhóm danh mục (câu ADD); đáp án không có danh mục nào thì không thêm. */
+    void addGroup(Set<String> names) {
+      if (!names.isEmpty()) {
+        groups.add(new LinkedHashSet<>(names.stream().sorted().toList()));
+      }
+    }
+
+    /**
+     * Thu hẹp theo các danh mục của dịp đã chọn (câu NARROW): mỗi nhóm chỉ giữ danh mục hợp dịp,
+     * nhóm không còn danh mục hợp dịp và hợp giới tính thì giữ nguyên, để loại đồ khách đã chọn
+     * không bị mất. Chưa có nhóm nào (khách chưa chọn loại đồ) thì các danh mục này là 1 nhóm mới.
+     */
+    void narrow(Set<String> names) {
+      if (groups.isEmpty()) {
+        addGroup(names);
+        return;
+      }
+      for (Set<String> group : groups) {
+        Set<String> kept = new LinkedHashSet<>(group);
+        kept.retainAll(names);
+        if (kept.stream().anyMatch(this::fitsGender)) {
+          group.retainAll(kept);
+        }
+      }
+    }
+
+    /** Danh mục dùng chung hoặc đúng giới tính đã chọn ở câu đầu (đồ nam / đồ nữ). */
+    boolean fitsGender(String categoryName) {
+      return !((gender == Gender.MALE && categoryName.endsWith(FEMALE_SUFFIX))
+          || (gender == Gender.FEMALE && categoryName.endsWith(MALE_SUFFIX)));
+    }
   }
 
   /** Hồ sơ mua sắm của một lần làm hết khảo sát. */
   private record Profile(
       SurveyPurpose purpose,
+      Gender gender,
       ShoppingStyle style,
       List<Category> categories,
       Brand brand,
       BrandLoyalty brandLoyalty,
       long priceMin,
       Long priceMax,
-      BigDecimal minRating) {
+      BigDecimal minRating,
+      String keywords) {
 
     SurveyProfileResponse toResponse() {
       return new SurveyProfileResponse(

@@ -1,5 +1,6 @@
 """Test mô hình gợi ý không cần CSDL: vector sản phẩm, hay mua cùng, trộn nguồn, lý do."""
 
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 
 import numpy as np
@@ -8,6 +9,7 @@ import pytest
 from app.recommendation.copurchase import build_copurchase
 from app.recommendation.data import ProductStats, SurveyProfile, UserSignals
 from app.recommendation.features import CatalogItem, ItemVectors, normalize_text
+from app.recommendation.gender import product_gender
 from app.recommendation.model import (
     SOURCE_BEHAVIOUR,
     SOURCE_SURVEY,
@@ -254,11 +256,53 @@ def test_saver_and_trend_reasons(model):
 def test_survey_keeps_to_the_budget_then_fills_from_outside(model):
     survey = SurveyProfile((SHOES,), None, 0, 600_000, "TREND")
     assert [s.product_id for s in model.for_survey(survey, limit=2)] == [1, 2]
-    # Giày 3 (1,5 triệu) chỉ đứng sau mọi sản phẩm còn hàng trong khoảng giá; giày 8 hết hàng.
+    # Giày 3 (1,5 triệu, ngoài khoảng giá) vẫn đứng trước sản phẩm của danh mục khác; giày 8 hết
+    # hàng.
     ids = [s.product_id for s in model.for_survey(survey, limit=8)]
-    assert ids[:2] == [1, 2] and ids[-1] == 3 and len(ids) == 7
+    assert ids[:3] == [1, 2, 3] and len(ids) == 7
     cheap = SurveyProfile((BAGS,), None, 200_000, None, "SAVER")
     assert model.for_survey(cheap, limit=1)[0].product_id == 4
+
+
+CATEGORY_NAMES = {SHOES: "Giày thể thao nam", BAGS: "Túi xách nữ", SOCKS: "Vớ nam"}
+GENDERED_ITEMS = [
+    replace(item, gender=product_gender(CATEGORY_NAMES[item.category_id], item.name))
+    for item in ITEMS
+]
+
+
+@pytest.fixture
+def gendered():
+    vectors = ItemVectors(GENDERED_ITEMS)
+    copurchase = build_copurchase(PAIRS, vectors.index, len(GENDERED_ITEMS))
+    return Recommender(vectors, GENDERED_ITEMS, STATS, copurchase, BRANDS)
+
+
+def test_survey_only_suggests_the_chosen_gender(gendered):
+    female = SurveyProfile((BAGS, SOCKS), None, 0, None, None, gender="FEMALE")
+    assert [s.product_id for s in gendered.for_survey(female, limit=8)] in ([4, 5], [5, 4])
+    anyone = SurveyProfile((BAGS,), None, 0, None, None)
+    ids = [s.product_id for s in gendered.for_survey(anyone, limit=8)]
+    assert set(ids[:2]) == {4, 5} and len(ids) == 7  # đủ cả đồ nam để lấp
+
+
+def test_survey_keywords_move_matching_products_up(gendered):
+    plain = SurveyProfile((SHOES,), None, 0, None, None, gender="MALE")
+    assert gendered.for_survey(plain, limit=1)[0].product_id == 1
+    outing = replace(plain, keywords="đi phố")
+    assert gendered.for_survey(outing, limit=1)[0].product_id == 2
+
+
+def test_behaviour_keeps_to_the_survey_gender_unless_customer_chose_otherwise(gendered):
+    survey = SurveyProfile((BAGS,), None, 0, None, None, gender="FEMALE")
+    signals = UserSignals(1, purchased={4}, delivered_orders=1, survey=survey)
+    assert [s.product_id for s in gendered.for_account(signals, limit=8)] == [5]
+    # Chỉ xem đồ nam thì vẫn không gợi ý đồ nam.
+    signals = UserSignals(1, purchased={4}, viewed={6}, delivered_orders=1, survey=survey)
+    assert 7 not in [s.product_id for s in gendered.for_account(signals, limit=8)]
+    # Khách đã mua vớ nam (vd quà) thì đồ nam vẫn được gợi ý.
+    signals = UserSignals(1, purchased={4, 6}, delivered_orders=1, survey=survey)
+    assert 7 in [s.product_id for s in gendered.for_account(signals, limit=8)]
 
 
 def test_survey_with_unknown_categories_gives_nothing(model):

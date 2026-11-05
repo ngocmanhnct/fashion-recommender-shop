@@ -31,6 +31,7 @@ const SURVEY = {
         option('SPORT', 'Thể thao', 'QB'),
         option('OFFICE', 'Công sở', 'QB'),
         option('STREET', 'Đường phố', 'QB'),
+        option('ANY', 'Chưa biết, gợi ý giúp mình', 'QB'),
       ],
     },
     {
@@ -96,6 +97,28 @@ describe('SurveyPage', () => {
     expect(await screen.findByRole('heading', { name: 'Người mua năng động' })).toBeTruthy();
     expect(screen.getByText(/đang lưu trên trình duyệt này/)).toBeInTheDocument();
     expect(readLocalSurvey()).toEqual({ status: 'COMPLETED', answers: SELF_ANSWERS });
+  });
+
+  it('"Chưa biết" không chọn cùng đáp án khác', async () => {
+    renderSurvey();
+    await userEvent.click(await screen.findByRole('button', { name: 'Cho bản thân' }));
+    await click('Tiếp tục');
+    await click(/Thể thao/);
+    await click(/Chưa biết/);
+    expect(screen.getByRole('button', { name: /Thể thao/ })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+    expect(screen.getByRole('button', { name: /Chưa biết/ })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    await click(/Công sở/);
+    expect(screen.getByRole('button', { name: /Chưa biết/ })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+    expect(screen.getByRole('button', { name: /Công sở/ })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('khách hàng làm xong thì lưu vào tài khoản', async () => {

@@ -52,6 +52,8 @@ class SurveyRecommendationRequest(CamelModel):
     price_max: int | None = Field(default=None, ge=0)
     style: Literal["SAVER", "BRAND", "QUALITY", "TREND"] | None = None
     min_rating: float | None = Field(default=None, ge=0, le=5)
+    gender: Literal["MALE", "FEMALE"] | None = None
+    keywords: str | None = Field(default=None, max_length=500)
     exclude_product_ids: list[int] = Field(default_factory=list, max_length=200)
     limit: int = Field(default=SURVEY_LIMIT, ge=1, le=50)
 
@@ -106,6 +108,8 @@ def survey(body: SurveyRecommendationRequest, request: Request) -> list[Suggesti
         price_max=body.price_max,
         style=body.style,
         min_rating=body.min_rating,
+        gender=body.gender,
+        keywords=body.keywords,
     )
     model = _model(request)
     suggestions = model.for_survey(profile, body.limit, excluded=set(body.exclude_product_ids))

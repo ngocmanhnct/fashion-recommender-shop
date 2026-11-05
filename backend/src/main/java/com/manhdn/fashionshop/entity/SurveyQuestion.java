@@ -40,6 +40,10 @@ public class SurveyQuestion {
   @Column(nullable = false)
   private int maxChoices;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private SurveyCategoryMode categoryMode = SurveyCategoryMode.ADD;
+
   /** Câu tiếp theo của câu chọn thương hiệu (đáp án của câu đó không lưu trong bảng). */
   private Long nextQuestionId;
 
@@ -56,6 +60,10 @@ public class SurveyQuestion {
 
   public String getCode() {
     return code;
+  }
+
+  public SurveyCategoryMode getCategoryMode() {
+    return categoryMode;
   }
 
   public String getContent() {

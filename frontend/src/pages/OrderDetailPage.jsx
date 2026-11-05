@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import OrderContent from '../components/OrderContent';
+import OrderItemReview from '../components/OrderItemReview';
 import PaymentInfo from '../components/PaymentInfo';
 import { useApiData } from '../hooks/useApiData';
+import { useAuth } from '../hooks/useAuth';
 import { getErrorMessage } from '../services/errorMessage';
 import { cancelOrder, getOrder } from '../services/orderApi';
+import { getPendingReviews } from '../services/reviewApi';
 import { goToVnPay } from '../services/vnpayRedirect';
 import {
   formatDateTime,
@@ -16,7 +19,8 @@ const ORDER_ID_PATTERN = /^\d{1,18}$/;
 
 /**
  * Trang chi tiết đơn hàng /orders/:id (US-11, US-20): sản phẩm và giá như lúc mua (BR-15), người
- * nhận và địa chỉ lúc đặt (BR-29), nút tự hủy khi đơn còn Chờ xử lý hoặc Đang xử lý (BR-13).
+ * nhận và địa chỉ lúc đặt (BR-29), nút tự hủy khi đơn còn Chờ xử lý hoặc Đang xử lý (BR-13). Đơn
+ * Đã giao: đánh giá từng sản phẩm ngay dưới dòng đơn (US-15).
  */
 function OrderDetailPage() {
   const { id } = useParams();
@@ -34,6 +38,11 @@ function OrderDetail({ id }) {
   const [paying, setPaying] = useState(false);
   const navigate = useNavigate();
   const order = updated ?? data;
+  const { user } = useAuth();
+  const delivered = order?.status === 'DELIVERED';
+  const pending = useApiData(delivered ? `pending-reviews:${user.id}` : null, getPendingReviews);
+  // Sản phẩm vừa đánh giá ở trang này, để nút đổi thành "Sửa đánh giá" mà không tải lại.
+  const [reviewedIds, setReviewedIds] = useState([]);
 
   if (loading) return <p className="muted">Đang tải đơn hàng...</p>;
   if (error) {
@@ -103,7 +112,11 @@ function OrderDetail({ id }) {
       <OrderContent
         order={order}
         productHref={(item) => `/products/${item.productId}`}
-        itemAction={order.status === 'DELIVERED' ? reviewLink : undefined}
+        itemAction={
+          delivered
+            ? reviewAction(order.items, pending.data, reviewedIds, setReviewedIds)
+            : undefined
+        }
       />
 
       {cancelError && (
@@ -142,13 +155,28 @@ function OrderNotFound() {
   );
 }
 
-/** Đơn Đã giao: mỗi dòng có link tới phần đánh giá của sản phẩm (US-15, BR-17). */
-function reviewLink(item) {
-  return (
-    <Link to={`/products/${item.productId}#danh-gia`} className="small">
-      Đánh giá sản phẩm
-    </Link>
-  );
+/**
+ * Đơn Đã giao: ô đánh giá dưới dòng đầu tiên của mỗi sản phẩm (đơn có thể có nhiều phân loại của
+ * cùng sản phẩm, mà mỗi sản phẩm chỉ có 1 đánh giá, BR-18). Chưa tải xong danh sách chờ đánh giá thì
+ * chưa hiện nút, để không hiện sai "Sửa đánh giá".
+ */
+function reviewAction(items, pendingData, reviewedIds, setReviewedIds) {
+  if (!pendingData) return undefined;
+  const pendingIds = new Set(pendingData.items.map((item) => item.productId));
+  const firstLine = new Map();
+  for (const item of items) {
+    if (!firstLine.has(item.productId)) firstLine.set(item.productId, item.variantId);
+  }
+  return function ReviewAction(item) {
+    if (firstLine.get(item.productId) !== item.variantId) return null;
+    return (
+      <OrderItemReview
+        productId={item.productId}
+        pending={pendingIds.has(item.productId) && !reviewedIds.includes(item.productId)}
+        onSaved={() => setReviewedIds((ids) => [...ids, item.productId])}
+      />
+    );
+  };
 }
 
 export default OrderDetailPage;

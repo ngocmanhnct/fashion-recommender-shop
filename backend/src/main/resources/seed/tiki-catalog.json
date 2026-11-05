@@ -311,43 +311,78 @@
       "brand": null,
       "name": "Giày Thể Thao Vải Nam Buộc Dây, Đế Cao Su Chống Trơn Trượt Kiểu Dáng Năng Động G177",
       "description": "I. THÔNG TIN SẢN PHẨM– Chất liệu: Vải Sợi Dệt Cao Cấp Thoáng khí– Chất liệu đế: Cao su nguyên chất– Màu sắc: Đen – Vàng– Size: 39, 40, 41, 42, 43– Form giày ôm chân, thiết kế trẻ trung, hiện…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 59000,
-          "stock": 21,
-          "skuCode": "TK76196721-39"
+          "stock": 11,
+          "skuCode": "TK76196721-DEN-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "40",
           "price": 59000,
-          "stock": 39,
-          "skuCode": "TK76196721-40"
+          "stock": 33,
+          "skuCode": "TK76196721-DEN-40"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "41",
           "price": 59000,
-          "stock": 6,
-          "skuCode": "TK76196721-41"
+          "stock": 29,
+          "skuCode": "TK76196721-DEN-41"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "42",
           "price": 59000,
-          "stock": 16,
-          "skuCode": "TK76196721-42"
+          "stock": 20,
+          "skuCode": "TK76196721-DEN-42"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "43",
+          "price": 59000,
+          "stock": 17,
+          "skuCode": "TK76196721-DEN-43"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": "39",
           "price": 59000,
           "stock": 9,
-          "skuCode": "TK76196721-43"
+          "skuCode": "TK76196721-VANG-39"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": "40",
+          "price": 59000,
+          "stock": 12,
+          "skuCode": "TK76196721-VANG-40"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": "41",
+          "price": 59000,
+          "stock": 25,
+          "skuCode": "TK76196721-VANG-41"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": "42",
+          "price": 59000,
+          "stock": 10,
+          "skuCode": "TK76196721-VANG-42"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": "43",
+          "price": 59000,
+          "stock": 24,
+          "skuCode": "TK76196721-VANG-43"
         }
       ]
     },
@@ -361,43 +396,113 @@
       "brand": null,
       "name": "Giày nam đẹp, giày thể thao nam tăng chiều cao phong cách thời trang trẻ trung AVI - 330",
       "description": "I. THÔNG TIN SẢN PHẨM– Chất liệu: tổng hợp– Chất liệu đế: Cao su nguyên chất– Màu sắc: ĐỎ - xám - trắng– Size: 39 - 44– Form giày ôm chân, thiết kế trẻ trung, hiện đạiII. TÍNH NĂNG– Chất liệu…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "39",
           "price": 179000,
-          "stock": 3,
-          "skuCode": "TK120309506-39"
+          "stock": 27,
+          "skuCode": "TK120309506-DO-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "40",
           "price": 179000,
-          "stock": 22,
-          "skuCode": "TK120309506-40"
+          "stock": 19,
+          "skuCode": "TK120309506-DO-40"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "41",
           "price": 179000,
-          "stock": 2,
-          "skuCode": "TK120309506-41"
+          "stock": 7,
+          "skuCode": "TK120309506-DO-41"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "42",
           "price": 179000,
-          "stock": 9,
-          "skuCode": "TK120309506-42"
+          "stock": 24,
+          "skuCode": "TK120309506-DO-42"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "43",
           "price": 179000,
-          "stock": 23,
-          "skuCode": "TK120309506-43"
+          "stock": 40,
+          "skuCode": "TK120309506-DO-43"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "39",
+          "price": 179000,
+          "stock": 37,
+          "skuCode": "TK120309506-XAM-39"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "40",
+          "price": 179000,
+          "stock": 28,
+          "skuCode": "TK120309506-XAM-40"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "41",
+          "price": 179000,
+          "stock": 12,
+          "skuCode": "TK120309506-XAM-41"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "42",
+          "price": 179000,
+          "stock": 10,
+          "skuCode": "TK120309506-XAM-42"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "43",
+          "price": 179000,
+          "stock": 5,
+          "skuCode": "TK120309506-XAM-43"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 179000,
+          "stock": 7,
+          "skuCode": "TK120309506-TRANG-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "40",
+          "price": 179000,
+          "stock": 34,
+          "skuCode": "TK120309506-TRANG-40"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "41",
+          "price": 179000,
+          "stock": 20,
+          "skuCode": "TK120309506-TRANG-41"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "42",
+          "price": 179000,
+          "stock": 37,
+          "skuCode": "TK120309506-TRANG-42"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "43",
+          "price": 179000,
+          "stock": 26,
+          "skuCode": "TK120309506-TRANG-43"
         }
       ]
     },
@@ -761,43 +866,78 @@
       "brand": null,
       "name": "Giày Sneaker nam vải bò, giày thể thao nam kiểu dáng đơn giản, dễ phối đồ QA - 404",
       "description": "I. THÔNG TIN SẢN PHẨM– Chất liệu: VẢI BÒ– Chất liệu đế: Cao su nguyên chất– Màu sắc: ĐEN - XÁM– Size: 39 - 44– Form giày ôm chân, thiết kế trẻ trung, hiện đạiII. TÍNH NĂNG– Chất liệu vải bò…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 165000,
-          "stock": 36,
-          "skuCode": "TK116143585-39"
+          "stock": 17,
+          "skuCode": "TK116143585-DEN-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "40",
           "price": 165000,
-          "stock": 22,
-          "skuCode": "TK116143585-40"
+          "stock": 11,
+          "skuCode": "TK116143585-DEN-40"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "41",
+          "price": 165000,
+          "stock": 18,
+          "skuCode": "TK116143585-DEN-41"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "42",
           "price": 165000,
           "stock": 3,
-          "skuCode": "TK116143585-41"
+          "skuCode": "TK116143585-DEN-42"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "43",
+          "price": 165000,
+          "stock": 27,
+          "skuCode": "TK116143585-DEN-43"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "39",
+          "price": 165000,
+          "stock": 30,
+          "skuCode": "TK116143585-XAM-39"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "40",
+          "price": 165000,
+          "stock": 19,
+          "skuCode": "TK116143585-XAM-40"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "41",
+          "price": 165000,
+          "stock": 17,
+          "skuCode": "TK116143585-XAM-41"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "42",
           "price": 165000,
           "stock": 15,
-          "skuCode": "TK116143585-42"
+          "skuCode": "TK116143585-XAM-42"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Xám",
+          "option2Value": "43",
           "price": 165000,
-          "stock": 35,
-          "skuCode": "TK116143585-43"
+          "stock": 36,
+          "skuCode": "TK116143585-XAM-43"
         }
       ]
     },
@@ -1161,43 +1301,78 @@
       "brand": null,
       "name": "Giày Sneaker Nam, Vải Mềm Ôm Chân Họa Tiết Cực Ngầu, Đế Cao Su Đi Siêu Êm G174",
       "description": "I. THÔNG TIN SẢN PHẨMChất liệu bề mặt: Da PUChất liệu đế: Cao su nguyên chất. Kiểu dáng: Thể thao, dây buộc, Sneaker nam. Màu sắc: Đen , Trắng. Size: 39, 40, 41, 42, 43Form giày ôm chân, thiết kế trẻ…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 15,
+          "skuCode": "TK76196742-DEN-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "40",
+          "price": 59000,
+          "stock": 16,
+          "skuCode": "TK76196742-DEN-40"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "41",
+          "price": 59000,
+          "stock": 38,
+          "skuCode": "TK76196742-DEN-41"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "42",
+          "price": 59000,
+          "stock": 36,
+          "skuCode": "TK76196742-DEN-42"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "43",
+          "price": 59000,
+          "stock": 34,
+          "skuCode": "TK76196742-DEN-43"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
           "price": 59000,
           "stock": 35,
-          "skuCode": "TK76196742-39"
+          "skuCode": "TK76196742-TRANG-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "40",
           "price": 59000,
-          "stock": 1,
-          "skuCode": "TK76196742-40"
+          "stock": 3,
+          "skuCode": "TK76196742-TRANG-40"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "41",
           "price": 59000,
-          "stock": 2,
-          "skuCode": "TK76196742-41"
+          "stock": 23,
+          "skuCode": "TK76196742-TRANG-41"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "42",
           "price": 59000,
-          "stock": 33,
-          "skuCode": "TK76196742-42"
+          "stock": 32,
+          "skuCode": "TK76196742-TRANG-42"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "43",
           "price": 59000,
-          "stock": 22,
-          "skuCode": "TK76196742-43"
+          "stock": 23,
+          "skuCode": "TK76196742-TRANG-43"
         }
       ]
     },
@@ -1411,43 +1586,78 @@
       "brand": null,
       "name": "Giày tây nam công sở da bò đế cao su siêu bền - xem hàng mới thanh toán",
       "description": "THÔNG TIN SIÊU PHẨM:Giày nam công sở buộc dây da bò cao cấp-Chất liệu da bò loại 1- Đường chỉ may tỉ mỉ tinh tế- Đế chống trơn trượt thời trang- Màu Đen, nâu- Thiết kế chi tiết- Giày tây nam buộc…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 299000,
-          "stock": 30,
-          "skuCode": "TK82921161-39"
+          "stock": 25,
+          "skuCode": "TK82921161-DEN-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "40",
+          "price": 299000,
+          "stock": 10,
+          "skuCode": "TK82921161-DEN-40"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "41",
           "price": 299000,
           "stock": 27,
-          "skuCode": "TK82921161-40"
+          "skuCode": "TK82921161-DEN-41"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "42",
           "price": 299000,
-          "stock": 16,
-          "skuCode": "TK82921161-41"
+          "stock": 26,
+          "skuCode": "TK82921161-DEN-42"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "43",
           "price": 299000,
-          "stock": 29,
-          "skuCode": "TK82921161-42"
+          "stock": 28,
+          "skuCode": "TK82921161-DEN-43"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Nâu",
+          "option2Value": "39",
           "price": 299000,
-          "stock": 0,
-          "skuCode": "TK82921161-43"
+          "stock": 36,
+          "skuCode": "TK82921161-NAU-39"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "40",
+          "price": 299000,
+          "stock": 4,
+          "skuCode": "TK82921161-NAU-40"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "41",
+          "price": 299000,
+          "stock": 3,
+          "skuCode": "TK82921161-NAU-41"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "42",
+          "price": 299000,
+          "stock": 35,
+          "skuCode": "TK82921161-NAU-42"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "43",
+          "price": 299000,
+          "stock": 37,
+          "skuCode": "TK82921161-NAU-43"
         }
       ]
     },
@@ -3261,43 +3471,78 @@
       "brand": "Pettino",
       "name": "Giày lười nam chất liệu thoáng khí thời trang PETTINO-PSL03",
       "description": "THÔNG TIN SẢN PHẨM:Mã hàng: PSL03Màu sắc: XANH, ĐEN-XÁMSize: 39, 40, 41, 42, 43, 44Kiểu dáng: giày lười. Mặt giày: chất liệu vải sợi thoáng khí cao cấp . Đê giày: cao su tổng hợp, xẻ rãnh chống trơn…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Xanh",
+          "option2Value": "39",
           "price": 179000,
-          "stock": 27,
-          "skuCode": "TK190195327-39"
+          "stock": 26,
+          "skuCode": "TK190195327-XANH-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Xanh",
+          "option2Value": "40",
           "price": 179000,
-          "stock": 11,
-          "skuCode": "TK190195327-40"
+          "stock": 2,
+          "skuCode": "TK190195327-XANH-40"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Xanh",
+          "option2Value": "41",
           "price": 179000,
-          "stock": 27,
-          "skuCode": "TK190195327-41"
+          "stock": 15,
+          "skuCode": "TK190195327-XANH-41"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Xanh",
+          "option2Value": "42",
+          "price": 179000,
+          "stock": 17,
+          "skuCode": "TK190195327-XANH-42"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "43",
+          "price": 179000,
+          "stock": 9,
+          "skuCode": "TK190195327-XANH-43"
+        },
+        {
+          "option1Value": "Đen - xám",
+          "option2Value": "39",
+          "price": 179000,
+          "stock": 22,
+          "skuCode": "TK190195327-DENXAM-39"
+        },
+        {
+          "option1Value": "Đen - xám",
+          "option2Value": "40",
+          "price": 179000,
+          "stock": 4,
+          "skuCode": "TK190195327-DENXAM-40"
+        },
+        {
+          "option1Value": "Đen - xám",
+          "option2Value": "41",
           "price": 179000,
           "stock": 25,
-          "skuCode": "TK190195327-42"
+          "skuCode": "TK190195327-DENXAM-41"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Đen - xám",
+          "option2Value": "42",
           "price": 179000,
-          "stock": 31,
-          "skuCode": "TK190195327-43"
+          "stock": 35,
+          "skuCode": "TK190195327-DENXAM-42"
+        },
+        {
+          "option1Value": "Đen - xám",
+          "option2Value": "43",
+          "price": 179000,
+          "stock": 32,
+          "skuCode": "TK190195327-DENXAM-43"
         }
       ]
     },
@@ -3461,43 +3706,78 @@
       "brand": null,
       "name": "Giày Lười Nam - Giày Nam Chất Vải Siêu Nhẹ Phù Hợp Với Mọi Lứa Tuổi QA - 9198",
       "description": "I. THÔNG TIN SẢN PHẨM – Chất liệu: VẢI– Chất liệu đế: Cao su nguyên chất– Màu sắc: đen - XÁM– Size: 39 - 44– Form giày ôm chân, thiết kế trẻ trung, hiện đại II. TÍNH NĂNG – Chất liệu VẢI trẻ...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 169000,
-          "stock": 32,
-          "skuCode": "TK182805051-39"
+          "stock": 22,
+          "skuCode": "TK182805051-DEN-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "40",
           "price": 169000,
-          "stock": 19,
-          "skuCode": "TK182805051-40"
+          "stock": 37,
+          "skuCode": "TK182805051-DEN-40"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "41",
           "price": 169000,
-          "stock": 34,
-          "skuCode": "TK182805051-41"
+          "stock": 31,
+          "skuCode": "TK182805051-DEN-41"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "42",
           "price": 169000,
-          "stock": 18,
-          "skuCode": "TK182805051-42"
+          "stock": 11,
+          "skuCode": "TK182805051-DEN-42"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "43",
           "price": 169000,
-          "stock": 12,
-          "skuCode": "TK182805051-43"
+          "stock": 6,
+          "skuCode": "TK182805051-DEN-43"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "39",
+          "price": 169000,
+          "stock": 29,
+          "skuCode": "TK182805051-XAM-39"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "40",
+          "price": 169000,
+          "stock": 31,
+          "skuCode": "TK182805051-XAM-40"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "41",
+          "price": 169000,
+          "stock": 6,
+          "skuCode": "TK182805051-XAM-41"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "42",
+          "price": 169000,
+          "stock": 24,
+          "skuCode": "TK182805051-XAM-42"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "43",
+          "price": 169000,
+          "stock": 22,
+          "skuCode": "TK182805051-XAM-43"
         }
       ]
     },
@@ -5161,43 +5441,113 @@
       "brand": null,
       "name": "Giày Dép Sandal nam nữ Unisex 3 quai Sport Thời trang - LEGEND SNEAKERS MD06",
       "description": "Giày Dép Sandal nam nữ Unisex 3 quai Sport Thời trangTHÔNG TIN CHI TIẾT SẢN PHẨMKích Thước : Unisex Size 35 đến 44Màu Sắc : Đen - Đen Trắng - Đen Ghi. Kiểu Dáng :Trẻ Trung, Thời Trang, Phong Cách…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 168000,
-          "stock": 12,
-          "skuCode": "TK105539362-39"
+          "stock": 23,
+          "skuCode": "TK105539362-DEN-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
-          "price": 168000,
-          "stock": 11,
-          "skuCode": "TK105539362-40"
-        },
-        {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "40",
           "price": 168000,
           "stock": 0,
-          "skuCode": "TK105539362-41"
+          "skuCode": "TK105539362-DEN-40"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "41",
+          "price": 168000,
+          "stock": 38,
+          "skuCode": "TK105539362-DEN-41"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "42",
+          "price": 168000,
+          "stock": 30,
+          "skuCode": "TK105539362-DEN-42"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "43",
+          "price": 168000,
+          "stock": 5,
+          "skuCode": "TK105539362-DEN-43"
+        },
+        {
+          "option1Value": "Đen trắng",
+          "option2Value": "39",
           "price": 168000,
           "stock": 0,
-          "skuCode": "TK105539362-42"
+          "skuCode": "TK105539362-DENTRANG-39"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Đen trắng",
+          "option2Value": "40",
           "price": 168000,
-          "stock": 14,
-          "skuCode": "TK105539362-43"
+          "stock": 5,
+          "skuCode": "TK105539362-DENTRANG-40"
+        },
+        {
+          "option1Value": "Đen trắng",
+          "option2Value": "41",
+          "price": 168000,
+          "stock": 19,
+          "skuCode": "TK105539362-DENTRANG-41"
+        },
+        {
+          "option1Value": "Đen trắng",
+          "option2Value": "42",
+          "price": 168000,
+          "stock": 20,
+          "skuCode": "TK105539362-DENTRANG-42"
+        },
+        {
+          "option1Value": "Đen trắng",
+          "option2Value": "43",
+          "price": 168000,
+          "stock": 33,
+          "skuCode": "TK105539362-DENTRANG-43"
+        },
+        {
+          "option1Value": "Đen ghi",
+          "option2Value": "39",
+          "price": 168000,
+          "stock": 36,
+          "skuCode": "TK105539362-DENGHI-39"
+        },
+        {
+          "option1Value": "Đen ghi",
+          "option2Value": "40",
+          "price": 168000,
+          "stock": 2,
+          "skuCode": "TK105539362-DENGHI-40"
+        },
+        {
+          "option1Value": "Đen ghi",
+          "option2Value": "41",
+          "price": 168000,
+          "stock": 9,
+          "skuCode": "TK105539362-DENGHI-41"
+        },
+        {
+          "option1Value": "Đen ghi",
+          "option2Value": "42",
+          "price": 168000,
+          "stock": 28,
+          "skuCode": "TK105539362-DENGHI-42"
+        },
+        {
+          "option1Value": "Đen ghi",
+          "option2Value": "43",
+          "price": 168000,
+          "stock": 22,
+          "skuCode": "TK105539362-DENGHI-43"
         }
       ]
     },
@@ -5411,43 +5761,113 @@
       "brand": "HT.NEO",
       "name": "Sandal nam đế cao - Sandal nam(chính hãng) HT.NEO 100% da bò tự nhiên, kiểu dáng và màu sắc nổi bật, quai da siêu bền chắc SD96 ):",
       "description": "THÔNG TIN SẢN PHẨM - Sản phẩm: Sandal da nam cao cấp HT. NEO- Chất liệu: Da bò thật 100% - Màu sắc: Nâu sáng, nâu đen, đen- Chất liệu đế: Đế kếp siêu bền- Xuất xứ: Thiết kế, sản xuất và phân phối…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Nâu sáng",
+          "option2Value": "39",
           "price": 330000,
-          "stock": 35,
-          "skuCode": "TK145682044-39"
+          "stock": 18,
+          "skuCode": "TK145682044-NAUSANG-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
-          "price": 330000,
-          "stock": 28,
-          "skuCode": "TK145682044-40"
-        },
-        {
-          "option1Value": "41",
-          "option2Value": null,
-          "price": 330000,
-          "stock": 20,
-          "skuCode": "TK145682044-41"
-        },
-        {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Nâu sáng",
+          "option2Value": "40",
           "price": 330000,
           "stock": 40,
-          "skuCode": "TK145682044-42"
+          "skuCode": "TK145682044-NAUSANG-40"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Nâu sáng",
+          "option2Value": "41",
           "price": 330000,
-          "stock": 20,
-          "skuCode": "TK145682044-43"
+          "stock": 10,
+          "skuCode": "TK145682044-NAUSANG-41"
+        },
+        {
+          "option1Value": "Nâu sáng",
+          "option2Value": "42",
+          "price": 330000,
+          "stock": 33,
+          "skuCode": "TK145682044-NAUSANG-42"
+        },
+        {
+          "option1Value": "Nâu sáng",
+          "option2Value": "43",
+          "price": 330000,
+          "stock": 35,
+          "skuCode": "TK145682044-NAUSANG-43"
+        },
+        {
+          "option1Value": "Nâu đen",
+          "option2Value": "39",
+          "price": 330000,
+          "stock": 23,
+          "skuCode": "TK145682044-NAUDEN-39"
+        },
+        {
+          "option1Value": "Nâu đen",
+          "option2Value": "40",
+          "price": 330000,
+          "stock": 18,
+          "skuCode": "TK145682044-NAUDEN-40"
+        },
+        {
+          "option1Value": "Nâu đen",
+          "option2Value": "41",
+          "price": 330000,
+          "stock": 22,
+          "skuCode": "TK145682044-NAUDEN-41"
+        },
+        {
+          "option1Value": "Nâu đen",
+          "option2Value": "42",
+          "price": 330000,
+          "stock": 33,
+          "skuCode": "TK145682044-NAUDEN-42"
+        },
+        {
+          "option1Value": "Nâu đen",
+          "option2Value": "43",
+          "price": 330000,
+          "stock": 35,
+          "skuCode": "TK145682044-NAUDEN-43"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 330000,
+          "stock": 16,
+          "skuCode": "TK145682044-DEN-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "40",
+          "price": 330000,
+          "stock": 8,
+          "skuCode": "TK145682044-DEN-40"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "41",
+          "price": 330000,
+          "stock": 9,
+          "skuCode": "TK145682044-DEN-41"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "42",
+          "price": 330000,
+          "stock": 24,
+          "skuCode": "TK145682044-DEN-42"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "43",
+          "price": 330000,
+          "stock": 15,
+          "skuCode": "TK145682044-DEN-43"
         }
       ]
     },
@@ -7161,43 +7581,78 @@
       "brand": "Laceva",
       "name": "Dép Nam, Dép Quai Ngang Nam Đế Hổng Cực Êm, Chống Trơn Mẫu Mới Mã DP70",
       "description": "Dép Quai Ngang Nam Thế Hệ Mới- Thiết kế đế hổng tạo sự đàn hồi cao, cực êm chân- Chống trơn trượt- Quai dép dc dập logo nổi.- 2 màu đen, trắng cơ bản cho anh em lựa chọn- dép làm từ nhựa PVC Dẻo…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 129000,
-          "stock": 16,
-          "skuCode": "TK107253279-39"
+          "stock": 19,
+          "skuCode": "TK107253279-DEN-39"
         },
         {
-          "option1Value": "40",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "40",
           "price": 129000,
-          "stock": 26,
-          "skuCode": "TK107253279-40"
+          "stock": 24,
+          "skuCode": "TK107253279-DEN-40"
         },
         {
-          "option1Value": "41",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "41",
           "price": 129000,
-          "stock": 22,
-          "skuCode": "TK107253279-41"
+          "stock": 34,
+          "skuCode": "TK107253279-DEN-41"
         },
         {
-          "option1Value": "42",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "42",
           "price": 129000,
-          "stock": 16,
-          "skuCode": "TK107253279-42"
+          "stock": 34,
+          "skuCode": "TK107253279-DEN-42"
         },
         {
-          "option1Value": "43",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "43",
+          "price": 129000,
+          "stock": 31,
+          "skuCode": "TK107253279-DEN-43"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 129000,
+          "stock": 34,
+          "skuCode": "TK107253279-TRANG-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "40",
+          "price": 129000,
+          "stock": 7,
+          "skuCode": "TK107253279-TRANG-40"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "41",
+          "price": 129000,
+          "stock": 6,
+          "skuCode": "TK107253279-TRANG-41"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "42",
           "price": 129000,
           "stock": 15,
-          "skuCode": "TK107253279-43"
+          "skuCode": "TK107253279-TRANG-42"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "43",
+          "price": 129000,
+          "stock": 23,
+          "skuCode": "TK107253279-TRANG-43"
         }
       ]
     },
@@ -7511,43 +7966,78 @@
       "brand": null,
       "name": "Giày Thể Thao Vải Nữ Phong Cách Hàn Quốc, Giày Chạy Bộ Đế Cao Su Cực Êm GN29",
       "description": "I. THÔNG TIN SẢN PHẨM–Chất liệu: Vải dệt–Chất liệu đế: Cao su nguyên khối–Màu sắc: Đen - Hồng–Size: 35 - 40–Form giày ôm chân, thiết kế trẻ trung, hiện đại–Bảo hành: 6 thángII. TÍNH...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 59000,
-          "stock": 19,
-          "skuCode": "TK76222994-35"
+          "stock": 32,
+          "skuCode": "TK76222994-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 59000,
-          "stock": 26,
-          "skuCode": "TK76222994-36"
+          "stock": 27,
+          "skuCode": "TK76222994-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 59000,
-          "stock": 28,
-          "skuCode": "TK76222994-37"
+          "stock": 39,
+          "skuCode": "TK76222994-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 59000,
-          "stock": 13,
-          "skuCode": "TK76222994-38"
+          "stock": 40,
+          "skuCode": "TK76222994-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 5,
+          "skuCode": "TK76222994-DEN-39"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "35",
+          "price": 59000,
+          "stock": 40,
+          "skuCode": "TK76222994-HONG-35"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "36",
+          "price": 59000,
+          "stock": 24,
+          "skuCode": "TK76222994-HONG-36"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "37",
           "price": 59000,
           "stock": 35,
-          "skuCode": "TK76222994-39"
+          "skuCode": "TK76222994-HONG-37"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "38",
+          "price": 59000,
+          "stock": 2,
+          "skuCode": "TK76222994-HONG-38"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 9,
+          "skuCode": "TK76222994-HONG-39"
         }
       ]
     },
@@ -7811,43 +8301,78 @@
       "brand": null,
       "name": "Giày Sneaker Nữ Vải Mềm Ôm Chân, Đế Cao Su 2 Lớp Thích Hợp Đi Học, Đi Chơi, Chạy Bộ GN30",
       "description": "I. THÔNG TIN SẢN PHẨM–Chất liệu: Vải dệt–Chất liệu đế: Cao su nguyên khối–Màu sắc: Tím - Đỏ–Size: 35 - 40–Form giày ôm chân, thiết kế trẻ trung, hiện đại–Bảo hành: 6 tháng ...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Tím",
+          "option2Value": "35",
+          "price": 59000,
+          "stock": 39,
+          "skuCode": "TK76218553-TIM-35"
+        },
+        {
+          "option1Value": "Tím",
+          "option2Value": "36",
+          "price": 59000,
+          "stock": 12,
+          "skuCode": "TK76218553-TIM-36"
+        },
+        {
+          "option1Value": "Tím",
+          "option2Value": "37",
+          "price": 59000,
+          "stock": 12,
+          "skuCode": "TK76218553-TIM-37"
+        },
+        {
+          "option1Value": "Tím",
+          "option2Value": "38",
+          "price": 59000,
+          "stock": 39,
+          "skuCode": "TK76218553-TIM-38"
+        },
+        {
+          "option1Value": "Tím",
+          "option2Value": "39",
           "price": 59000,
           "stock": 24,
-          "skuCode": "TK76218553-35"
+          "skuCode": "TK76218553-TIM-39"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "35",
           "price": 59000,
-          "stock": 4,
-          "skuCode": "TK76218553-36"
+          "stock": 16,
+          "skuCode": "TK76218553-DO-35"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "36",
           "price": 59000,
-          "stock": 6,
-          "skuCode": "TK76218553-37"
+          "stock": 23,
+          "skuCode": "TK76218553-DO-36"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "37",
           "price": 59000,
-          "stock": 33,
-          "skuCode": "TK76218553-38"
+          "stock": 34,
+          "skuCode": "TK76218553-DO-37"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "38",
           "price": 59000,
-          "stock": 31,
-          "skuCode": "TK76218553-39"
+          "stock": 23,
+          "skuCode": "TK76218553-DO-38"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 39,
+          "skuCode": "TK76218553-DO-39"
         }
       ]
     },
@@ -7911,43 +8436,78 @@
       "brand": null,
       "name": "Giày thể thao nữ vải mềm êm chân, đế cao su hai màu, có răng cưa ma sát cao GN08",
       "description": "I. THÔNG TIN SẢN PHẨM– Chất liệu: Vải– Chất liệu đế: Cao su– Màu sắc: Đen - Trắng– Size: 36 - 40– Form giày ôm chân, thiết kế trẻ trung, cá tínhII. TÍNH NĂNG– Chất liệu vải dệt mềm, ôm chân...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
-          "price": 59000,
-          "stock": 38,
-          "skuCode": "TK75664574-35"
-        },
-        {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 59000,
-          "stock": 23,
-          "skuCode": "TK75664574-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
-          "price": 59000,
-          "stock": 19,
-          "skuCode": "TK75664574-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
-          "price": 59000,
-          "stock": 30,
-          "skuCode": "TK75664574-38"
-        },
-        {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 59000,
           "stock": 29,
-          "skuCode": "TK75664574-39"
+          "skuCode": "TK75664574-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 59000,
+          "stock": 18,
+          "skuCode": "TK75664574-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 59000,
+          "stock": 5,
+          "skuCode": "TK75664574-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 59000,
+          "stock": 0,
+          "skuCode": "TK75664574-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 33,
+          "skuCode": "TK75664574-DEN-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "35",
+          "price": 59000,
+          "stock": 26,
+          "skuCode": "TK75664574-TRANG-35"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "36",
+          "price": 59000,
+          "stock": 11,
+          "skuCode": "TK75664574-TRANG-36"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "37",
+          "price": 59000,
+          "stock": 0,
+          "skuCode": "TK75664574-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 59000,
+          "stock": 6,
+          "skuCode": "TK75664574-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 4,
+          "skuCode": "TK75664574-TRANG-39"
         }
       ]
     },
@@ -8011,43 +8571,78 @@
       "brand": null,
       "name": "Giày nữ cao cổ loại cao cấp, giày sneakers, giày thể thao nữ hàn quốc cổ chun ôm chân dễ mang vào tháo ra, nhiều màu, tặng kèm tất sịn 35k",
       "description": "Giày thể thao nữ, giày sneakers nữ, giày nữ cao cổ - MẪU GIÀY THẦN THÁNH HOT HIT LÀM MƯA LÀM GIÓ Ở THỊ TRƯỜNG VIỆT NAM NĂM NAY Có 3 màu: ĐEN - TRẮNG PHỐI XÁM - TRẮNG PHỐI ĐỎ ĐENĐược khách hàng phản…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 238000,
-          "stock": 38,
-          "skuCode": "TK96538042-35"
+          "stock": 25,
+          "skuCode": "TK96538042-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 238000,
-          "stock": 10,
-          "skuCode": "TK96538042-36"
+          "stock": 0,
+          "skuCode": "TK96538042-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 238000,
-          "stock": 18,
-          "skuCode": "TK96538042-37"
+          "stock": 40,
+          "skuCode": "TK96538042-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 238000,
-          "stock": 11,
-          "skuCode": "TK96538042-38"
+          "stock": 27,
+          "skuCode": "TK96538042-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 238000,
-          "stock": 26,
-          "skuCode": "TK96538042-39"
+          "stock": 12,
+          "skuCode": "TK96538042-DEN-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "35",
+          "price": 238000,
+          "stock": 32,
+          "skuCode": "TK96538042-TRANG-35"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "36",
+          "price": 238000,
+          "stock": 6,
+          "skuCode": "TK96538042-TRANG-36"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "37",
+          "price": 238000,
+          "stock": 7,
+          "skuCode": "TK96538042-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 238000,
+          "stock": 14,
+          "skuCode": "TK96538042-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 238000,
+          "stock": 27,
+          "skuCode": "TK96538042-TRANG-39"
         }
       ]
     },
@@ -8161,43 +8756,78 @@
       "brand": null,
       "name": "Giày Thể Thao Sneaker Nữ Đế 2 Lớp Êm Chân , Đi Dạo Đi Chơi Tập Thể Dục G183B",
       "description": "THÔNG TIN SẢN PHẨMChất liệu bề mặt: Vải sợi dệt thoáng khí cao cấp. Chất liệu đế: Cao su nguyên chất. Kiểu dáng: Thể thao. Màu sắc: Đen – ĐỏForm giày ôm chân, thiết kế nữ tính, hiện đại...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 59000,
+          "stock": 30,
+          "skuCode": "TK108382671-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 59000,
+          "stock": 13,
+          "skuCode": "TK108382671-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 59000,
+          "stock": 36,
+          "skuCode": "TK108382671-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 59000,
+          "stock": 8,
+          "skuCode": "TK108382671-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 23,
+          "skuCode": "TK108382671-DEN-39"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "35",
+          "price": 59000,
+          "stock": 23,
+          "skuCode": "TK108382671-DO-35"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "36",
           "price": 59000,
           "stock": 33,
-          "skuCode": "TK108382671-35"
+          "skuCode": "TK108382671-DO-36"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "37",
+          "price": 59000,
+          "stock": 30,
+          "skuCode": "TK108382671-DO-37"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "38",
           "price": 59000,
           "stock": 29,
-          "skuCode": "TK108382671-36"
+          "skuCode": "TK108382671-DO-38"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "39",
           "price": 59000,
-          "stock": 9,
-          "skuCode": "TK108382671-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
-          "price": 59000,
-          "stock": 34,
-          "skuCode": "TK108382671-38"
-        },
-        {
-          "option1Value": "39",
-          "option2Value": null,
-          "price": 59000,
-          "stock": 16,
-          "skuCode": "TK108382671-39"
+          "stock": 18,
+          "skuCode": "TK108382671-DO-39"
         }
       ]
     },
@@ -8311,43 +8941,78 @@
       "brand": null,
       "name": "Giày Thể Thao Vải Nữ Họa Tiết Hoa Cúc Nổi Bật, Đế Cao Su Siêu Êm Thích Hợp Chạy Bộ, Đi Học, Đi Chơi GN12",
       "description": "I. THÔNG TIN SẢN PHẨM– Chất liệu: Vải– Chất liệu đế: Cao su– Màu sắc: Đen - Hồng– Size: 36 - 40– Form giày ôm chân, thiết kế trẻ trung, hiện đại II. TÍNH NĂNG– Chất...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 59000,
-          "stock": 29,
-          "skuCode": "TK76269564-35"
+          "stock": 39,
+          "skuCode": "TK76269564-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 59000,
-          "stock": 3,
-          "skuCode": "TK76269564-36"
+          "stock": 7,
+          "skuCode": "TK76269564-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 59000,
-          "stock": 40,
-          "skuCode": "TK76269564-37"
+          "stock": 11,
+          "skuCode": "TK76269564-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
-          "price": 59000,
-          "stock": 32,
-          "skuCode": "TK76269564-38"
-        },
-        {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 59000,
           "stock": 33,
-          "skuCode": "TK76269564-39"
+          "skuCode": "TK76269564-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 31,
+          "skuCode": "TK76269564-DEN-39"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "35",
+          "price": 59000,
+          "stock": 6,
+          "skuCode": "TK76269564-HONG-35"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "36",
+          "price": 59000,
+          "stock": 32,
+          "skuCode": "TK76269564-HONG-36"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "37",
+          "price": 59000,
+          "stock": 19,
+          "skuCode": "TK76269564-HONG-37"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "38",
+          "price": 59000,
+          "stock": 29,
+          "skuCode": "TK76269564-HONG-38"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "39",
+          "price": 59000,
+          "stock": 15,
+          "skuCode": "TK76269564-HONG-39"
         }
       ]
     },
@@ -8561,43 +9226,78 @@
       "brand": null,
       "name": "Giày Thể Thao Nữ Ba Màu Cá Tính",
       "description": "Giày thể thao nữ 3 màu cá tính đang được nhiều khách hàng lựa chọn với thiết kế đẹp, năng động, hiện đại. Gồm 3 bản màu: be, hồng và đen dễ dàng lựa chọn theo sở thích. Mẫu…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Be",
+          "option2Value": "35",
+          "price": 56000,
+          "stock": 31,
+          "skuCode": "TK158900985-BE-35"
+        },
+        {
+          "option1Value": "Be",
+          "option2Value": "36",
+          "price": 56000,
+          "stock": 10,
+          "skuCode": "TK158900985-BE-36"
+        },
+        {
+          "option1Value": "Be",
+          "option2Value": "37",
+          "price": 56000,
+          "stock": 19,
+          "skuCode": "TK158900985-BE-37"
+        },
+        {
+          "option1Value": "Be",
+          "option2Value": "38",
+          "price": 56000,
+          "stock": 0,
+          "skuCode": "TK158900985-BE-38"
+        },
+        {
+          "option1Value": "Be",
+          "option2Value": "39",
+          "price": 56000,
+          "stock": 36,
+          "skuCode": "TK158900985-BE-39"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "35",
+          "price": 56000,
+          "stock": 27,
+          "skuCode": "TK158900985-HONG-35"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "36",
+          "price": 56000,
+          "stock": 22,
+          "skuCode": "TK158900985-HONG-36"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "37",
+          "price": 56000,
+          "stock": 23,
+          "skuCode": "TK158900985-HONG-37"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": "38",
           "price": 56000,
           "stock": 1,
-          "skuCode": "TK158900985-35"
+          "skuCode": "TK158900985-HONG-38"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Hồng",
+          "option2Value": "39",
           "price": 56000,
-          "stock": 16,
-          "skuCode": "TK158900985-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
-          "price": 56000,
-          "stock": 37,
-          "skuCode": "TK158900985-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
-          "price": 56000,
-          "stock": 3,
-          "skuCode": "TK158900985-38"
-        },
-        {
-          "option1Value": "39",
-          "option2Value": null,
-          "price": 56000,
-          "stock": 15,
-          "skuCode": "TK158900985-39"
+          "stock": 18,
+          "skuCode": "TK158900985-HONG-39"
         }
       ]
     },
@@ -8811,43 +9511,113 @@
       "brand": "HT.NEO",
       "name": "Giày cao gót HT.NEO gót trụ da bóng trơn mũi nhọn, thiết kế đơn giản, trẻ trung CS231",
       "description": "GIÀY CÔNG SỞ HT. NEO DA BÓNG TRƠN GÓT NHỌN CS231-Thương hiệu: HT. NEO-Chất liệu: Da cao cấp-Màu: đen, xanh, trắng -Size: 35-39Giày cao gót 3p gót nhọn da bóng trơn, thiết kế đơn…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 170000,
-          "stock": 2,
-          "skuCode": "TK177641981-35"
+          "stock": 27,
+          "skuCode": "TK177641981-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 170000,
-          "stock": 40,
-          "skuCode": "TK177641981-36"
+          "stock": 39,
+          "skuCode": "TK177641981-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
-          "price": 170000,
-          "stock": 16,
-          "skuCode": "TK177641981-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 170000,
           "stock": 3,
-          "skuCode": "TK177641981-38"
+          "skuCode": "TK177641981-DEN-37"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 170000,
-          "stock": 25,
-          "skuCode": "TK177641981-39"
+          "stock": 14,
+          "skuCode": "TK177641981-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 170000,
+          "stock": 21,
+          "skuCode": "TK177641981-DEN-39"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "35",
+          "price": 170000,
+          "stock": 17,
+          "skuCode": "TK177641981-XANH-35"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "36",
+          "price": 170000,
+          "stock": 33,
+          "skuCode": "TK177641981-XANH-36"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 30,
+          "skuCode": "TK177641981-XANH-37"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "38",
+          "price": 170000,
+          "stock": 8,
+          "skuCode": "TK177641981-XANH-38"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "39",
+          "price": 170000,
+          "stock": 39,
+          "skuCode": "TK177641981-XANH-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "35",
+          "price": 170000,
+          "stock": 12,
+          "skuCode": "TK177641981-TRANG-35"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "36",
+          "price": 170000,
+          "stock": 0,
+          "skuCode": "TK177641981-TRANG-36"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 21,
+          "skuCode": "TK177641981-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 170000,
+          "stock": 16,
+          "skuCode": "TK177641981-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 170000,
+          "stock": 0,
+          "skuCode": "TK177641981-TRANG-39"
         }
       ]
     },
@@ -8861,43 +9631,113 @@
       "brand": "HT.NEO",
       "name": "Giày cao gót 5p gót nhọn da mờ trơn, thiết kế đơn giản, da cao cấp, đi êm chân CS235",
       "description": "GIÀY CAO GÓT HT. NEO CHẤT LIỆU DA CAO CẤP CS235-Thương hiệu: HT. NEO-Màu: đen, kem, vàng bò -Size: 35-39-Chất liệu: Da cao cấp. Giày cao gót 5p gót nhọn trơn mũi nhọn được thiết…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 180000,
-          "stock": 17,
-          "skuCode": "TK177290635-35"
+          "stock": 12,
+          "skuCode": "TK177290635-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 180000,
+          "stock": 4,
+          "skuCode": "TK177290635-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 180000,
+          "stock": 30,
+          "skuCode": "TK177290635-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 180000,
+          "stock": 20,
+          "skuCode": "TK177290635-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 180000,
+          "stock": 10,
+          "skuCode": "TK177290635-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 180000,
+          "stock": 26,
+          "skuCode": "TK177290635-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
           "price": 180000,
           "stock": 1,
-          "skuCode": "TK177290635-36"
+          "skuCode": "TK177290635-KEM-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "37",
           "price": 180000,
-          "stock": 5,
-          "skuCode": "TK177290635-37"
+          "stock": 28,
+          "skuCode": "TK177290635-KEM-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "38",
           "price": 180000,
-          "stock": 2,
-          "skuCode": "TK177290635-38"
+          "stock": 39,
+          "skuCode": "TK177290635-KEM-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "39",
           "price": 180000,
-          "stock": 33,
-          "skuCode": "TK177290635-39"
+          "stock": 38,
+          "skuCode": "TK177290635-KEM-39"
+        },
+        {
+          "option1Value": "Vàng bò",
+          "option2Value": "35",
+          "price": 180000,
+          "stock": 19,
+          "skuCode": "TK177290635-VANGBO-35"
+        },
+        {
+          "option1Value": "Vàng bò",
+          "option2Value": "36",
+          "price": 180000,
+          "stock": 21,
+          "skuCode": "TK177290635-VANGBO-36"
+        },
+        {
+          "option1Value": "Vàng bò",
+          "option2Value": "37",
+          "price": 180000,
+          "stock": 18,
+          "skuCode": "TK177290635-VANGBO-37"
+        },
+        {
+          "option1Value": "Vàng bò",
+          "option2Value": "38",
+          "price": 180000,
+          "stock": 32,
+          "skuCode": "TK177290635-VANGBO-38"
+        },
+        {
+          "option1Value": "Vàng bò",
+          "option2Value": "39",
+          "price": 180000,
+          "stock": 6,
+          "skuCode": "TK177290635-VANGBO-39"
         }
       ]
     },
@@ -8911,43 +9751,113 @@
       "brand": "HT.NEO",
       "name": "Giày cao gót 5p gót nhọn da lộn đế gắn đá khuy chữ G, da cao cấp,độc đáo,mới lạ cs146",
       "description": "GIÀY CAO GÓT 5P GÓT NHỌN DA LỘN ĐẾ GẮN ĐÁ KHUY CHỮ G CS146-Thương hiệu: HT. NEO-Chất liệu: Da cao cấp-Size: 35-39-Màu: đen, đỏ, xám. Giày CS146 được thiết kế với kiểu dáng…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 99000,
-          "stock": 32,
-          "skuCode": "TK176147201-35"
+          "stock": 6,
+          "skuCode": "TK176147201-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 99000,
-          "stock": 12,
-          "skuCode": "TK176147201-36"
+          "stock": 16,
+          "skuCode": "TK176147201-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 36,
+          "skuCode": "TK176147201-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 99000,
           "stock": 9,
-          "skuCode": "TK176147201-37"
+          "skuCode": "TK176147201-DEN-38"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 99000,
-          "stock": 10,
-          "skuCode": "TK176147201-38"
+          "stock": 26,
+          "skuCode": "TK176147201-DEN-39"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đỏ",
+          "option2Value": "35",
           "price": 99000,
-          "stock": 35,
-          "skuCode": "TK176147201-39"
+          "stock": 34,
+          "skuCode": "TK176147201-DO-35"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 22,
+          "skuCode": "TK176147201-DO-36"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 13,
+          "skuCode": "TK176147201-DO-37"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 34,
+          "skuCode": "TK176147201-DO-38"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 3,
+          "skuCode": "TK176147201-DO-39"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 6,
+          "skuCode": "TK176147201-XAM-35"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 19,
+          "skuCode": "TK176147201-XAM-36"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 25,
+          "skuCode": "TK176147201-XAM-37"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 22,
+          "skuCode": "TK176147201-XAM-38"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 18,
+          "skuCode": "TK176147201-XAM-39"
         }
       ]
     },
@@ -9011,43 +9921,113 @@
       "brand": "HT.NEO",
       "name": "Sandal nữ HT.NEO gót vuông 5p thiết kế mới lạ với quai chéo đính đá cực xinh SDN69",
       "description": "SANDAL NỮ THIẾT KẾ TRẺ TRUNG VỚI QUAI DA CHÉO ĐÍNH ĐÁ SDN69-Thương hiệu: HT. NEO-Màu: trắng, đen, xanh-Size: 35-39-Chất liệu: Da cao cấp. Sandal nữ sdn69 được thiết kế với kiểu…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "35",
           "price": 150000,
-          "stock": 25,
-          "skuCode": "TK177325627-35"
+          "stock": 22,
+          "skuCode": "TK177325627-TRANG-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 150000,
-          "stock": 13,
-          "skuCode": "TK177325627-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
-          "price": 150000,
-          "stock": 28,
-          "skuCode": "TK177325627-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "36",
           "price": 150000,
           "stock": 39,
-          "skuCode": "TK177325627-38"
+          "skuCode": "TK177325627-TRANG-36"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "37",
           "price": 150000,
-          "stock": 20,
-          "skuCode": "TK177325627-39"
+          "stock": 8,
+          "skuCode": "TK177325627-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 150000,
+          "stock": 9,
+          "skuCode": "TK177325627-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 150000,
+          "stock": 12,
+          "skuCode": "TK177325627-TRANG-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 150000,
+          "stock": 12,
+          "skuCode": "TK177325627-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 150000,
+          "stock": 8,
+          "skuCode": "TK177325627-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 150000,
+          "stock": 2,
+          "skuCode": "TK177325627-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 150000,
+          "stock": 21,
+          "skuCode": "TK177325627-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 150000,
+          "stock": 0,
+          "skuCode": "TK177325627-DEN-39"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "35",
+          "price": 150000,
+          "stock": 26,
+          "skuCode": "TK177325627-XANH-35"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "36",
+          "price": 150000,
+          "stock": 15,
+          "skuCode": "TK177325627-XANH-36"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "37",
+          "price": 150000,
+          "stock": 10,
+          "skuCode": "TK177325627-XANH-37"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "38",
+          "price": 150000,
+          "stock": 13,
+          "skuCode": "TK177325627-XANH-38"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "39",
+          "price": 150000,
+          "stock": 24,
+          "skuCode": "TK177325627-XANH-39"
         }
       ]
     },
@@ -9111,43 +10091,113 @@
       "brand": "HT.NEO",
       "name": "Giày cao gót HT.NEO chất liệu da cao cấp, thiết kế đơn giản, trẻ trung, đi êm chân CS231",
       "description": "GIÀY CAO GÓT HT. NEO DA BÓNG TRƠN THIẾT KẾ ĐƠN GIẢN, TRẺ TRUNG CS231-Thương hiệu: HT. NEO-Màu: đen, kem, xanh-Size: 35-39-Chất liệu: Da cao cấp. Giày được thiết kế với kiểu dáng…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 160000,
-          "stock": 33,
-          "skuCode": "TK177456147-35"
+          "stock": 15,
+          "skuCode": "TK177456147-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 160000,
-          "stock": 7,
-          "skuCode": "TK177456147-36"
+          "stock": 16,
+          "skuCode": "TK177456147-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 160000,
-          "stock": 27,
-          "skuCode": "TK177456147-37"
+          "stock": 21,
+          "skuCode": "TK177456147-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 160000,
+          "stock": 2,
+          "skuCode": "TK177456147-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 160000,
+          "stock": 31,
+          "skuCode": "TK177456147-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 160000,
+          "stock": 20,
+          "skuCode": "TK177456147-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
+          "price": 160000,
+          "stock": 32,
+          "skuCode": "TK177456147-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 160000,
+          "stock": 30,
+          "skuCode": "TK177456147-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
           "price": 160000,
           "stock": 13,
-          "skuCode": "TK177456147-38"
+          "skuCode": "TK177456147-KEM-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "39",
           "price": 160000,
-          "stock": 25,
-          "skuCode": "TK177456147-39"
+          "stock": 4,
+          "skuCode": "TK177456147-KEM-39"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "35",
+          "price": 160000,
+          "stock": 11,
+          "skuCode": "TK177456147-XANH-35"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "36",
+          "price": 160000,
+          "stock": 3,
+          "skuCode": "TK177456147-XANH-36"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "37",
+          "price": 160000,
+          "stock": 15,
+          "skuCode": "TK177456147-XANH-37"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "38",
+          "price": 160000,
+          "stock": 13,
+          "skuCode": "TK177456147-XANH-38"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "39",
+          "price": 160000,
+          "stock": 12,
+          "skuCode": "TK177456147-XANH-39"
         }
       ]
     },
@@ -9261,43 +10311,113 @@
       "brand": "HT.NEO",
       "name": "Giày công sở nữ HT.NEO 5p gót nhọn da lộn. da cao cấp khuy gắn đá chữ G , đi êm chân cs146",
       "description": "GIÀY CAO GÓT 5P KHUY ĐÍNH ĐÁ CHỮ G CS146-Thương hiệu: HT. NEO-Gót cao 5p-Size: 35-39-Màu: đen, đỏ, ghi-Kiểu dáng: Độc đáo, mới lạ -Chất liệu: Da cao cấp. Giày cs146 được…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 99000,
-          "stock": 28,
-          "skuCode": "TK175653122-35"
+          "stock": 12,
+          "skuCode": "TK175653122-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 99000,
-          "stock": 40,
-          "skuCode": "TK175653122-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 99000,
           "stock": 16,
-          "skuCode": "TK175653122-37"
+          "skuCode": "TK175653122-DEN-36"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 99000,
-          "stock": 30,
-          "skuCode": "TK175653122-38"
+          "stock": 9,
+          "skuCode": "TK175653122-DEN-37"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 99000,
-          "stock": 24,
-          "skuCode": "TK175653122-39"
+          "stock": 33,
+          "skuCode": "TK175653122-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 29,
+          "skuCode": "TK175653122-DEN-39"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 39,
+          "skuCode": "TK175653122-DO-35"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 20,
+          "skuCode": "TK175653122-DO-36"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 18,
+          "skuCode": "TK175653122-DO-37"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 5,
+          "skuCode": "TK175653122-DO-38"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 40,
+          "skuCode": "TK175653122-DO-39"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 4,
+          "skuCode": "TK175653122-GHI-35"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 13,
+          "skuCode": "TK175653122-GHI-36"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 35,
+          "skuCode": "TK175653122-GHI-37"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 19,
+          "skuCode": "TK175653122-GHI-38"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 28,
+          "skuCode": "TK175653122-GHI-39"
         }
       ]
     },
@@ -9311,43 +10431,78 @@
       "brand": "HT.NEO",
       "name": "Giày cao gót HT.NEO gót nhọn da lộn thiết kế trẻ trung với khuy kim loại đính đá CS233",
       "description": "GIÀY DÉP DA CAO CẤP HT. NEO THIẾT KẾ ĐƠN GIẢN, TRẺ TRUNG CS233-Thương hiệu:HT. NEO-Size: 35-39-Chất liệu: Da cao cấp-Màu: đen, đỏ. Giày cao gót 5p HT. NEO được làm từ chất liệu…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 99000,
-          "stock": 8,
-          "skuCode": "TK177241846-35"
+          "stock": 5,
+          "skuCode": "TK177241846-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 99000,
           "stock": 1,
-          "skuCode": "TK177241846-36"
+          "skuCode": "TK177241846-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 99000,
-          "stock": 37,
-          "skuCode": "TK177241846-37"
+          "stock": 30,
+          "skuCode": "TK177241846-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 99000,
-          "stock": 1,
-          "skuCode": "TK177241846-38"
+          "stock": 28,
+          "skuCode": "TK177241846-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 99000,
-          "stock": 7,
-          "skuCode": "TK177241846-39"
+          "stock": 29,
+          "skuCode": "TK177241846-DEN-39"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 16,
+          "skuCode": "TK177241846-DO-35"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 3,
+          "skuCode": "TK177241846-DO-36"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 22,
+          "skuCode": "TK177241846-DO-37"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 29,
+          "skuCode": "TK177241846-DO-38"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 16,
+          "skuCode": "TK177241846-DO-39"
         }
       ]
     },
@@ -9361,43 +10516,78 @@
       "brand": "Ruian Pinxuan",
       "name": "Sandal Nữ Cao Gót Thời Trang_ Trẻ Trung_ Sành Điệu_ Phù hợp mới lứa tuổi 2018",
       "description": "Sandal Nữ Cao Gót Thời Trang_ Trẻ Trung_ Sành Điệu_ Phù hợp mới lứa tuổi 2018 Mã SP: 2018Chất liệu : Da Tổng Hợp. Độ cao: 6cm. Màu sắc: Trắng- Nâu. Kích cỡ: 36-37-38-39Thời trang - trẻ tru...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
-          "price": 250000,
-          "stock": 36,
-          "skuCode": "TK98185180-35"
-        },
-        {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 250000,
-          "stock": 32,
-          "skuCode": "TK98185180-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "35",
           "price": 250000,
           "stock": 10,
-          "skuCode": "TK98185180-37"
+          "skuCode": "TK98185180-TRANG-35"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "36",
           "price": 250000,
-          "stock": 5,
-          "skuCode": "TK98185180-38"
+          "stock": 40,
+          "skuCode": "TK98185180-TRANG-36"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Trắng",
+          "option2Value": "37",
           "price": 250000,
-          "stock": 27,
-          "skuCode": "TK98185180-39"
+          "stock": 31,
+          "skuCode": "TK98185180-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 250000,
+          "stock": 15,
+          "skuCode": "TK98185180-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 250000,
+          "stock": 33,
+          "skuCode": "TK98185180-TRANG-39"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "35",
+          "price": 250000,
+          "stock": 40,
+          "skuCode": "TK98185180-NAU-35"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "36",
+          "price": 250000,
+          "stock": 18,
+          "skuCode": "TK98185180-NAU-36"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "37",
+          "price": 250000,
+          "stock": 16,
+          "skuCode": "TK98185180-NAU-37"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "38",
+          "price": 250000,
+          "stock": 16,
+          "skuCode": "TK98185180-NAU-38"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "39",
+          "price": 250000,
+          "stock": 12,
+          "skuCode": "TK98185180-NAU-39"
         }
       ]
     },
@@ -9461,43 +10651,113 @@
       "brand": "HT.NEO",
       "name": "Sandal nữ HT.NEO gót vuông thiết kế đơn giản, trẻ trung, quai da thắt nơ, da cao cấp SDN68",
       "description": "SANDAL NỮ HT. NEO CHẤT LIỆU DA CAO CẤP THIẾT KẾ TRẺ TRUNG VỚI QUAI DA NƠ VẮT SDN68-Thương hiệu: HT. NEO-Màu: đen, kem, xanh-Size: 35-39-Chất liệu: Da cao cấp-Thiết kế với kiểu…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 150000,
-          "stock": 8,
-          "skuCode": "TK179792578-35"
+          "stock": 23,
+          "skuCode": "TK179792578-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 150000,
-          "stock": 38,
-          "skuCode": "TK179792578-36"
+          "stock": 23,
+          "skuCode": "TK179792578-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 150000,
-          "stock": 33,
-          "skuCode": "TK179792578-37"
+          "stock": 23,
+          "skuCode": "TK179792578-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 150000,
-          "stock": 39,
-          "skuCode": "TK179792578-38"
+          "stock": 4,
+          "skuCode": "TK179792578-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 150000,
-          "stock": 3,
-          "skuCode": "TK179792578-39"
+          "stock": 26,
+          "skuCode": "TK179792578-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 150000,
+          "stock": 16,
+          "skuCode": "TK179792578-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
+          "price": 150000,
+          "stock": 7,
+          "skuCode": "TK179792578-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 150000,
+          "stock": 18,
+          "skuCode": "TK179792578-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
+          "price": 150000,
+          "stock": 25,
+          "skuCode": "TK179792578-KEM-38"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 150000,
+          "stock": 11,
+          "skuCode": "TK179792578-KEM-39"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "35",
+          "price": 150000,
+          "stock": 17,
+          "skuCode": "TK179792578-XANH-35"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "36",
+          "price": 150000,
+          "stock": 34,
+          "skuCode": "TK179792578-XANH-36"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "37",
+          "price": 150000,
+          "stock": 12,
+          "skuCode": "TK179792578-XANH-37"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "38",
+          "price": 150000,
+          "stock": 31,
+          "skuCode": "TK179792578-XANH-38"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "39",
+          "price": 150000,
+          "stock": 37,
+          "skuCode": "TK179792578-XANH-39"
         }
       ]
     },
@@ -9711,43 +10971,78 @@
       "brand": "HT.NEO",
       "name": "Giày công sở HT.NEO cao 5p gót nhọn da bóng khuy vuông nơ vắt đính đá sang trọng CS234",
       "description": "GIÀY DA CAO CẤP KHUY NƠ VẮT DA BÓNG SANG TRỌNG, TRẺ TRUNG CS234-Thiết kế: HT. NEO-Màu: đen,xanh, đen-Size: 35-39-Chất liệu: Da cao cấp. Giày được làm từ chất liệu da cao cấp đi…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 170000,
+          "stock": 32,
+          "skuCode": "TK177468464-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 170000,
+          "stock": 39,
+          "skuCode": "TK177468464-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 23,
+          "skuCode": "TK177468464-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 170000,
+          "stock": 19,
+          "skuCode": "TK177468464-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 170000,
+          "stock": 12,
+          "skuCode": "TK177468464-DEN-39"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "35",
+          "price": 170000,
+          "stock": 33,
+          "skuCode": "TK177468464-XANH-35"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "36",
+          "price": 170000,
+          "stock": 33,
+          "skuCode": "TK177468464-XANH-36"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 29,
+          "skuCode": "TK177468464-XANH-37"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "38",
+          "price": 170000,
+          "stock": 27,
+          "skuCode": "TK177468464-XANH-38"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "39",
           "price": 170000,
           "stock": 2,
-          "skuCode": "TK177468464-35"
-        },
-        {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 170000,
-          "stock": 18,
-          "skuCode": "TK177468464-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
-          "price": 170000,
-          "stock": 10,
-          "skuCode": "TK177468464-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
-          "price": 170000,
-          "stock": 3,
-          "skuCode": "TK177468464-38"
-        },
-        {
-          "option1Value": "39",
-          "option2Value": null,
-          "price": 170000,
-          "stock": 8,
-          "skuCode": "TK177468464-39"
+          "skuCode": "TK177468464-XANH-39"
         }
       ]
     },
@@ -9761,43 +11056,113 @@
       "brand": "TiMa.lala",
       "name": "Giày cao gót nữ TiMa.lala cao 10cm dây ngang khóa gài kiểu dáng đơn giản- Hàng chính hãng",
       "description": "Thông tin sản phẩm. Tên sản phẩm: Giày cao gót nữ TiMa.lala cao 10cm dây ngang khóa gài kiểu dáng đơn giản. Màu Sắc: Nude, Đen, Trắng Kiểu dáng: Giày Cao Gót. Chất liệu : Da PU cao cấp - chất liệu…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
-          "price": 99000,
-          "stock": 24,
-          "skuCode": "TK210283519-35"
-        },
-        {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Nude",
+          "option2Value": "35",
           "price": 99000,
           "stock": 39,
-          "skuCode": "TK210283519-36"
+          "skuCode": "TK210283519-NUDE-35"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Nude",
+          "option2Value": "36",
           "price": 99000,
-          "stock": 7,
-          "skuCode": "TK210283519-37"
+          "stock": 30,
+          "skuCode": "TK210283519-NUDE-36"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Nude",
+          "option2Value": "37",
           "price": 99000,
-          "stock": 38,
-          "skuCode": "TK210283519-38"
+          "stock": 33,
+          "skuCode": "TK210283519-NUDE-37"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Nude",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 33,
+          "skuCode": "TK210283519-NUDE-38"
+        },
+        {
+          "option1Value": "Nude",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 14,
+          "skuCode": "TK210283519-NUDE-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 15,
+          "skuCode": "TK210283519-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 6,
+          "skuCode": "TK210283519-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 15,
+          "skuCode": "TK210283519-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 5,
+          "skuCode": "TK210283519-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 99000,
           "stock": 10,
-          "skuCode": "TK210283519-39"
+          "skuCode": "TK210283519-DEN-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 38,
+          "skuCode": "TK210283519-TRANG-35"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 25,
+          "skuCode": "TK210283519-TRANG-36"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 32,
+          "skuCode": "TK210283519-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 22,
+          "skuCode": "TK210283519-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 28,
+          "skuCode": "TK210283519-TRANG-39"
         }
       ]
     },
@@ -9911,43 +11276,78 @@
       "brand": "HT.NEO",
       "name": "Giày cao gót 7p gót nhọn thiết kế cực xinh khuy vuông chữ S đính đá đi cực êm chân cs150",
       "description": "GIÀY CAO GÓT 7P HT. NEO KHUY VUÔNG CHỮ S ĐÍNH ĐÁ CS150-Thương hiệu: HT. NEO-Chất liệu: Da cao cấp-Thiết kế: kiểu dáng cực xinh, trẻ trung-Size: 35-39-Màu: đen, kem. Giày được…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 170000,
-          "stock": 0,
-          "skuCode": "TK175724129-35"
+          "stock": 29,
+          "skuCode": "TK175724129-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 170000,
           "stock": 20,
-          "skuCode": "TK175724129-36"
+          "skuCode": "TK175724129-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 170000,
-          "stock": 0,
-          "skuCode": "TK175724129-37"
+          "stock": 38,
+          "skuCode": "TK175724129-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 170000,
-          "stock": 30,
-          "skuCode": "TK175724129-38"
+          "stock": 4,
+          "skuCode": "TK175724129-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 170000,
-          "stock": 12,
-          "skuCode": "TK175724129-39"
+          "stock": 16,
+          "skuCode": "TK175724129-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 170000,
+          "stock": 2,
+          "skuCode": "TK175724129-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
+          "price": 170000,
+          "stock": 21,
+          "skuCode": "TK175724129-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 6,
+          "skuCode": "TK175724129-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
+          "price": 170000,
+          "stock": 23,
+          "skuCode": "TK175724129-KEM-38"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 170000,
+          "stock": 3,
+          "skuCode": "TK175724129-KEM-39"
         }
       ]
     },
@@ -10411,43 +11811,148 @@
       "brand": "Pixie",
       "name": "Giày Búp Bê Đế Xuồng Da Thật Khoá Tròn Pixie X665",
       "description": "Thông tin sản phẩm Mã sản phẩm: X665 Chất liệu: PU cao cấp Chiều cao: 3cm Màu sắc: Đen, Nâu, Xanh, Trắng Size: 35, 36, 37, 38, 39 Hướng dẫn bảo quản: - Bạn nên thường x...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 189000,
-          "stock": 30,
-          "skuCode": "TK76103596-35"
+          "stock": 24,
+          "skuCode": "TK76103596-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 189000,
-          "stock": 9,
-          "skuCode": "TK76103596-36"
+          "stock": 35,
+          "skuCode": "TK76103596-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 189000,
-          "stock": 25,
-          "skuCode": "TK76103596-37"
+          "stock": 23,
+          "skuCode": "TK76103596-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 189000,
-          "stock": 18,
-          "skuCode": "TK76103596-38"
+          "stock": 24,
+          "skuCode": "TK76103596-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 189000,
+          "stock": 1,
+          "skuCode": "TK76103596-DEN-39"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "35",
+          "price": 189000,
+          "stock": 37,
+          "skuCode": "TK76103596-NAU-35"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "36",
           "price": 189000,
           "stock": 16,
-          "skuCode": "TK76103596-39"
+          "skuCode": "TK76103596-NAU-36"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "37",
+          "price": 189000,
+          "stock": 0,
+          "skuCode": "TK76103596-NAU-37"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "38",
+          "price": 189000,
+          "stock": 29,
+          "skuCode": "TK76103596-NAU-38"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "39",
+          "price": 189000,
+          "stock": 13,
+          "skuCode": "TK76103596-NAU-39"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "35",
+          "price": 189000,
+          "stock": 16,
+          "skuCode": "TK76103596-XANH-35"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "36",
+          "price": 189000,
+          "stock": 40,
+          "skuCode": "TK76103596-XANH-36"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "37",
+          "price": 189000,
+          "stock": 14,
+          "skuCode": "TK76103596-XANH-37"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "38",
+          "price": 189000,
+          "stock": 32,
+          "skuCode": "TK76103596-XANH-38"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "39",
+          "price": 189000,
+          "stock": 36,
+          "skuCode": "TK76103596-XANH-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "35",
+          "price": 189000,
+          "stock": 11,
+          "skuCode": "TK76103596-TRANG-35"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "36",
+          "price": 189000,
+          "stock": 32,
+          "skuCode": "TK76103596-TRANG-36"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "37",
+          "price": 189000,
+          "stock": 33,
+          "skuCode": "TK76103596-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 189000,
+          "stock": 8,
+          "skuCode": "TK76103596-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 189000,
+          "stock": 0,
+          "skuCode": "TK76103596-TRANG-39"
         }
       ]
     },
@@ -10661,43 +12166,78 @@
       "brand": null,
       "name": "Giày nữ da mềm giày đế xuồng cao 3cm",
       "description": "Chất liệu: Da mềm êm chân, kiểu dáng ôm chân thon gọn. Màu sắc: Đen, Kem và Nâu phù hợp cho nhiều loại trang phục đi học, đi làm, đi du lịch,Đế xuồng cao 3cm thiết kế rãnh chống trượt an toàn. Size từ 35…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 139000,
+          "stock": 39,
+          "skuCode": "TK193772189-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 139000,
           "stock": 9,
-          "skuCode": "TK193772189-35"
+          "skuCode": "TK193772189-DEN-36"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 139000,
-          "stock": 16,
-          "skuCode": "TK193772189-36"
+          "stock": 11,
+          "skuCode": "TK193772189-DEN-37"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 139000,
-          "stock": 0,
-          "skuCode": "TK193772189-37"
+          "stock": 39,
+          "skuCode": "TK193772189-DEN-38"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 139000,
+          "stock": 8,
+          "skuCode": "TK193772189-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
           "price": 139000,
           "stock": 30,
-          "skuCode": "TK193772189-38"
+          "skuCode": "TK193772189-KEM-35"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "36",
           "price": 139000,
-          "stock": 40,
-          "skuCode": "TK193772189-39"
+          "stock": 2,
+          "skuCode": "TK193772189-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 139000,
+          "stock": 31,
+          "skuCode": "TK193772189-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
+          "price": 139000,
+          "stock": 21,
+          "skuCode": "TK193772189-KEM-38"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 139000,
+          "stock": 31,
+          "skuCode": "TK193772189-KEM-39"
         }
       ]
     },
@@ -10861,43 +12401,113 @@
       "brand": null,
       "name": "Sandal đế xuồng 9p siêu nhẹ, siêu êm",
       "description": "Tên sản phẩm: Giày đế xuồng cao 9p siêu hack dáng 2ssc149Chất liệu: Chất liệu da PU mềm, ôm chân, lên form chuẩn. Đế cao 9cm Size: 35-39Màu sắc: Đen, Kem, Trắng. Chất liệu đế êm cao cấp, chống trượt, cực…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 350000,
-          "stock": 31,
-          "skuCode": "TK105656233-35"
+          "stock": 27,
+          "skuCode": "TK105656233-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 350000,
-          "stock": 9,
-          "skuCode": "TK105656233-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
-          "price": 350000,
-          "stock": 4,
-          "skuCode": "TK105656233-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 350000,
           "stock": 8,
-          "skuCode": "TK105656233-38"
+          "skuCode": "TK105656233-DEN-36"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 350000,
-          "stock": 34,
-          "skuCode": "TK105656233-39"
+          "stock": 32,
+          "skuCode": "TK105656233-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 350000,
+          "stock": 0,
+          "skuCode": "TK105656233-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 350000,
+          "stock": 23,
+          "skuCode": "TK105656233-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 350000,
+          "stock": 32,
+          "skuCode": "TK105656233-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
+          "price": 350000,
+          "stock": 25,
+          "skuCode": "TK105656233-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 350000,
+          "stock": 0,
+          "skuCode": "TK105656233-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
+          "price": 350000,
+          "stock": 1,
+          "skuCode": "TK105656233-KEM-38"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 350000,
+          "stock": 37,
+          "skuCode": "TK105656233-KEM-39"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "35",
+          "price": 350000,
+          "stock": 23,
+          "skuCode": "TK105656233-TRANG-35"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "36",
+          "price": 350000,
+          "stock": 38,
+          "skuCode": "TK105656233-TRANG-36"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "37",
+          "price": 350000,
+          "stock": 12,
+          "skuCode": "TK105656233-TRANG-37"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "38",
+          "price": 350000,
+          "stock": 22,
+          "skuCode": "TK105656233-TRANG-38"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": "39",
+          "price": 350000,
+          "stock": 25,
+          "skuCode": "TK105656233-TRANG-39"
         }
       ]
     },
@@ -11011,43 +12621,148 @@
       "brand": "Pixie",
       "name": "Giày Búp Bê Đế Xuồng Da Thật 3cm Mũi Nhọn Gắn Nơ Pixie X619",
       "description": "Thông tin sản phẩm Mã sản phẩm: X619 Chất liệu: Da Thật Chiều cao: 3cm Màu sắc: Đen, Nâu, Cam, Kem Size: 35, 36, 37, 38, 39 Hướng dẫn bảo quản: - Bạn nên thường xuyên v...",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 179000,
-          "stock": 14,
-          "skuCode": "TK76103677-35"
+          "stock": 21,
+          "skuCode": "TK76103677-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 179000,
-          "stock": 28,
-          "skuCode": "TK76103677-36"
+          "stock": 21,
+          "skuCode": "TK76103677-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 179000,
           "stock": 39,
-          "skuCode": "TK76103677-37"
+          "skuCode": "TK76103677-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 179000,
-          "stock": 17,
-          "skuCode": "TK76103677-38"
+          "stock": 12,
+          "skuCode": "TK76103677-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 179000,
-          "stock": 24,
-          "skuCode": "TK76103677-39"
+          "stock": 22,
+          "skuCode": "TK76103677-DEN-39"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "35",
+          "price": 179000,
+          "stock": 4,
+          "skuCode": "TK76103677-NAU-35"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "36",
+          "price": 179000,
+          "stock": 23,
+          "skuCode": "TK76103677-NAU-36"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "37",
+          "price": 179000,
+          "stock": 35,
+          "skuCode": "TK76103677-NAU-37"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "38",
+          "price": 179000,
+          "stock": 20,
+          "skuCode": "TK76103677-NAU-38"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "39",
+          "price": 179000,
+          "stock": 12,
+          "skuCode": "TK76103677-NAU-39"
+        },
+        {
+          "option1Value": "Cam",
+          "option2Value": "35",
+          "price": 179000,
+          "stock": 10,
+          "skuCode": "TK76103677-CAM-35"
+        },
+        {
+          "option1Value": "Cam",
+          "option2Value": "36",
+          "price": 179000,
+          "stock": 22,
+          "skuCode": "TK76103677-CAM-36"
+        },
+        {
+          "option1Value": "Cam",
+          "option2Value": "37",
+          "price": 179000,
+          "stock": 4,
+          "skuCode": "TK76103677-CAM-37"
+        },
+        {
+          "option1Value": "Cam",
+          "option2Value": "38",
+          "price": 179000,
+          "stock": 25,
+          "skuCode": "TK76103677-CAM-38"
+        },
+        {
+          "option1Value": "Cam",
+          "option2Value": "39",
+          "price": 179000,
+          "stock": 23,
+          "skuCode": "TK76103677-CAM-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 179000,
+          "stock": 25,
+          "skuCode": "TK76103677-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
+          "price": 179000,
+          "stock": 7,
+          "skuCode": "TK76103677-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 179000,
+          "stock": 28,
+          "skuCode": "TK76103677-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
+          "price": 179000,
+          "stock": 39,
+          "skuCode": "TK76103677-KEM-38"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 179000,
+          "stock": 22,
+          "skuCode": "TK76103677-KEM-39"
         }
       ]
     },
@@ -11111,43 +12826,78 @@
       "brand": null,
       "name": "Sandal đế xuồng 9p nhẹ, êm quai ngang phối dây dù",
       "description": "Chất liệu: Chất liệu da PU mềm phối dây dù. Đế cao 9cm Size: 35-39Màu sắc: Đen, Kem Chất liệu đế êm cao cấp, chống trượt, cực kì êm châm. Kiểu dáng: Sang trọng, lịch sự. Mùa phù hợp: tất cả các mùa, dễ mix…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 350000,
           "stock": 14,
-          "skuCode": "TK105657325-35"
+          "skuCode": "TK105657325-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 350000,
-          "stock": 32,
-          "skuCode": "TK105657325-36"
+          "stock": 28,
+          "skuCode": "TK105657325-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 350000,
-          "stock": 30,
-          "skuCode": "TK105657325-37"
+          "stock": 35,
+          "skuCode": "TK105657325-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 350000,
-          "stock": 34,
-          "skuCode": "TK105657325-38"
+          "stock": 15,
+          "skuCode": "TK105657325-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 350000,
-          "stock": 17,
-          "skuCode": "TK105657325-39"
+          "stock": 24,
+          "skuCode": "TK105657325-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 350000,
+          "stock": 37,
+          "skuCode": "TK105657325-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
+          "price": 350000,
+          "stock": 3,
+          "skuCode": "TK105657325-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 350000,
+          "stock": 27,
+          "skuCode": "TK105657325-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
+          "price": 350000,
+          "stock": 25,
+          "skuCode": "TK105657325-KEM-38"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 350000,
+          "stock": 28,
+          "skuCode": "TK105657325-KEM-39"
         }
       ]
     },
@@ -13061,43 +14811,113 @@
       "brand": "HT.NEO",
       "name": "Giày mọi nữ nữ, giày bệt nữ HT.NEO da lộn khuy vuông kết hợp với kim loại vàng NU90",
       "description": "GIÀY MỌI NỮ, GIÀY BỆT NỮ DA LỘN KHUY VUÔNG VỚI KIM LOẠI NU90-Thương hiệu: HT. NEO-Chất liệu: Da cao cấp-Màu: đen, đỏ, ghi-Size: 35-39Giày mọi nữ, giày bệt nữ da cao cấp HT…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 99000,
-          "stock": 15,
-          "skuCode": "TK177304945-35"
+          "stock": 1,
+          "skuCode": "TK177304945-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 99000,
-          "stock": 5,
-          "skuCode": "TK177304945-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 99000,
           "stock": 35,
-          "skuCode": "TK177304945-37"
+          "skuCode": "TK177304945-DEN-36"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 99000,
-          "stock": 22,
-          "skuCode": "TK177304945-38"
+          "stock": 29,
+          "skuCode": "TK177304945-DEN-37"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 99000,
-          "stock": 25,
-          "skuCode": "TK177304945-39"
+          "stock": 34,
+          "skuCode": "TK177304945-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 0,
+          "skuCode": "TK177304945-DEN-39"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 32,
+          "skuCode": "TK177304945-DO-35"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 9,
+          "skuCode": "TK177304945-DO-36"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 10,
+          "skuCode": "TK177304945-DO-37"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 28,
+          "skuCode": "TK177304945-DO-38"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 37,
+          "skuCode": "TK177304945-DO-39"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "35",
+          "price": 99000,
+          "stock": 35,
+          "skuCode": "TK177304945-GHI-35"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "36",
+          "price": 99000,
+          "stock": 15,
+          "skuCode": "TK177304945-GHI-36"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "37",
+          "price": 99000,
+          "stock": 38,
+          "skuCode": "TK177304945-GHI-37"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "38",
+          "price": 99000,
+          "stock": 15,
+          "skuCode": "TK177304945-GHI-38"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "39",
+          "price": 99000,
+          "stock": 30,
+          "skuCode": "TK177304945-GHI-39"
         }
       ]
     },
@@ -13761,43 +15581,78 @@
       "brand": null,
       "name": "Giầy boot nữ khóa ngang chất da hottrend",
       "description": "Phối màu trẻ trung, năng động. Đế giày làm bằng chất liệu cao su tổng hợp. Thích hợp mang đi học, đi làm. Màu: Kem, Đen. Size: 35 -39Cao: 3-5 cm. Được thiết kế trẻ trung, năng động và sành điệu, khẳng định…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "35",
           "price": 250000,
-          "stock": 24,
-          "skuCode": "TK74924204-35"
+          "stock": 39,
+          "skuCode": "TK74924204-KEM-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "36",
           "price": 250000,
-          "stock": 20,
-          "skuCode": "TK74924204-36"
+          "stock": 11,
+          "skuCode": "TK74924204-KEM-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "37",
           "price": 250000,
           "stock": 7,
-          "skuCode": "TK74924204-37"
+          "skuCode": "TK74924204-KEM-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "38",
           "price": 250000,
-          "stock": 25,
-          "skuCode": "TK74924204-38"
+          "stock": 10,
+          "skuCode": "TK74924204-KEM-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "39",
           "price": 250000,
-          "stock": 15,
-          "skuCode": "TK74924204-39"
+          "stock": 27,
+          "skuCode": "TK74924204-KEM-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 250000,
+          "stock": 4,
+          "skuCode": "TK74924204-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 250000,
+          "stock": 35,
+          "skuCode": "TK74924204-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 250000,
+          "stock": 21,
+          "skuCode": "TK74924204-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 250000,
+          "stock": 2,
+          "skuCode": "TK74924204-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 250000,
+          "stock": 20,
+          "skuCode": "TK74924204-DEN-39"
         }
       ]
     },
@@ -13861,43 +15716,78 @@
       "brand": null,
       "name": "Boot Nữ cao cổ khóa ngang chất da màu đen cực đẹp",
       "description": "Chất liệu tổng hợp bền chắc. Phối màu trẻ trung, năng động. Đế giày làm bằng chất liệu cao su tổng hợp. Thích hợp mang đi học, đi làm. Màu: Kem, Đen. Size: 35 -39Cao: 3-5 cm. Được thiết kế trẻ trung, năng động…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "35",
           "price": 149000,
-          "stock": 30,
-          "skuCode": "TK74924120-35"
+          "stock": 1,
+          "skuCode": "TK74924120-KEM-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "36",
           "price": 149000,
-          "stock": 9,
-          "skuCode": "TK74924120-36"
+          "stock": 4,
+          "skuCode": "TK74924120-KEM-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "37",
           "price": 149000,
-          "stock": 13,
-          "skuCode": "TK74924120-37"
+          "stock": 20,
+          "skuCode": "TK74924120-KEM-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "38",
           "price": 149000,
-          "stock": 15,
-          "skuCode": "TK74924120-38"
+          "stock": 14,
+          "skuCode": "TK74924120-KEM-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "39",
           "price": 149000,
-          "stock": 10,
-          "skuCode": "TK74924120-39"
+          "stock": 36,
+          "skuCode": "TK74924120-KEM-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 149000,
+          "stock": 26,
+          "skuCode": "TK74924120-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 149000,
+          "stock": 19,
+          "skuCode": "TK74924120-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 149000,
+          "stock": 3,
+          "skuCode": "TK74924120-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 149000,
+          "stock": 33,
+          "skuCode": "TK74924120-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 149000,
+          "stock": 37,
+          "skuCode": "TK74924120-DEN-39"
         }
       ]
     },
@@ -14211,43 +16101,78 @@
       "brand": null,
       "name": "Ảnh thật - Giày boot nữ đế vuông hai màu đen, nâu cá tính cao 7.5cm B161",
       "description": "Giày boot nữ đế vuông hai màu đen, nâu cá tính cao 7.5cm B161Sản phẩm chất lượng - 100% như mô tả. Chất liệu: PU da kết hợp. Đế cao :7.5 cm. Màu sắc: đen, nâu. Kích cỡ: 35, 36, 37, 38, 39Mẫu boot này…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 289000,
-          "stock": 3,
-          "skuCode": "TK191726896-35"
+          "stock": 23,
+          "skuCode": "TK191726896-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 289000,
-          "stock": 12,
-          "skuCode": "TK191726896-36"
+          "stock": 13,
+          "skuCode": "TK191726896-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 289000,
-          "stock": 12,
-          "skuCode": "TK191726896-37"
+          "stock": 17,
+          "skuCode": "TK191726896-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 289000,
-          "stock": 29,
-          "skuCode": "TK191726896-38"
+          "stock": 23,
+          "skuCode": "TK191726896-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 289000,
+          "stock": 8,
+          "skuCode": "TK191726896-DEN-39"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "35",
+          "price": 289000,
+          "stock": 15,
+          "skuCode": "TK191726896-NAU-35"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "36",
+          "price": 289000,
+          "stock": 8,
+          "skuCode": "TK191726896-NAU-36"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "37",
+          "price": 289000,
+          "stock": 5,
+          "skuCode": "TK191726896-NAU-37"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "38",
           "price": 289000,
           "stock": 18,
-          "skuCode": "TK191726896-39"
+          "skuCode": "TK191726896-NAU-38"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": "39",
+          "price": 289000,
+          "stock": 23,
+          "skuCode": "TK191726896-NAU-39"
         }
       ]
     },
@@ -14461,43 +16386,78 @@
       "brand": null,
       "name": "Boots nữ oxford S12",
       "description": "Phối màu trẻ trung, năng động. Đế giày làm bằng chất liệu cao su tổng hợp. Thích hợp mang đi học, đi làm. Màu: Kem, Đen. Size: 35 -39Cao: 3-5 cm. Được thiết kế trẻ trung, năng động và sành điệu, khẳng định…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "35",
           "price": 155000,
           "stock": 2,
-          "skuCode": "TK130044839-35"
+          "skuCode": "TK130044839-KEM-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "36",
           "price": 155000,
-          "stock": 4,
-          "skuCode": "TK130044839-36"
+          "stock": 14,
+          "skuCode": "TK130044839-KEM-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "37",
           "price": 155000,
-          "stock": 30,
-          "skuCode": "TK130044839-37"
+          "stock": 27,
+          "skuCode": "TK130044839-KEM-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "38",
           "price": 155000,
-          "stock": 21,
-          "skuCode": "TK130044839-38"
+          "stock": 38,
+          "skuCode": "TK130044839-KEM-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 155000,
+          "stock": 11,
+          "skuCode": "TK130044839-KEM-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 155000,
+          "stock": 26,
+          "skuCode": "TK130044839-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 155000,
+          "stock": 25,
+          "skuCode": "TK130044839-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 155000,
+          "stock": 22,
+          "skuCode": "TK130044839-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 155000,
           "stock": 24,
-          "skuCode": "TK130044839-39"
+          "skuCode": "TK130044839-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 155000,
+          "stock": 31,
+          "skuCode": "TK130044839-DEN-39"
         }
       ]
     },
@@ -14511,43 +16471,78 @@
       "brand": null,
       "name": "Giầy Boot nữ cổ lửng 2 màu đen trắng siêu đẹp",
       "description": "Phối màu trẻ trung, năng động. Đế giày làm bằng chất liệu cao su tổng hợp. Thích hợp mang đi học, đi làm. Màu: Kem, Đen. Size: 35 -39Cao: 3-5 cm. Được thiết kế trẻ trung, năng động và sành điệu, khẳng định…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "35",
           "price": 165000,
-          "stock": 1,
-          "skuCode": "TK130044577-35"
+          "stock": 19,
+          "skuCode": "TK130044577-KEM-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
-          "price": 165000,
-          "stock": 20,
-          "skuCode": "TK130044577-36"
-        },
-        {
-          "option1Value": "37",
-          "option2Value": null,
-          "price": 165000,
-          "stock": 28,
-          "skuCode": "TK130044577-37"
-        },
-        {
-          "option1Value": "38",
-          "option2Value": null,
-          "price": 165000,
-          "stock": 7,
-          "skuCode": "TK130044577-38"
-        },
-        {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "36",
           "price": 165000,
           "stock": 34,
-          "skuCode": "TK130044577-39"
+          "skuCode": "TK130044577-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 165000,
+          "stock": 35,
+          "skuCode": "TK130044577-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
+          "price": 165000,
+          "stock": 29,
+          "skuCode": "TK130044577-KEM-38"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "39",
+          "price": 165000,
+          "stock": 8,
+          "skuCode": "TK130044577-KEM-39"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "35",
+          "price": 165000,
+          "stock": 3,
+          "skuCode": "TK130044577-DEN-35"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "36",
+          "price": 165000,
+          "stock": 4,
+          "skuCode": "TK130044577-DEN-36"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 165000,
+          "stock": 17,
+          "skuCode": "TK130044577-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 165000,
+          "stock": 37,
+          "skuCode": "TK130044577-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 165000,
+          "stock": 21,
+          "skuCode": "TK130044577-DEN-39"
         }
       ]
     },
@@ -15611,43 +17606,113 @@
       "brand": null,
       "name": "Dép Sandal nữ VeRo quai dán cao 3cm, dép quai hậu học sinh, sinh viên mới",
       "description": "THÔNG TIN SẢN PHẨM DÉP SANDAL️ Size: 35 - 39️ Chất liệu: Quai dép bản to êm mềm chân️ Màu sắc : Đen, kem, xanh️ Phù hợp với lứa tuổi học sinh, sinh viên, các bạn nữ trẻ trung năng động đi học đi…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 170000,
-          "stock": 22,
-          "skuCode": "TK193578781-35"
+          "stock": 23,
+          "skuCode": "TK193578781-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 170000,
-          "stock": 10,
-          "skuCode": "TK193578781-36"
+          "stock": 20,
+          "skuCode": "TK193578781-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 0,
+          "skuCode": "TK193578781-DEN-37"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "38",
+          "price": 170000,
+          "stock": 38,
+          "skuCode": "TK193578781-DEN-38"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": "39",
+          "price": 170000,
+          "stock": 33,
+          "skuCode": "TK193578781-DEN-39"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "35",
+          "price": 170000,
+          "stock": 32,
+          "skuCode": "TK193578781-KEM-35"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "36",
+          "price": 170000,
+          "stock": 29,
+          "skuCode": "TK193578781-KEM-36"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 15,
+          "skuCode": "TK193578781-KEM-37"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": "38",
           "price": 170000,
           "stock": 1,
-          "skuCode": "TK193578781-37"
+          "skuCode": "TK193578781-KEM-38"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Kem",
+          "option2Value": "39",
           "price": 170000,
-          "stock": 18,
-          "skuCode": "TK193578781-38"
+          "stock": 27,
+          "skuCode": "TK193578781-KEM-39"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Xanh",
+          "option2Value": "35",
           "price": 170000,
-          "stock": 19,
-          "skuCode": "TK193578781-39"
+          "stock": 7,
+          "skuCode": "TK193578781-XANH-35"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "36",
+          "price": 170000,
+          "stock": 8,
+          "skuCode": "TK193578781-XANH-36"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "37",
+          "price": 170000,
+          "stock": 2,
+          "skuCode": "TK193578781-XANH-37"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "38",
+          "price": 170000,
+          "stock": 13,
+          "skuCode": "TK193578781-XANH-38"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": "39",
+          "price": 170000,
+          "stock": 13,
+          "skuCode": "TK193578781-XANH-39"
         }
       ]
     },
@@ -15911,43 +17976,78 @@
       "brand": null,
       "name": "Dép sandal nữ quai ngang Hàn Quốc đi học đi chơi quai hậu kiểu Ulzzang S123",
       "description": "Dép sandal nữ quai ngang Hàn Quốc đi học đi chơi quai hậu kiểu Ulzzang S123- Màu sắc: Đen phối caro trắng kem, Trắng kem phối caro đen- Size: 35 36 37 38 39 40- Chất Liệu: Quai được thiết kế bằng…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 199000,
-          "stock": 35,
-          "skuCode": "TK182814162-35"
+          "stock": 27,
+          "skuCode": "TK182814162-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 199000,
-          "stock": 14,
-          "skuCode": "TK182814162-36"
+          "stock": 20,
+          "skuCode": "TK182814162-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 199000,
-          "stock": 21,
-          "skuCode": "TK182814162-37"
+          "stock": 24,
+          "skuCode": "TK182814162-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 199000,
-          "stock": 35,
-          "skuCode": "TK182814162-38"
+          "stock": 18,
+          "skuCode": "TK182814162-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 199000,
-          "stock": 2,
-          "skuCode": "TK182814162-39"
+          "stock": 36,
+          "skuCode": "TK182814162-DEN-39"
+        },
+        {
+          "option1Value": "Trắng kem",
+          "option2Value": "35",
+          "price": 199000,
+          "stock": 29,
+          "skuCode": "TK182814162-TRANGKEM-35"
+        },
+        {
+          "option1Value": "Trắng kem",
+          "option2Value": "36",
+          "price": 199000,
+          "stock": 5,
+          "skuCode": "TK182814162-TRANGKEM-36"
+        },
+        {
+          "option1Value": "Trắng kem",
+          "option2Value": "37",
+          "price": 199000,
+          "stock": 6,
+          "skuCode": "TK182814162-TRANGKEM-37"
+        },
+        {
+          "option1Value": "Trắng kem",
+          "option2Value": "38",
+          "price": 199000,
+          "stock": 30,
+          "skuCode": "TK182814162-TRANGKEM-38"
+        },
+        {
+          "option1Value": "Trắng kem",
+          "option2Value": "39",
+          "price": 199000,
+          "stock": 26,
+          "skuCode": "TK182814162-TRANGKEM-39"
         }
       ]
     },
@@ -17011,43 +19111,78 @@
       "brand": null,
       "name": "Dép quai ngang cao su đúc siêu bền nam nữ",
       "description": "Dép quai ngang cao su đúc siêu bền nam nữ FORM BÉ NÊN CÁC BẠN LƯU Ý ĐẶT ĐƠN nhớ tăng 1 size nhésize :36-41màu:đen ,ghi,hồng️Cảm Ơn Khách Hàng Luôn Tin Tưởng Và Ủng Hộ Shop -Thanh toán khi…",
-      "variationName1": "Kích cỡ",
-      "variationName2": null,
+      "variationName1": "Màu sắc",
+      "variationName2": "Kích cỡ",
       "variants": [
         {
-          "option1Value": "35",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "35",
           "price": 39000,
-          "stock": 34,
-          "skuCode": "TK105595024-35"
+          "stock": 26,
+          "skuCode": "TK105595024-DEN-35"
         },
         {
-          "option1Value": "36",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "36",
           "price": 39000,
-          "stock": 16,
-          "skuCode": "TK105595024-36"
+          "stock": 6,
+          "skuCode": "TK105595024-DEN-36"
         },
         {
-          "option1Value": "37",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "37",
           "price": 39000,
-          "stock": 12,
-          "skuCode": "TK105595024-37"
+          "stock": 1,
+          "skuCode": "TK105595024-DEN-37"
         },
         {
-          "option1Value": "38",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "38",
           "price": 39000,
-          "stock": 22,
-          "skuCode": "TK105595024-38"
+          "stock": 32,
+          "skuCode": "TK105595024-DEN-38"
         },
         {
-          "option1Value": "39",
-          "option2Value": null,
+          "option1Value": "Đen",
+          "option2Value": "39",
           "price": 39000,
-          "stock": 29,
-          "skuCode": "TK105595024-39"
+          "stock": 28,
+          "skuCode": "TK105595024-DEN-39"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "35",
+          "price": 39000,
+          "stock": 27,
+          "skuCode": "TK105595024-GHI-35"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "36",
+          "price": 39000,
+          "stock": 15,
+          "skuCode": "TK105595024-GHI-36"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "37",
+          "price": 39000,
+          "stock": 31,
+          "skuCode": "TK105595024-GHI-37"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "38",
+          "price": 39000,
+          "stock": 13,
+          "skuCode": "TK105595024-GHI-38"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": "39",
+          "price": 39000,
+          "stock": 1,
+          "skuCode": "TK105595024-GHI-39"
         }
       ]
     },
@@ -18391,15 +20526,29 @@
       "brand": null,
       "name": "Móc khóa móc phụ kiện túi xách 1 cặp",
       "description": "móc khóa móc phụ kiện móc túi xách , giá 1 cặpshop có các màu: đen, vàng , bạc và đồng dùng để thay các loại móc khóa túi xáchdài móc 4 cm , đường kính vòng tròn 1,5cm...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 29000,
-          "stock": 35,
-          "skuCode": "TK72701832"
+          "stock": 21,
+          "skuCode": "TK72701832-DEN"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": null,
+          "price": 29000,
+          "stock": 37,
+          "skuCode": "TK72701832-VANG"
+        },
+        {
+          "option1Value": "Bạc",
+          "option2Value": null,
+          "price": 29000,
+          "stock": 19,
+          "skuCode": "TK72701832-BAC"
         }
       ]
     },
@@ -18743,15 +20892,22 @@
       "brand": "PARADOX WORLDWIDE",
       "name": "Túi tote PARADOX - Màu trắng",
       "description": "Túi tote PARADOXChất liệu: Non-fabric. Màu sắc: Trắng - Xanh dương. Hoạ tiết: Logo - Monogram. Kích thước: 28x39x10cm (ngang x cao x rộng)...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Trắng",
           "option2Value": null,
           "price": 100000,
-          "stock": 16,
-          "skuCode": "TK198960597"
+          "stock": 0,
+          "skuCode": "TK198960597-TRANG"
+        },
+        {
+          "option1Value": "Xanh dương",
+          "option2Value": null,
+          "price": 100000,
+          "stock": 18,
+          "skuCode": "TK198960597-XANHDUONG"
         }
       ]
     },
@@ -19337,15 +21493,43 @@
       "brand": null,
       "name": "Túi Đeo Chéo Nữ,Túi Đựng Điện Thoại Không Thấm Nước ( NHIỀU MÀU) -TX206",
       "description": "Chất liệu : Vải Dù cao cấp khong thấm nước. Màu sắc : Đen - Đỏ - Xám - Xanh - Tím. Kiểu dáng : Sang trọng. Kích thước : 12x17x7cm ( Dài x cao x rộng đáy) Khi đi dạo phố hoặc đi du lịch bạn sẽ ...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 99000,
-          "stock": 17,
-          "skuCode": "TK79104748"
+          "stock": 39,
+          "skuCode": "TK79104748-DEN"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": null,
+          "price": 99000,
+          "stock": 22,
+          "skuCode": "TK79104748-DO"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": null,
+          "price": 99000,
+          "stock": 25,
+          "skuCode": "TK79104748-XAM"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": null,
+          "price": 99000,
+          "stock": 11,
+          "skuCode": "TK79104748-XANH"
+        },
+        {
+          "option1Value": "Tím",
+          "option2Value": null,
+          "price": 99000,
+          "stock": 33,
+          "skuCode": "TK79104748-TIM"
         }
       ]
     },
@@ -19359,15 +21543,36 @@
       "brand": null,
       "name": "Túi ví nữ da phong cách hàn quốc để điện thoại – siêu xinh – năng động và tiện ích",
       "description": "TÚI NỮ DA PHONG CÁCH HÀN QUỐC ĐỂ ĐIỆN THOẠI – SIÊU XINH – NĂNG ĐỘNG VÀ TIỆN ÍCHKích thước sản phẩm : 18x11x4.5cm Trọng lượng: 200g Màu sắc: Xanh/Đen/Hồng/Đỏ...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Xanh",
           "option2Value": null,
           "price": 46200,
-          "stock": 2,
-          "skuCode": "TK82880369"
+          "stock": 31,
+          "skuCode": "TK82880369-XANH"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 46200,
+          "stock": 23,
+          "skuCode": "TK82880369-DEN"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": null,
+          "price": 46200,
+          "stock": 30,
+          "skuCode": "TK82880369-HONG"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": null,
+          "price": 46200,
+          "stock": 26,
+          "skuCode": "TK82880369-DO"
         }
       ]
     },
@@ -19557,15 +21762,29 @@
       "brand": null,
       "name": "Túi Vải Đeo Chéo Gấu Bông Hàn Quốc",
       "description": "Thông tin sản phẩm : Túi Vải Đeo Chéo Gấu Bông Hàn Quốc️ Chất liệu: Vải bố. ️ Đường may tỉ mỉ , chắc chắn. ️ Màu sắc: Đen, Trắng, Vàng️ Thuê hoa.️ Kích thước: 15 x 13 x 13 x 3cm ️ Thiết kế đơn giản…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 35200,
-          "stock": 30,
-          "skuCode": "TK73613463"
+          "stock": 6,
+          "skuCode": "TK73613463-DEN"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": null,
+          "price": 35200,
+          "stock": 13,
+          "skuCode": "TK73613463-TRANG"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": null,
+          "price": 35200,
+          "stock": 24,
+          "skuCode": "TK73613463-VANG"
         }
       ]
     },
@@ -19623,15 +21842,36 @@
       "brand": null,
       "name": "Túi Xách Nữ -Túi vải CANVAS đeo chéo nữ dây YXY TOLIVE TV02",
       "description": "Thông tin sản phẩm: - Kích thước: 14 x 18 x 6cm - Màu sắc: Đen, Vàng, Xanh, Trắng - Style: Hàn Quốc - Cân nặng: 150g Túi có 1 lỗ tròn phía sau để luồn dây đeo tai nghe siêu ...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 40000,
+          "stock": 16,
+          "skuCode": "TK116594664-DEN"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": null,
+          "price": 40000,
+          "stock": 28,
+          "skuCode": "TK116594664-VANG"
+        },
+        {
+          "option1Value": "Xanh",
           "option2Value": null,
           "price": 40000,
           "stock": 19,
-          "skuCode": "TK116594664"
+          "skuCode": "TK116594664-XANH"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": null,
+          "price": 40000,
+          "stock": 3,
+          "skuCode": "TK116594664-TRANG"
         }
       ]
     },
@@ -20349,15 +22589,36 @@
       "brand": "TRITA",
       "name": "Cặp da nam công sở CCS6 - Cặp đựng catalogue, laptop, máy tính bảng",
       "description": "- Kích thước: Dài 40cm x Rộng 9cm x Cao 30cm - Chất liệu: da tổng hợp cao cấp - Màu sắc: Bò đậm, Bò nhạt, Đen, Nâu - Số ngăn: 8. Trọng lượng : 1030g - Đựng vừa laptop 15.6…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Bò đậm",
           "option2Value": null,
           "price": 399000,
-          "stock": 2,
-          "skuCode": "TK102810167"
+          "stock": 38,
+          "skuCode": "TK102810167-BODAM"
+        },
+        {
+          "option1Value": "Bò nhạt",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 33,
+          "skuCode": "TK102810167-BONHAT"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 20,
+          "skuCode": "TK102810167-DEN"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 18,
+          "skuCode": "TK102810167-NAU"
         }
       ]
     },
@@ -20569,15 +22830,36 @@
       "brand": "TRITA",
       "name": "Cặp da văn phòng CCS10 phong cách hiện đại",
       "description": "- Kích thước: Dài 41cm x Rộng 12cm x Cao 30cm - Chất liệu: da tổng hợp cao cấp - Màu sắc: Bò đậm, Bò nhạt, Đen, Nâu - Số ngăn: 7. Trọng lượng : 1090g - Đựng vừa laptop 15.6…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Bò đậm",
           "option2Value": null,
           "price": 399000,
-          "stock": 6,
-          "skuCode": "TK102808460"
+          "stock": 19,
+          "skuCode": "TK102808460-BODAM"
+        },
+        {
+          "option1Value": "Bò nhạt",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 11,
+          "skuCode": "TK102808460-BONHAT"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 2,
+          "skuCode": "TK102808460-DEN"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 33,
+          "skuCode": "TK102808460-NAU"
         }
       ]
     },
@@ -20745,15 +23027,36 @@
       "brand": "TRITA",
       "name": "Cặp da nam văn phòng hiện đại CCS11 - Cặp da đựng sổ sách, tài liệu khổ A4, catalogue, laptop, máy tính bảng",
       "description": "- Kích thước: Dài 40cm x Rộng 10cm x Cao 30cm - Chất liệu: da tổng hợp cao cấp - Màu sắc: Bò đậm, Bò nhạt, Đen, Nâu - Số ngăn: 7. Trọng lượng : 996g - Đựng vừa laptop tối đa…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Bò đậm",
           "option2Value": null,
           "price": 399000,
-          "stock": 13,
-          "skuCode": "TK102811749"
+          "stock": 39,
+          "skuCode": "TK102811749-BODAM"
+        },
+        {
+          "option1Value": "Bò nhạt",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 10,
+          "skuCode": "TK102811749-BONHAT"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 0,
+          "skuCode": "TK102811749-DEN"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": null,
+          "price": 399000,
+          "stock": 23,
+          "skuCode": "TK102811749-NAU"
         }
       ]
     },
@@ -21493,15 +23796,22 @@
       "brand": "KEIO NIPPON",
       "name": "Ví Da Bò Nam KEIO NIPPON Cao Cấp Nhập Khẩu Italia, Khóa Kéo, Kích Thước 12x9,5cm DBNKK12",
       "description": "Ví Da Bò Nam KEIO NIPPON Cao Cấp Nhập Khẩu Italia, Khóa Kéo, Kích Thước 12x9,5cm DBNKK12 Màu sắc : Đen - đen, đen - xanh navy. Kích thước : Dài x Rộng x Cao : 12 x 9,5 x 1,5 cm Ví gồm…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 249000,
-          "stock": 34,
-          "skuCode": "TK72769110"
+          "stock": 29,
+          "skuCode": "TK72769110-DEN"
+        },
+        {
+          "option1Value": "Đen - xanh navy",
+          "option2Value": null,
+          "price": 249000,
+          "stock": 6,
+          "skuCode": "TK72769110-DENXANHNAVY"
         }
       ]
     },
@@ -21581,15 +23891,36 @@
       "brand": "DySeven",
       "name": "Ví Nam Da Bò Cao Cấp Mang May Mắn Tài Lộc Cho Chủ Sở Hữu",
       "description": "Chất liệu : Da bò thật 100%Xuất xứ: Hàng Xuất Khẩu. Dung lượng:,tiền mặt, các loại thẻ, giấy tờ,Màu sắc: Đen/Nâu Bóng/ Nâu Cafe/Nâu Vàng. Công năng: ví nam dáng đứng, bóp nam nhỏ gọn. Kích thước nhỏ, dung…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 135000,
-          "stock": 25,
-          "skuCode": "TK73934615"
+          "stock": 3,
+          "skuCode": "TK73934615-DEN"
+        },
+        {
+          "option1Value": "Nâu bóng",
+          "option2Value": null,
+          "price": 135000,
+          "stock": 17,
+          "skuCode": "TK73934615-NAUBONG"
+        },
+        {
+          "option1Value": "Nâu cafe",
+          "option2Value": null,
+          "price": 135000,
+          "stock": 18,
+          "skuCode": "TK73934615-NAUCAFE"
+        },
+        {
+          "option1Value": "Nâu vàng",
+          "option2Value": null,
+          "price": 135000,
+          "stock": 13,
+          "skuCode": "TK73934615-NAUVANG"
         }
       ]
     },
@@ -21647,15 +23978,22 @@
       "brand": "KEIO NIPPON",
       "name": "Ví Nam Vân Cá Sấu KEIO NIPPON Da Bò Nhập Khẩu Italia, Kích thước 12x9.5 cm, Khóa Kéo DBVCS12",
       "description": "Ví Nam Vân Cá Sấu KEIO NIPPON Da Bò Nhập Khẩu Italia, Kích thước 12x9.5 cm, Khóa Kéo DBVCS12Kích thước : 12 x 9.5 x 1.5 cm. Màu sắc : Đen , Nâu ...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 249000,
-          "stock": 2,
-          "skuCode": "TK72724925"
+          "stock": 16,
+          "skuCode": "TK72724925-DEN"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": null,
+          "price": 249000,
+          "stock": 13,
+          "skuCode": "TK72724925-NAU"
         }
       ]
     },
@@ -22439,15 +24777,36 @@
       "brand": null,
       "name": "Balo đựng Latop, Balo đi học cho cả Nam và Nữ",
       "description": "Balo đựng máy tính thời trang nam nữ giá rẻ chất lượng cao, đựng laptop 15.6 inch, phong cách hàn quốc. Đặc điểm balo đựng laptop xách tay :- Màu sắc : đen , ghi , xanh dương , đỏ .- Kích thước 41…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 145000,
-          "stock": 15,
-          "skuCode": "TK134817677"
+          "stock": 13,
+          "skuCode": "TK134817677-DEN"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": null,
+          "price": 145000,
+          "stock": 26,
+          "skuCode": "TK134817677-GHI"
+        },
+        {
+          "option1Value": "Xanh dương",
+          "option2Value": null,
+          "price": 145000,
+          "stock": 21,
+          "skuCode": "TK134817677-XANHDUONG"
+        },
+        {
+          "option1Value": "Đỏ",
+          "option2Value": null,
+          "price": 145000,
+          "stock": 35,
+          "skuCode": "TK134817677-DO"
         }
       ]
     },
@@ -22527,15 +24886,22 @@
       "brand": null,
       "name": "Balo Nam canvas ISD siêu rộng, bền đẹp, có ngăn laptop 15'6",
       "description": "Tên sản phẩm: Balo Nam canvas ISD siêu rộng, bền đẹp, có ngăn laptop 15'6chất liệu : canvashọa tiết : trơnmàu sắc : đen,xám. Kích thước: 55x43x15cm. Phương pháp sản xuất: công nghệ cao. Chức năng: đựng…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 119900,
-          "stock": 34,
-          "skuCode": "TK72881680"
+          "stock": 11,
+          "skuCode": "TK72881680-DEN"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": null,
+          "price": 119900,
+          "stock": 11,
+          "skuCode": "TK72881680-XAM"
         }
       ]
     },
@@ -23847,15 +26213,36 @@
       "brand": null,
       "name": "Cặp đựng laptop cao cấp PU kháng nước",
       "description": "tên sản phẩmtúi vải đựng laptop chất liệuvải oxford PUmàu sắcđen, xám, xanh, hồng, hoa càkích thước: 15 \" ...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 175000,
-          "stock": 18,
-          "skuCode": "TK166034899"
+          "stock": 34,
+          "skuCode": "TK166034899-DEN"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": null,
+          "price": 175000,
+          "stock": 22,
+          "skuCode": "TK166034899-XAM"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": null,
+          "price": 175000,
+          "stock": 39,
+          "skuCode": "TK166034899-XANH"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": null,
+          "price": 175000,
+          "stock": 0,
+          "skuCode": "TK166034899-HONG"
         }
       ]
     },
@@ -24067,15 +26454,22 @@
       "brand": "Bee Gee",
       "name": "Túi máy tính xách tay dành cho Aple, Dell, Asus…15.6 inch – BEE GEE 0124",
       "description": "Kích thước: Ngang 41cm X Cao 30cm X Dày 6cm. Màu sắc: Đen, Xám. Túi xách đựng Laptop BEE GEE thuộc dòng sản phẩm túi xách có khả năng chống sốc tốt cùng với thiết kế độc lạ mang tính thời trang cao. Có…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 278000,
-          "stock": 37,
-          "skuCode": "TK187156916"
+          "stock": 11,
+          "skuCode": "TK187156916-DEN"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": null,
+          "price": 278000,
+          "stock": 25,
+          "skuCode": "TK187156916-XAM"
         }
       ]
     },
@@ -24749,15 +27143,29 @@
       "brand": "Sea Choice",
       "name": "Sea Choice Bảo hành 3 năm Vali du lịch 20/24 inch 4 bánh 4 bánh xoay 360 độ siêu êm Vỏ xe đẩy nhẹ chống nước có 3 màu",
       "description": "Kích thước: 20/24 inch Màu sắc: Đen/Vàng hồng/Trắng + vàng hồng☞【VẬT LIỆU ABS + PC】 --- Hộp đựng xe đẩy du lịch này được làm từ vỏ cứng ABS + PC nhẹ và bền; Chống trầy xước & chịu áp lực & ch...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 1565926,
-          "stock": 21,
-          "skuCode": "TK158801746"
+          "stock": 12,
+          "skuCode": "TK158801746-DEN"
+        },
+        {
+          "option1Value": "Vàng hồng",
+          "option2Value": null,
+          "price": 1565926,
+          "stock": 33,
+          "skuCode": "TK158801746-VANGHONG"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": null,
+          "price": 1565926,
+          "stock": 0,
+          "skuCode": "TK158801746-TRANG"
         }
       ]
     },
@@ -25827,15 +28235,29 @@
       "brand": "Nomac",
       "name": "Nón kết/ mũ lưỡi trai kaki 100% cotton Unisex Nomac thêu chữ CRUISE NON0608",
       "description": "Nón kết/ mũ lưỡi trai kaki 100% cotton Unisex Nomac thêu chữ CRUISE NON0608:Chất liệu: Kaki 100% Cotton (thoáng mát, dễ chịu)Màu sắc: Đen, Xanh, Vàng. Size: Free size. Kiểu dáng: đa dạng, trẻ trung…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 75000,
-          "stock": 14,
-          "skuCode": "TK101644599"
+          "stock": 7,
+          "skuCode": "TK101644599-DEN"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": null,
+          "price": 75000,
+          "stock": 27,
+          "skuCode": "TK101644599-XANH"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": null,
+          "price": 75000,
+          "stock": 34,
+          "skuCode": "TK101644599-VANG"
         }
       ]
     },
@@ -26531,15 +28953,36 @@
       "brand": null,
       "name": "Mũ lưỡi trai Cruise,Nón kết nhiều màu phong cách Ulzzang form unisex nam nữ",
       "description": "THÔNG TIN SẢN PHẨM ️KÍCH THƯỚC :56-58cm, có thể điều chỉnh kích cỡ với khóa kéo sau chắc chắn ️MÀU SẮC : Đen, hồng, kem, xanh mint ️CHẤT LIỆU : Nỉ gân cotton dày mịn, thoáng mát…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 38800,
-          "stock": 30,
-          "skuCode": "TK110038972"
+          "stock": 10,
+          "skuCode": "TK110038972-DEN"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": null,
+          "price": 38800,
+          "stock": 29,
+          "skuCode": "TK110038972-HONG"
+        },
+        {
+          "option1Value": "Kem",
+          "option2Value": null,
+          "price": 38800,
+          "stock": 35,
+          "skuCode": "TK110038972-KEM"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": null,
+          "price": 38800,
+          "stock": 29,
+          "skuCode": "TK110038972-XANH"
         }
       ]
     },
@@ -26795,15 +29238,57 @@
       "brand": "LQ luxury",
       "name": "Mũ lưỡi trai TRƠN đủ màu Unisex",
       "description": "- Chất liệu: Thô- Màu sắc: Đen, trắng, đỏ đô, đỏ tươi, vàng, xanh dương, xanh rêu- Size: Freesize thích hợp với mọi dáng người- Mũ trơn, thiết kế thời trang, đơn giản, cả cam cả nữ đều dùng được.- Mũ…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 18991,
+          "stock": 24,
+          "skuCode": "TK86516160-DEN"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": null,
+          "price": 18991,
+          "stock": 40,
+          "skuCode": "TK86516160-TRANG"
+        },
+        {
+          "option1Value": "Đỏ đô",
+          "option2Value": null,
+          "price": 18991,
+          "stock": 18,
+          "skuCode": "TK86516160-DODO"
+        },
+        {
+          "option1Value": "Đỏ tươi",
+          "option2Value": null,
+          "price": 18991,
+          "stock": 39,
+          "skuCode": "TK86516160-DOTUOI"
+        },
+        {
+          "option1Value": "Vàng",
+          "option2Value": null,
+          "price": 18991,
+          "stock": 36,
+          "skuCode": "TK86516160-VANG"
+        },
+        {
+          "option1Value": "Xanh dương",
+          "option2Value": null,
+          "price": 18991,
+          "stock": 36,
+          "skuCode": "TK86516160-XANHDUONG"
+        },
+        {
+          "option1Value": "Xanh rêu",
           "option2Value": null,
           "price": 18991,
           "stock": 35,
-          "skuCode": "TK86516160"
+          "skuCode": "TK86516160-XANHREU"
         }
       ]
     },
@@ -28687,15 +31172,29 @@
       "brand": null,
       "name": "Thắt lưng da / dây nịt nữ phối đầm / BELT / Thắt lưng nữ DONA21021702",
       "description": "Thắt lưng da / dây nịt nữ phối đầm. Chất liệu: Da hỗn hợp+ hợp kim. Màu sắc: Đỏ, đen, trắng, lạc đà. Phong cách: Hàn Quốc Giản dị, hoang dã. Họa tiết: Không có họa tiết Kích thước: cao 7cm, eo co giãn 55…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đỏ",
           "option2Value": null,
           "price": 99000,
-          "stock": 3,
-          "skuCode": "TK77665145"
+          "stock": 9,
+          "skuCode": "TK77665145-DO"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 99000,
+          "stock": 30,
+          "skuCode": "TK77665145-DEN"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": null,
+          "price": 99000,
+          "stock": 8,
+          "skuCode": "TK77665145-TRANG"
         }
       ]
     },
@@ -29149,15 +31648,29 @@
       "brand": "GOMTAT",
       "name": "Tất vớ trơn cổ cao cotton, tất cao cổ nam nữ cổ gân tâm Gom Tất - LISU-TRONCAO-GANTAM",
       "description": "Tất vớ trơn cổ cao cotton, tất cao cổ nam nữ cổ gân tâm - LISU-TRONCAO-GANTAM >> Freesize từ size 37 - 44>> Màu sắc: Trắng, Đen, Xám (quý khách hàng vui lòng chọn màu khi đặt hàng)>...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Trắng",
           "option2Value": null,
           "price": 19900,
-          "stock": 17,
-          "skuCode": "TK157125390"
+          "stock": 33,
+          "skuCode": "TK157125390-TRANG"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 19900,
+          "stock": 11,
+          "skuCode": "TK157125390-DEN"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": null,
+          "price": 19900,
+          "stock": 16,
+          "skuCode": "TK157125390-XAM"
         }
       ]
     },
@@ -29391,15 +31904,36 @@
       "brand": "AKUBA",
       "name": "Vớ trơn cao dệt logo Akuba cotton mềm mại kháng khuẩn 01U0071",
       "description": "CHI TIẾT SẢN PHẨM - Sản phẩm: Vớ trơn cao dệt Logo Akuba cotton kháng khuẩn 01U0071- Màu sắc: Đen, trắng, nâu, xám - Chất vải: 95% cotton 5% spandex + hồ kháng khuẩn- Size: Freesize - Thiết kế và sản…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 35000,
-          "stock": 2,
-          "skuCode": "TK134513880"
+          "stock": 15,
+          "skuCode": "TK134513880-DEN"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": null,
+          "price": 35000,
+          "stock": 18,
+          "skuCode": "TK134513880-TRANG"
+        },
+        {
+          "option1Value": "Nâu",
+          "option2Value": null,
+          "price": 35000,
+          "stock": 4,
+          "skuCode": "TK134513880-NAU"
+        },
+        {
+          "option1Value": "Xám",
+          "option2Value": null,
+          "price": 35000,
+          "stock": 12,
+          "skuCode": "TK134513880-XAM"
         }
       ]
     },
@@ -29611,15 +32145,22 @@
       "brand": "GOMTAT",
       "name": "Tất vớ cao cổ chất liệu cotton, thiết kế thoáng khí - GOMTAT-KLB-TRONCAO-GANTAM",
       "description": "Tất vớ cao cổ Nam Nữ, tất cotton êm mềm đi mát, thiết kế thoáng khí - KLB-TRONCAO-GANTAM >> Freesize từ size 37 - 44>> Màu sắc: Trắng, Đen (quý khách hàng vui lòng chọn màu khi đặt hàng...",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Trắng",
           "option2Value": null,
           "price": 19900,
-          "stock": 21,
-          "skuCode": "TK155266756"
+          "stock": 35,
+          "skuCode": "TK155266756-TRANG"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 19900,
+          "stock": 36,
+          "skuCode": "TK155266756-DEN"
         }
       ]
     },
@@ -31019,15 +33560,43 @@
       "brand": null,
       "name": "Bộ Găng Tay Chống Nắng Hàn Quốc Kiểu Ống Xỏ Tay Hở Ngón Chất Vải Mềm Mại Thoáng Mát, Ống Tay Chống Nắng Nam Nữ SG112",
       "description": "THÔNG SỐ CHI TIẾT SẢN PHẨM:Chất liệu: Vải cotton thun co dãn tốt. Màu sắc: Đen, Hồng, Xanh, Trắng, Ghi. Size: Free size Giúp bạn chống nắng khi đi ra ngoài đường mà không cần mặc áo khoác nóng…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Đen",
           "option2Value": null,
           "price": 58000,
           "stock": 36,
-          "skuCode": "TK192701627"
+          "skuCode": "TK192701627-DEN"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": null,
+          "price": 58000,
+          "stock": 38,
+          "skuCode": "TK192701627-HONG"
+        },
+        {
+          "option1Value": "Xanh",
+          "option2Value": null,
+          "price": 58000,
+          "stock": 17,
+          "skuCode": "TK192701627-XANH"
+        },
+        {
+          "option1Value": "Trắng",
+          "option2Value": null,
+          "price": 58000,
+          "stock": 33,
+          "skuCode": "TK192701627-TRANG"
+        },
+        {
+          "option1Value": "Ghi",
+          "option2Value": null,
+          "price": 58000,
+          "stock": 37,
+          "skuCode": "TK192701627-GHI"
         }
       ]
     },
@@ -32119,15 +34688,36 @@
       "brand": null,
       "name": "Khẩu Trang Chống Tia Uv, Khẩu Trang Chống Nắng Upf 50+ - Unisex Nam Nữ Đều Thích Hợp- Vải Mềm Mát Thoáng Khí",
       "description": "Khẩu trang chống tia UV, khẩu trang chống nắng UPF 50+ THÔNG TIN SẢN PHẨM Khẩu trang chống tia UV, khẩu trang chống nắng UPF 50+ - Unisex nam nữ đều thích hợp Màu sắc : Xanh,Hồng,Xám, Đen…",
-      "variationName1": null,
+      "variationName1": "Màu sắc",
       "variationName2": null,
       "variants": [
         {
-          "option1Value": null,
+          "option1Value": "Xanh",
+          "option2Value": null,
+          "price": 12900,
+          "stock": 33,
+          "skuCode": "TK198300851-XANH"
+        },
+        {
+          "option1Value": "Hồng",
+          "option2Value": null,
+          "price": 12900,
+          "stock": 2,
+          "skuCode": "TK198300851-HONG"
+        },
+        {
+          "option1Value": "Xám",
           "option2Value": null,
           "price": 12900,
           "stock": 3,
-          "skuCode": "TK198300851"
+          "skuCode": "TK198300851-XAM"
+        },
+        {
+          "option1Value": "Đen",
+          "option2Value": null,
+          "price": 12900,
+          "stock": 20,
+          "skuCode": "TK198300851-DEN"
         }
       ]
     },

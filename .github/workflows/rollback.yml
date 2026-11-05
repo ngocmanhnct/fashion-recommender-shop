@@ -1,0 +1,108 @@
+# Quay staging về một bản đã deploy trước đó (vd bản mới vừa merge bị lỗi).
+# Cách dùng: tab Actions -> "Rollback staging" -> Run workflow (nhánh main) -> nhập mã commit cũ
+# (7 ký tự đầu là đủ, lấy trong lịch sử Deployments/Actions của job "Deploy staging").
+# Mỗi commit đã deploy đều còn image trên GHCR, gắn tag mã commit đầy đủ, nên không cần build lại.
+# Lần merge kế tiếp vào main sẽ tự deploy bản mới nhất như bình thường.
+# Lưu ý CSDL: không có bước hạ migration. Flyway của bản cũ bỏ qua migration mới hơn nó, nên quay
+# về được khi các migration sau đó chỉ thêm bảng/cột. Nếu có migration đổi tên hay xóa cột thì
+# khôi phục luôn bản sao lưu CSDL của ngày trước đó (deploy/staging/README.md).
+name: Rollback staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: "Mã commit cần quay về (từ 7 đến 40 ký tự hex, phải nằm trên main)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  rollback:
+    name: Rollback staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: staging
+      url: https://${{ vars.STAGING_DOMAIN }}
+    # Dùng chung nhóm với job deploy: không chạy chồng lên một lần deploy đang chạy.
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    env:
+      REGISTRY: ghcr.io/ngocmanhnct/fashion-recommender-shop
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # Đổi mã rút gọn thành mã đầy đủ (tag của image) và chỉ nhận commit đã nằm trên main.
+      - name: Kiểm tra mã commit
+        id: target
+        env:
+          INPUT: ${{ inputs.commit }}
+        run: |
+          if ! [[ "$INPUT" =~ ^[0-9a-f]{7,40}$ ]]; then
+            echo "Mã commit không hợp lệ: chỉ gồm 7-40 ký tự 0-9, a-f" && exit 1
+          fi
+          sha=$(git rev-parse --verify --quiet "${INPUT}^{commit}") || { echo "Không tìm thấy commit $INPUT"; exit 1; }
+          git merge-base --is-ancestor "$sha" origin/main || { echo "Commit $sha không nằm trên main"; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "Quay về $sha: $(git log -1 --format=%s "$sha")"
+
+      - name: Kiểm tra image của commit đó còn trên GHCR
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: ${{ steps.target.outputs.sha }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for s in backend ml-service frontend; do
+            docker manifest inspect "$REGISTRY/$s:$IMAGE_TAG" > /dev/null \
+              || { echo "Không có image $s:$IMAGE_TAG (commit này chưa từng deploy)"; exit 1; }
+          done
+          docker logout ghcr.io
+
+      - name: Chuẩn bị SSH
+        env:
+          SSH_KEY: ${{ secrets.STAGING_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/staging
+          chmod 600 ~/.ssh/staging
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # Cấu hình compose lấy từ main hiện tại (chỉ đổi image), giống job deploy.
+      - name: Chạy image cũ trên máy ảo
+        env:
+          HOST: azureuser@${{ vars.STAGING_HOST }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE_TAG: ${{ steps.target.outputs.sha }}
+        run: |
+          scp -i ~/.ssh/staging deploy/staging/docker-compose.yml deploy/staging/Caddyfile \
+            deploy/staging/sao-luu.sh "$HOST:fashionshop/"
+          echo "$TOKEN" | ssh -i ~/.ssh/staging "$HOST" docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          status=0
+          ssh -i ~/.ssh/staging "$HOST" "cd fashionshop && export IMAGE_TAG=$IMAGE_TAG \
+            && docker compose pull -q && docker compose up -d --remove-orphans \
+            && docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile" || status=$?
+          ssh -i ~/.ssh/staging "$HOST" "docker logout ghcr.io"
+          exit $status
+
+      - name: Kiểm tra staging chạy được
+        env:
+          IMAGE_TAG: ${{ steps.target.outputs.sha }}
+        run: |
+          for _ in $(seq 1 40); do
+            if curl -fsS "https://${{ vars.STAGING_DOMAIN }}/actuator/health" | grep -q '"UP"'; then
+              echo "### Đã quay staging về ${IMAGE_TAG::7}" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Staging không trả UP sau 400 giây" && exit 1

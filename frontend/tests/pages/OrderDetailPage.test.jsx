@@ -3,10 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import OrderDetailPage from '../../src/pages/OrderDetailPage';
 import * as orderApi from '../../src/services/orderApi';
+import * as reviewApi from '../../src/services/reviewApi';
 import { goToVnPay } from '../../src/services/vnpayRedirect';
 import { authValue, renderWithContext, users } from '../renderWithContext';
 
 vi.mock('../../src/services/orderApi');
+vi.mock('../../src/services/reviewApi');
 vi.mock('../../src/services/vnpayRedirect');
 
 const ORDER = {
@@ -128,21 +130,43 @@ describe('OrderDetailPage', () => {
     expect(await screen.findByRole('heading', { name: 'Đơn #55' })).toBeInTheDocument();
   });
 
-  it('đơn Đã giao có link đánh giá từng sản phẩm, đơn chưa giao thì không', async () => {
+  it('đơn Đã giao: đánh giá ngay dưới dòng đơn, sản phẩm đã đánh giá thì sửa', async () => {
+    const user = userEvent.setup();
     vi.mocked(orderApi.getOrder).mockResolvedValueOnce({
       ...ORDER,
       status: 'DELIVERED',
       cancellable: false,
+      items: [
+        ...ORDER.items,
+        { ...ORDER.items[0], variantId: 12, productName: 'Balo du lịch (xám)' },
+        { ...ORDER.items[0], variantId: 13, productId: 4, productName: 'Ví nam' },
+      ],
     });
-    const { unmount } = renderPage();
-    expect(await screen.findByRole('link', { name: 'Đánh giá sản phẩm' })).toHaveAttribute(
-      'href',
-      '/products/3#danh-gia'
-    );
-    unmount();
+    vi.mocked(reviewApi.getPendingReviews).mockResolvedValue({
+      total: 1,
+      items: [{ productId: 3, productName: 'Balo du lịch', orderId: 55 }],
+    });
+    vi.mocked(reviewApi.getMyReview).mockResolvedValue({ canReview: true, review: null });
+    vi.mocked(reviewApi.saveMyReview).mockResolvedValue({ rating: 5 });
+    renderPage();
 
+    // 1 nút cho mỗi sản phẩm, dù sản phẩm 3 có 2 dòng (2 phân loại)
+    expect(await screen.findAllByRole('button', { name: 'Đánh giá ngay' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Sửa đánh giá' })).toHaveLength(1);
+
+    await user.click(screen.getByRole('button', { name: 'Đánh giá ngay' }));
+    await user.click(await screen.findByLabelText('5 sao'));
+    await user.click(screen.getByRole('button', { name: 'Gửi đánh giá' }));
+    expect(reviewApi.saveMyReview).toHaveBeenCalledWith(3, { rating: 5, comment: '' });
+    expect(await screen.findByText('Đã lưu đánh giá của bạn.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Đóng' }));
+    expect(screen.getAllByRole('button', { name: 'Sửa đánh giá' })).toHaveLength(2);
+  });
+
+  it('đơn chưa giao thì không có ô đánh giá và không tải danh sách chờ đánh giá', async () => {
     renderPage();
     expect(await screen.findByRole('link', { name: 'Balo du lịch' })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Đánh giá sản phẩm' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /đánh giá/i })).not.toBeInTheDocument();
+    expect(reviewApi.getPendingReviews).not.toHaveBeenCalled();
   });
 });
