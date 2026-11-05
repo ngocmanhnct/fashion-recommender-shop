@@ -22,3 +22,5 @@ ml-service/*.pyc
 *.log
 # Dữ liệu gốc tải từ Kaggle (data/tiki/README.md), không đưa lên repo công khai
 data/tiki/raw/
+# Ảnh gốc tải từ Openverse hoặc tải tay (data/anh-san-pham/README.md): chỉ commit ảnh đã thu nhỏ
+data/anh-san-pham/raw/

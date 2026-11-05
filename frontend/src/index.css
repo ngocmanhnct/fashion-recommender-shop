@@ -1608,6 +1608,10 @@ legend {
   height: 30%;
 }
 
+.product-gallery-note {
+  margin: 6px 0 0;
+}
+
 .product-gallery-thumbs {
   display: flex;
   flex-wrap: wrap;
