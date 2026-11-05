@@ -18,3 +18,11 @@ export function getMyReview(productId) {
 export function saveMyReview(productId, review) {
   return apiClient.put(`${base(productId)}/me`, review).then((res) => res.data);
 }
+
+/**
+ * Sản phẩm đã nhận (đơn Đã giao) mà khách chưa đánh giá: { total, items: [{ productId,
+ * productName, categoryName, variantLabel, orderId, orderedAt }] }, đơn mới nhất trước.
+ */
+export function getPendingReviews() {
+  return apiClient.get('/api/reviews/pending').then((res) => res.data);
+}

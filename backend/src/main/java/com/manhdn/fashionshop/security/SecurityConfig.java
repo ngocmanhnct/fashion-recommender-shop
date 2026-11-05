@@ -91,7 +91,8 @@ public class SecurityConfig {
                         "/api/recommendations/me",
                         "/api/wishlist",
                         "/api/wishlist/**",
-                        "/api/vouchers/me")
+                        "/api/vouchers/me",
+                        "/api/reviews/pending")
                     .hasRole("CUSTOMER")
                     .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
                     .permitAll()

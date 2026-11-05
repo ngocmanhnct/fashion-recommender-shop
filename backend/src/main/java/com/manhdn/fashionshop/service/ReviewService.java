@@ -2,6 +2,8 @@ package com.manhdn.fashionshop.service;
 
 import com.manhdn.fashionshop.dto.MyReviewResponse;
 import com.manhdn.fashionshop.dto.PageResponse;
+import com.manhdn.fashionshop.dto.PendingReviewResponse;
+import com.manhdn.fashionshop.dto.PendingReviewsResponse;
 import com.manhdn.fashionshop.dto.ProductReviewsResponse;
 import com.manhdn.fashionshop.dto.ReviewRequest;
 import com.manhdn.fashionshop.dto.ReviewResponse;
@@ -18,7 +20,9 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -43,6 +47,9 @@ public class ReviewService {
 
   /** Số đánh giá tối đa mỗi trang. */
   public static final int MAX_PAGE_SIZE = 20;
+
+  /** Số sản phẩm chờ đánh giá tối đa trả về một lần. */
+  public static final int MAX_PENDING = 20;
 
   private static final int STARS = 5;
   private static final Sort NEWEST_FIRST =
@@ -121,6 +128,25 @@ public class ReviewService {
             .map(ReviewResponse::from)
             .orElse(null);
     return new MyReviewResponse(canReview, review);
+  }
+
+  /**
+   * Các sản phẩm khách đã nhận (thuộc đơn Đã giao) nhưng chưa đánh giá, để khách đánh giá ngay mà
+   * không phải tìm lại sản phẩm. Mỗi sản phẩm 1 lần, theo đơn Đã giao mới nhất có nó; bỏ sản phẩm
+   * đã ngừng bán (không đánh giá được).
+   *
+   * @param accountId mã tài khoản lấy từ JWT
+   * @return tổng số và tối đa {@link #MAX_PENDING} sản phẩm, đơn mới nhất trước
+   */
+  @Transactional(readOnly = true)
+  public PendingReviewsResponse pending(long accountId) {
+    Map<Long, OrderItem> latest = new LinkedHashMap<>();
+    for (OrderItem item : reviewRepository.findUnreviewedDeliveredItems(accountId)) {
+      latest.putIfAbsent(item.getVariant().getProduct().getId(), item);
+    }
+    List<PendingReviewResponse> items =
+        latest.values().stream().limit(MAX_PENDING).map(PendingReviewResponse::from).toList();
+    return new PendingReviewsResponse(latest.size(), items);
   }
 
   /**
