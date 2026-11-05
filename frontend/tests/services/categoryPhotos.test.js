@@ -21,6 +21,15 @@ describe('categoryPhotoUrl', () => {
     expect(categoryPhotoUrl('Balo du lịch', 56, PHOTOS)).toBe(urls[0]);
   });
 
+  it('mã sản phẩm dạng chuỗi số dùng như số, mã không phải số thì về ảnh đầu', () => {
+    expect(categoryPhotoUrl('Balo du lịch', '52', PHOTOS)).toBe(
+      categoryPhotoUrl('Balo du lịch', 52, PHOTOS)
+    );
+    expect(categoryPhotoUrl('Balo du lịch', 'abc', PHOTOS)).toBe(
+      '/anh-danh-muc/balo-du-lich/1.webp'
+    );
+  });
+
   it('tên danh mục dạng tách dấu (NFD) vẫn khớp', () => {
     expect(categoryPhotoUrl('Balo du lịch'.normalize('NFD'), 7, PHOTOS)).toBe(
       categoryPhotoUrl('Balo du lịch', 7, PHOTOS)
