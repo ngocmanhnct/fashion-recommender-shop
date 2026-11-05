@@ -36,4 +36,19 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
           + " AND o.status = com.manhdn.fashionshop.entity.OrderStatus.DELIVERED"
           + " ORDER BY o.createdAt DESC, i.id DESC")
   List<OrderItem> findDeliveredItems(long accountId, long productId);
+
+  /**
+   * Các dòng đơn Đã giao của tài khoản mà sản phẩm chưa được tài khoản đánh giá và còn bán, đơn mới
+   * nhất trước; nạp sẵn đơn, biến thể, sản phẩm, danh mục. Một sản phẩm có thể có nhiều dòng.
+   */
+  @Query(
+      "SELECT i FROM OrderItem i JOIN FETCH i.order o JOIN FETCH i.variant v"
+          + " JOIN FETCH v.product p JOIN FETCH p.category"
+          + " WHERE o.account.id = :accountId"
+          + " AND o.status = com.manhdn.fashionshop.entity.OrderStatus.DELIVERED"
+          + " AND p.deletedAt IS NULL"
+          + " AND NOT EXISTS (SELECT r.id FROM Review r"
+          + " WHERE r.account.id = :accountId AND r.product = p)"
+          + " ORDER BY o.createdAt DESC, i.id DESC")
+  List<OrderItem> findUnreviewedDeliveredItems(long accountId);
 }

@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router';
+import PendingReviews from '../components/PendingReviews';
 import Pagination from '../components/Pagination';
 import { useApiData } from '../hooks/useApiData';
 import { getErrorMessage } from '../services/errorMessage';
@@ -8,7 +9,10 @@ import { formatDateTime, ORDER_STATUS_LABELS } from '../services/orderLabels';
 
 const PAGE_SIZE = 10;
 
-/** Trang "Đơn hàng của tôi" /orders (US-11): mới nhất trước, trang lưu ở ?page= (đếm từ 1). */
+/**
+ * Trang "Đơn hàng của tôi" /orders (US-11): mục "Chờ đánh giá" (US-15) rồi danh sách đơn, mới nhất
+ * trước, trang lưu ở ?page= (đếm từ 1).
+ */
 function OrdersPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10);
@@ -28,6 +32,7 @@ function OrdersPage() {
       <p className="small">
         <Link to="/addresses">Sổ địa chỉ</Link>
       </p>
+      <PendingReviews />
       {error && (
         <div className="alert alert-error">
           <p>{getErrorMessage(error, 'Không tải được đơn hàng')}</p>

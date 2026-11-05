@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 import Icon from '../components/Icon';
 import OffersBanner from '../components/OffersBanner';
+import ReviewReminder from '../components/ReviewReminder';
 import PersonalRecommendations from '../components/PersonalRecommendations';
 import ProductArt from '../components/ProductArt';
 import ProductImage from '../components/ProductImage';
@@ -59,6 +60,7 @@ function HomePage() {
       </section>
 
       <OffersBanner />
+      <ReviewReminder />
       <Reveal>
         <PersonalRecommendations />
       </Reveal>

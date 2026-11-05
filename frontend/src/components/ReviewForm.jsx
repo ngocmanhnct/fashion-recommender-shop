@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { getErrorMessage, getFieldErrors } from '../services/errorMessage';
 import { saveMyReview } from '../services/reviewApi';
 
@@ -6,9 +6,11 @@ const MAX_COMMENT = 1000;
 
 /**
  * Ô đánh giá của khách hàng đã nhận sản phẩm (US-15): chọn 1 đến 5 sao và viết nhận xét. Đã đánh
- * giá thì hiện sẵn đánh giá cũ, gửi lại là sửa (BR-18). onSaved gọi sau khi lưu xong.
+ * giá thì hiện sẵn đánh giá cũ, gửi lại là sửa (BR-18). onSaved(review) gọi sau khi lưu xong. Một
+ * trang có thể có nhiều ô (danh sách chờ đánh giá) nên tên nhóm nút chọn sao là riêng mỗi ô.
  */
 function ReviewForm({ productId, review, onSaved }) {
+  const ratingName = useId();
   const [rating, setRating] = useState(review?.rating ?? 0);
   const [comment, setComment] = useState(review?.comment ?? '');
   const [hasReview, setHasReview] = useState(review != null);
@@ -22,10 +24,10 @@ function ReviewForm({ productId, review, onSaved }) {
     }
     setStatus({ type: 'saving', message: '' });
     try {
-      await saveMyReview(productId, { rating, comment });
+      const saved = await saveMyReview(productId, { rating, comment });
       setHasReview(true);
       setStatus({ type: 'saved', message: 'Đã lưu đánh giá của bạn.' });
-      onSaved();
+      onSaved(saved);
     } catch (err) {
       const fieldErrors = getFieldErrors(err);
       const message =
@@ -44,7 +46,7 @@ function ReviewForm({ productId, review, onSaved }) {
           <label key={star} className={star <= rating ? 'is-on' : undefined}>
             <input
               type="radio"
-              name="rating"
+              name={ratingName}
               value={star}
               checked={rating === star}
               onChange={() => setRating(star)}

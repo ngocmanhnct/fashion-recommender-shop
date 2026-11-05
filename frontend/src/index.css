@@ -3332,6 +3332,82 @@ legend {
   }
 }
 
+/* Đánh giá ngay sau khi nhận hàng (US-15) */
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.875rem;
+}
+
+.pending-reviews {
+  margin: 0 0 28px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.pending-reviews h2 {
+  margin: 0 0 4px;
+}
+
+.pending-review-list {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pending-review {
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.pending-review-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pending-review-image {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.pending-review-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.pending-review-info p {
+  margin: 2px 0 0;
+}
+
+.pending-review-done {
+  color: var(--primary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pending-review .review-form,
+.order-item-review .review-form {
+  margin: 12px 0 4px;
+}
+
+.order-item-review {
+  margin-top: 6px;
+}
+
+/* Ô đánh giá đang mở: giá và thành tiền đứng ở đầu dòng, không trôi xuống giữa */
+.order-line:has(.review-form) {
+  align-items: start;
+}
+
+.review-reminder > svg {
+  color: var(--star);
+}
+
 /* Hiệu quả gợi ý: thử nghiệm A/B (US-27) */
 .ab-running {
   display: flex;

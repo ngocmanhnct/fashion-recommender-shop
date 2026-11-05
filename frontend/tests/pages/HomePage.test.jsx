@@ -3,12 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import HomePage from '../../src/pages/HomePage';
 import * as catalogApi from '../../src/services/catalogApi';
 import * as productApi from '../../src/services/productApi';
+import { getPendingReviews } from '../../src/services/reviewApi';
 import { getMyVouchers } from '../../src/services/voucherApi';
 import { authValue, renderWithContext, users } from '../renderWithContext';
 
 vi.mock('../../src/services/productApi');
 vi.mock('../../src/services/catalogApi');
 vi.mock('../../src/services/voucherApi');
+vi.mock('../../src/services/reviewApi');
 // Khối gợi ý riêng có test riêng; ở đây chỉ cần biết nó được đặt vào trang.
 vi.mock('../../src/components/PersonalRecommendations', () => ({
   default: () => <p>Khối gợi ý cho bạn</p>,
@@ -25,6 +27,7 @@ const product = (id, name) => ({
 
 describe('HomePage', () => {
   beforeEach(() => {
+    vi.mocked(getPendingReviews).mockResolvedValue({ total: 0, items: [] });
     vi.mocked(productApi.searchProducts).mockResolvedValue({
       content: [product(5, 'Giày A'), product(6, 'Túi B'), product(7, 'Ví C'), product(8, 'Nón D')],
       page: 0,
@@ -97,6 +100,32 @@ describe('HomePage', () => {
     expect(await screen.findByText(/1\.050 sản phẩm đang bán/)).toBeInTheDocument();
     expect(getMyVouchers).toHaveBeenCalled();
     expect(screen.queryByRole('link', { name: /mã giảm giá/ })).not.toBeInTheDocument();
+  });
+
+  it('khách có sản phẩm chờ đánh giá thì thấy dải nhắc dẫn tới mục Chờ đánh giá', async () => {
+    vi.mocked(getPendingReviews).mockResolvedValue({
+      total: 3,
+      items: [{ productId: 5, productName: 'Giày A', orderId: 9 }],
+    });
+    renderWithContext(<HomePage />, { auth: authValue({ user: users.CUSTOMER }) });
+    const banner = await screen.findByRole('link', { name: /3 sản phẩm đã nhận chờ đánh giá/ });
+    expect(banner).toHaveAttribute('href', '/orders#cho-danh-gia');
+    expect(banner).toHaveTextContent('Giày A và 2 sản phẩm khác');
+  });
+
+  it('không có sản phẩm chờ đánh giá hoặc chưa đăng nhập thì không có dải nhắc', async () => {
+    vi.mocked(getPendingReviews).mockResolvedValue({ total: 0, items: [] });
+    const { unmount } = renderWithContext(<HomePage />, {
+      auth: authValue({ user: users.CUSTOMER }),
+    });
+    expect(await screen.findByText(/1\.050 sản phẩm đang bán/)).toBeInTheDocument();
+    expect(getPendingReviews).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('link', { name: /chờ đánh giá/ })).not.toBeInTheDocument();
+    unmount();
+
+    renderWithContext(<HomePage />);
+    expect(await screen.findByText(/1\.050 sản phẩm đang bán/)).toBeInTheDocument();
+    expect(getPendingReviews).toHaveBeenCalledTimes(1);
   });
 
   it('các bước giải thích cách gợi ý được đánh số', () => {

@@ -52,16 +52,22 @@ function LocationProbe() {
 }
 
 /**
- * Vẽ ui ở đường dẫn path (có thể kèm ?truy vấn) với AuthContext, CartContext giả và router trong
+ * Vẽ ui ở đường dẫn path (có thể kèm ?truy vấn, #neo) với AuthContext, CartContext giả và router trong
  * bộ nhớ. route là mẫu đường dẫn của ui (vd '/products/:id'); mọi đường dẫn khác hiện
  * LocationProbe.
  */
 export function renderWithContext(
   ui,
-  { auth = authValue(), cart = cartValue(), path = '/', route = path.split('?')[0], state } = {}
+  { auth = authValue(), cart = cartValue(), path = '/', route = path.split(/[?#]/)[0], state } = {}
 ) {
-  const [pathname, search = ''] = path.split('?');
-  const entry = { pathname, search: search ? `?${search}` : '', state };
+  const [beforeHash, hash = ''] = path.split('#');
+  const [pathname, search = ''] = beforeHash.split('?');
+  const entry = {
+    pathname,
+    search: search ? `?${search}` : '',
+    hash: hash ? `#${hash}` : '',
+    state,
+  };
   const tree = (element) => (
     <AuthContext.Provider value={auth}>
       <CartContext.Provider value={cart}>

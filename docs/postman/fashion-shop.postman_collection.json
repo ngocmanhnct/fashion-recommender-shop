@@ -2094,6 +2094,36 @@
           ]
         },
         {
+          "name": "Sản phẩm chờ đánh giá",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reviews/pending",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reviews",
+                "pending"
+              ]
+            },
+            "description": "Sản phẩm thuộc đơn Đã giao mà khách chưa đánh giá (mỗi sản phẩm 1 lần, theo đơn mới nhất; bỏ sản phẩm ngừng bán): total và tối đa 20 items (productId, productName, categoryName, variantLabel, orderId, orderedAt). 200; 401 không token; 403 token ADMIN."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Xem sản phẩm chờ đánh giá thành công', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
           "name": "Tạo link thanh toán VNPay",
           "request": {
             "method": "POST",
