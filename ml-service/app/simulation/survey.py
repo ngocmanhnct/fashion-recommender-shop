@@ -173,7 +173,7 @@ def walk(tree: SurveyTree, catalog: Catalog, choose: Chooser) -> SurveyOutcome:
         current = None if next_id is None else tree.by_id[next_id]
 
     if state.get("purpose") == "GIFT":
-        raise ValueError("Nhánh tìm quà không lưu kết quả (BR-38)")
+        raise ValueError("Nhánh tìm quà không lưu kết quả (BR-42)")
     price_max = state.get("price_max")
     if price_max is not None and state.get("price_flexible"):
         price_max = price_max * 13 // 10
