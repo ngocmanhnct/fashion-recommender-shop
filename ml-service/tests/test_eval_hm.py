@@ -222,6 +222,25 @@ def test_main_without_files(tmp_path, monkeypatch, capsys):
     assert "Không thấy articles.csv" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["--sample", "0"],
+        ["--sample", "1001"],
+        ["--rounds", "0"],
+        ["--stability-rounds", "0"],
+        ["--max-cases", "-1"],
+    ],
+)
+def test_main_rejects_out_of_range_arguments(args, tmp_path, monkeypatch, capsys):
+    # Thư mục không có tệp: nếu không bị chặn ở bước kiểm tra, main trả 1 chứ không đọc dữ liệu thật.
+    monkeypatch.setattr(ev, "RAW_DIR", tmp_path / "khong-co")
+    with pytest.raises(SystemExit) as exit_info:
+        ev.main(args)
+    assert exit_info.value.code == 2
+    assert "phải từ" in capsys.readouterr().err
+
+
 def test_helpers():
     assert ev.in_sample(customer_id(49), 50)
     assert not ev.in_sample(customer_id(50), 50)

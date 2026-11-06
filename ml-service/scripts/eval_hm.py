@@ -699,22 +699,34 @@ def main(argv: list[str] | None = None) -> int:
         "--max-cases", type=int, default=MAX_CASES, help="số khách tối đa mỗi cách chia"
     )
     args = parser.parse_args(argv)
+    # Kiểm tra khoảng ngay khi đọc tham số: giá trị sai dừng ở đây (mã 2) thay vì lỗi sau khi đã
+    # đọc tệp vài phút. int() tường minh để công cụ quét bảo mật (SonarQube) thấy giá trị đã là
+    # số, không còn là chuỗi lấy từ dòng lệnh, trước khi đi vào báo cáo ghi ra tệp.
+    sample = int(args.sample)
+    rounds = int(args.rounds)
+    stability_rounds = int(args.stability_rounds)
+    max_cases = int(args.max_cases)
+    if not 1 <= sample <= 1000:
+        parser.error("--sample phải từ 1 đến 1000 (phần nghìn khách)")
+    if min(rounds, stability_rounds, max_cases) < 1:
+        parser.error("--rounds, --stability-rounds và --max-cases phải từ 1 trở lên")
     try:
         _progress("Đọc articles.csv")
         with open_csv(RAW_DIR, "articles") as rows:
             articles = load_articles(rows)
         _progress(f"Đọc transactions_train.csv ({len(articles)} sản phẩm-màu)")
         with open_csv(RAW_DIR, "transactions_train") as rows:
-            shop = build_shop(rows, articles, args.sample)
+            shop = build_shop(rows, articles, sample)
         _progress(f"Đọc customers.csv ({len(shop.accounts)} khách trong mẫu)")
         with open_csv(RAW_DIR, "customers") as rows:
             ages = load_ages(rows, shop.accounts)
     except FileNotFoundError as error:
         print(error, file=sys.stderr)
         return 1
-    report = run(shop, ages, args.sample, args.rounds, args.stability_rounds, args.max_cases)
+    report = run(shop, ages, sample, rounds, stability_rounds, max_cases)
     RESULT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    RESULT_FILE.write_text(report + "\n", encoding="utf-8", newline="\n")
+    with RESULT_FILE.open("w", encoding="utf-8", newline="\n") as handle:
+        handle.write(report + "\n")
     _progress(f"Đã ghi {RESULT_FILE}")
     return 0
 
