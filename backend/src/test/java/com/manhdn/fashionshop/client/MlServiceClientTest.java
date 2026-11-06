@@ -97,7 +97,9 @@ class MlServiceClientTest {
 
   private MlServiceClient client(boolean enabled) {
     String baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
-    return new MlServiceClient(new MlServiceProperties(enabled, baseUrl, Duration.ofMillis(300)));
+    // 1 giây: lần gọi đầu của HttpClient mới trên máy CI có thể mất gần 400 ms (issue #137).
+    // Máy chủ giả "trả lời chậm" chờ 2 giây nên nhánh quá hạn vẫn được kiểm tra.
+    return new MlServiceClient(new MlServiceProperties(enabled, baseUrl, Duration.ofSeconds(1)));
   }
 
   private void respond(String path, int status, String body, Duration delay) {
