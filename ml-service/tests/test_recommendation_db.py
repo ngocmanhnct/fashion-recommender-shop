@@ -9,7 +9,7 @@ from sqlalchemy import text
 from app.main import app, nightly_job, task_handlers
 from app.recommendation import evaluate
 from app.recommendation.cache import ModelCache
-from app.recommendation.data import load_signals
+from app.recommendation.data import load_sales, load_signals
 from app.recommendation.store import enqueue_all, make_handler, replace_recommendations
 from app.recompute.queue import RECOMMENDATION, RecomputeRequest
 from app.recompute.worker import RecomputeWorker
@@ -288,6 +288,23 @@ def test_model_cache_rebuilds_when_data_changes(rec_db):
         model = slow.get(conn)
         conn.execute(text("UPDATE product SET name = 'Đổi tên' WHERE id = 1"))
         assert slow.get(conn) is model
+
+
+def test_model_cache_reads_sales_for_trending(rec_db):
+    with rec_db.begin() as conn:
+        a = create_account(conn, "a@test.vn")
+        add_order(conn, a, [2, 3], at=NOW - timedelta(days=1))
+        add_order(conn, a, [5], status="CANCELLED", at=NOW - timedelta(days=1))
+        add_order(conn, a, [6], at=NOW + timedelta(hours=1))
+    with rec_db.connect() as conn:
+        assert sorted((p, q) for p, _, q in load_sales(conn)) == [(2, 1), (3, 1), (6, 1)]
+        model = ModelCache().get(conn)
+    trend = model.trending(NOW)
+    index = model.vectors.index
+    # Đơn hủy không tính; đơn đặt sau thời điểm gợi ý chưa tính.
+    assert trend[index[2]] == trend[index[3]] > 0
+    assert trend[index[5]] == trend[index[6]] == 0
+    assert model.trending(NOW + timedelta(days=1))[index[6]] > 0
 
 
 # ---- yêu cầu tính lại hàng loạt ----

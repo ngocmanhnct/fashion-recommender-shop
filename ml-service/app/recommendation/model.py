@@ -6,12 +6,13 @@ Trang chủ (US-13), nguồn chọn theo BR-38:
    gần đây càng nặng (nhân hệ số 1 + β · 0,5^(tuổi / chu kỳ bán rã)), để việc khách vừa làm thấy
    ngay trên trang chủ. Điểm của sản phẩm j:
 
-       score(j) = w_c · cos(P(u), v(j)) + w_cf · cf(j) + w_p · pop(j)
+       score(j) = w_c · cos(P(u), v(j)) + w_cf · cf(j) + w_p · pop(j) + w_t · trend(j)
                   + λ · b(j)
 
    cf(j) là tổng có trọng số độ tương đồng "hay mua cùng" giữa j và các sản phẩm đã tương tác,
-   chia cho giá trị lớn nhất; pop(j) là số đã bán (thang log) chia cho lớn nhất; λ · b(j) là điểm
-   cộng theo kiểu người mua trong khảo sát (công thức (1.4)), bằng 0 nếu chưa làm khảo sát.
+   chia cho giá trị lớn nhất; pop(j) là số đã bán (thang log) chia cho lớn nhất; trend(j) là số
+   đã bán mấy ngày gần đây, lượt bán càng mới càng nặng (trending.py); λ · b(j) là điểm cộng theo
+   kiểu người mua trong khảo sát (công thức (1.4)), bằng 0 nếu chưa làm khảo sát.
 2. Chưa đủ dữ liệu nhưng đã làm khảo sát: score(j) = cos(s(u), v(j)) + w_s · pop(j) + λ · b(j)
    (công thức (1.4) thêm thành phần bán chạy).
 3. Không có cả hai: không có danh sách riêng, trang chủ hiện sản phẩm bán chạy.
@@ -32,6 +33,7 @@ from scipy import sparse
 from app.recommendation.data import ProductStats, SurveyProfile, UserSignals
 from app.recommendation.features import CatalogItem, ItemVectors
 from app.recommendation.gender import FEMALE, MALE
+from app.recommendation.trending import SalesHistory
 
 # Trọng số theo loại tương tác mạnh nhất với sản phẩm (đã mua > trong giỏ > yêu thích > đã xem),
 # vector khảo sát nhẹ nhất (BR-38). Chốt bằng đánh giá trên dữ liệu mô phỏng (evaluate.py).
@@ -49,17 +51,29 @@ RECENT_HALF_LIFE_DAYS = 1.0
 RECENT_PHRASE_HOURS = 24
 """Tương tác trong chừng này giờ thì lý do gợi ý ghi "vừa xem", "vừa thêm vào giỏ"."""
 
+TRENDING_REASON = "Đang bán chạy mấy ngày gần đây"
+TRENDING_REASON_MIN = 0.5
+"""Lý do ghi "đang bán chạy" khi trend(j) từ mức này và phần đóng góp lớn hơn nội dung, mua cùng."""
+
 
 @dataclass(frozen=True)
 class Weights:
     """Trọng số trộn các nguồn gợi ý.
 
-    Mặc định chốt bằng đánh giá "giữ lại đơn cuối" trên dữ liệu mô phỏng (evaluate.py --grid).
+    Mặc định chốt bằng đánh giá "giữ lại đơn cuối" trên dữ liệu mô phỏng (evaluate.py --grid), trừ
+    w_t và chu kỳ bán rã của "đang bán chạy": dữ liệu mô phỏng không có xu hướng theo thời gian nên
+    2 tham số này chọn trên dữ liệu mua hàng thật của H&M, giữ nguyên các trọng số khác. Thử w_t
+    0; 0,5; 1; 2 với chu kỳ 3 và 7 ngày trên tuần kiểm định 09/09–15/09/2020 (mẫu 5% khách), lấy
+    bộ có NDCG@10 cao nhất, rồi mới đo trên tuần kiểm tra 16/09–22/09/2020 (data/hm/ket-qua.md).
     """
 
     content: float = 0.7
     copurchase: float = 0.2
     popular: float = 0.1
+    trending: float = 1.0
+    """w_t: đang bán chạy (trending.py)."""
+    trending_half_life_days: float = 7.0
+    """Lượt bán chừng này ngày trước nặng bằng nửa lượt bán hôm nay."""
     style: float = 0.15
     """λ của công thức (1.4)."""
     diversity: float = 0.05
@@ -146,12 +160,16 @@ class Recommender:
         copurchase: sparse.csr_matrix,
         brand_names: dict[int, str],
         weights: Weights = DEFAULT_WEIGHTS,
+        sales: SalesHistory | None = None,
     ) -> None:
-        """Ghép các phần đã dựng; `items` theo đúng thứ tự hàng của `vectors`."""
+        """Ghép các phần đã dựng; `items` theo đúng thứ tự hàng của `vectors`. Không có `sales`
+        thì điểm đang bán chạy bằng 0."""
         self.vectors = vectors
         self.copurchase = copurchase
         self.brand_names = brand_names
         self.weights = weights
+        self.sales = sales
+        self._trend_memo: tuple[tuple[datetime, float], np.ndarray] | None = None
         self.names = [item.name for item in items]
         size = len(items)
         self.available = np.zeros(size, dtype=bool)
@@ -194,6 +212,21 @@ class Recommender:
             order = rows[np.argsort(self.prices[rows], kind="stable")]
             cheapness[order] = 1.0 - np.arange(len(rows)) / (len(rows) - 1)
         return cheapness
+
+    def trending(self, now: datetime | None) -> np.ndarray:
+        """trend(j) tại thời điểm gợi ý `now`; 0 nếu không biết thời điểm hoặc không có lượt bán.
+
+        Nhớ kết quả của lần gọi trước: các khách cùng thời điểm (đánh giá cắt theo thời gian) chỉ
+        tính 1 lần. Đọc và thay bản nhớ bằng 1 phép gán, nên 2 luồng gọi cùng lúc vẫn nhận đúng
+        mảng của thời điểm mình hỏi."""
+        if self.sales is None or now is None:
+            return np.zeros(len(self.prices))
+        key = (now, self.weights.trending_half_life_days)
+        memo = self._trend_memo
+        if memo is None or memo[0] != key:
+            memo = (key, self.sales.trending(now, key[1]))
+            self._trend_memo = memo
+        return memo[1]
 
     # ---- điểm cộng theo kiểu người mua, công thức (1.4) ----
 
@@ -268,7 +301,8 @@ class Recommender:
     def _behaviour(
         self, signals: UserSignals, weights: dict[int, tuple[float, str]], limit: int
     ) -> list[Suggestion]:
-        """Gợi ý theo hành vi: P(u), hay mua cùng, bán chạy và điểm cộng theo kiểu người mua."""
+        """Gợi ý theo hành vi: P(u), hay mua cùng, bán chạy, đang bán chạy và điểm cộng theo kiểu
+        người mua."""
         rows = np.fromiter(weights, dtype=np.int64)
         w = np.array([weights[r][0] for r in rows])
         matrix = self.vectors.matrix
@@ -297,10 +331,12 @@ class Recommender:
         top = bought_together.max()
         copurchase = bought_together / top if top > 0 else bought_together
 
+        trend = self.trending(signals.now) if self.weights.trending > 0 else np.zeros(len(content))
         score = (
             self.weights.content * content
             + self.weights.copurchase * copurchase
             + self.weights.popular * self.popularity
+            + self.weights.trending * trend
             + self.weights.style * self.style_bonus(survey)
         )
         allowed = self._allowed(signals.purchased | signals.cart, survey)
@@ -321,7 +357,7 @@ class Recommender:
         result = []
         for row in picked:
             reason = self._behaviour_reason(
-                row, rows, w, weights, content[row], copurchase[row], signals
+                row, rows, w, weights, (content[row], copurchase[row], trend[row]), signals
             )
             result.append(
                 Suggestion(int(self.vectors.ids[row]), float(score[row]), reason, SOURCE_BEHAVIOUR)
@@ -334,14 +370,19 @@ class Recommender:
         anchors: np.ndarray,
         anchor_weights: np.ndarray,
         weights: dict[int, tuple[float, str]],
-        content: float,
-        copurchase: float,
+        parts: tuple[float, float, float],
         signals: UserSignals,
     ) -> str:
-        """Lý do theo sản phẩm đã tương tác đóng góp nhiều nhất vào điểm của sản phẩm `row`."""
+        """Lý do theo phần đóng góp nhiều nhất vào điểm của sản phẩm `row`: đang bán chạy, hoặc
+        sản phẩm đã tương tác gần với nó nhất. `parts` là (nội dung, hay mua cùng, đang bán chạy)."""
+        content, copurchase, trend = parts
         if row in weights:
             # Chính sản phẩm khách đã xem hoặc đã thích (đã mua, trong giỏ thì không gợi ý).
             return _SELF_PHRASES[weights[row][1]]
+        if trend >= TRENDING_REASON_MIN and self.weights.trending * trend >= max(
+            self.weights.content * content, self.weights.copurchase * copurchase
+        ):
+            return TRENDING_REASON
         if copurchase > 0.3 and (
             self.weights.copurchase * copurchase >= 0.5 * self.weights.content * content
         ):

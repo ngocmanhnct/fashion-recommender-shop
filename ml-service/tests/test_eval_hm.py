@@ -119,6 +119,10 @@ def test_report_end_to_end(raw_dir, tmp_path, monkeypatch):
     assert "Cách 1: giữ lại đơn cuối" in report
     assert "Cách 2: cắt theo thời gian" in report
     assert ev.RECENT_POPULAR in report
+    assert "| Đang bán chạy |" in report
+    assert "| Hybrid − Hybrid cũ (chưa có đang bán chạy) |" in report
+    assert 'Chọn trọng số "đang bán chạy" (tuần kiểm định 08/09–14/09/2020)' in report
+    assert "đang dùng (model.Weights)" in report
     assert "Hybrid − Bán chạy" in report
     assert "Độ tuổi trong từng nhóm" in report
     assert "Độ ổn định" in report

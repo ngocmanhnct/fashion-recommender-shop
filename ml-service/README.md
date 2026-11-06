@@ -1,6 +1,6 @@
 # ml-service
 
-Service FastAPI cho 2 tính năng ML của đề tài: gợi ý sản phẩm (hybrid: lọc theo nội dung, hay mua cùng, khảo sát, bán chạy) và phân nhóm khách hàng (RFM + K-Means). Chỉ được Spring Boot gọi nội bộ, không gọi thẳng từ trình duyệt. Từ Tuần 8 đọc/ghi MySQL: tiến trình lấy việc (`app/recompute/`) xử lý bảng `recompute_request` mỗi 2 giây (lượt lấy đủ 50 yêu cầu thì lấy tiếp ngay, không chờ).
+Service FastAPI cho 2 tính năng ML của đề tài: gợi ý sản phẩm (hybrid: lọc theo nội dung, hay mua cùng, khảo sát, bán chạy, đang bán chạy) và phân nhóm khách hàng (RFM + K-Means). Chỉ được Spring Boot gọi nội bộ, không gọi thẳng từ trình duyệt. Từ Tuần 8 đọc/ghi MySQL: tiến trình lấy việc (`app/recompute/`) xử lý bảng `recompute_request` mỗi 2 giây (lượt lấy đủ 50 yêu cầu thì lấy tiếp ngay, không chờ).
 
 ## Chạy trên máy (cần uv: https://docs.astral.sh/uv/)
 
@@ -61,7 +61,8 @@ Package `app/recommendation/`. Mô hình dựng trong bộ nhớ từ MySQL (kho
 
 - **Vector sản phẩm** (`features.py`): TF-IDF tên + mô tả (từ đơn và cặp 2 từ), one-hot danh mục, thương hiệu, 5 khoảng giá; trọng số khối 0,45 / 0,30 / 0,15 / 0,10. Độ tương đồng cosine = tích vô hướng.
 - **Hay mua cùng** (`copurchase.py`): cosine giữa 2 sản phẩm theo tập khách đã mua (đơn khác CANCELLED), co các cặp ít khách chung.
-- **Trang chủ** (`model.py`, nguồn theo BR-38): đủ dữ liệu hành vi (BR-19) thì trộn 0,7 × cosine với hồ sơ P(u) (đã mua 5, trong giỏ 3, yêu thích 2, đã xem 1, khảo sát 0,5) + 0,2 × hay mua cùng + 0,1 × bán chạy + 0,15 × điểm cộng theo kiểu người mua; chỉ có khảo sát thì cosine với vector khảo sát (khối chữ là TF-IDF của từ khóa gu và dịp đã chọn) + 0,2 × bán chạy + 0,15 × điểm cộng, xếp theo tầng: trong danh mục quan tâm và trong khoảng giá, trong danh mục nhưng ngoài khoảng giá, rồi mới tới danh mục khác; không có gì thì không có danh sách (trang chủ hiện bán chạy). Không gợi ý sản phẩm đã mua, đang trong giỏ, hết hàng; khảo sát chọn đồ nam/nữ thì không gợi ý đồ của giới tính kia (`gender.py`), trừ khi khách đã mua, thêm giỏ hoặc yêu thích đồ đó; trừ điểm sản phẩm trùng danh mục để danh sách đa dạng. Mỗi khách lưu 20 sản phẩm kèm lý do vào bảng `recommendation`.
+- **Đang bán chạy** (`trending.py`): số đã bán trong 30 ngày trước lúc gợi ý, mỗi lượt bán nhân 0,5^(tuổi tính bằng ngày / 7) nên lượt bán tuần trước nặng bằng nửa hôm nay; thang log chia cho sản phẩm cao nhất. Khi sản phẩm cao nhất chưa tới 20 lượt (đã giảm dần), điểm mọi sản phẩm thu nhỏ theo tỷ lệ, vì vài lượt bán lẻ ở cửa hàng ít đơn chỉ là ngẫu nhiên (dữ liệu mô phỏng khoảng 2–3 lượt, thu nhỏ còn khoảng 1/8). Tính tại lúc gợi ý nên mô hình không cần dựng lại khi thời gian trôi. Dữ liệu mô phỏng không có xu hướng theo thời gian, nên trọng số và chu kỳ bán rã chọn trên dữ liệu mua hàng thật của H&M (mục cuối).
+- **Trang chủ** (`model.py`, nguồn theo BR-38): đủ dữ liệu hành vi (BR-19) thì trộn 0,7 × cosine với hồ sơ P(u) (đã mua 5, trong giỏ 3, yêu thích 2, đã xem 1, khảo sát 0,5) + 0,2 × hay mua cùng + 0,1 × bán chạy + 1 × đang bán chạy + 0,15 × điểm cộng theo kiểu người mua; chỉ có khảo sát thì cosine với vector khảo sát (khối chữ là TF-IDF của từ khóa gu và dịp đã chọn) + 0,2 × bán chạy + 0,15 × điểm cộng, xếp theo tầng: trong danh mục quan tâm và trong khoảng giá, trong danh mục nhưng ngoài khoảng giá, rồi mới tới danh mục khác; không có gì thì không có danh sách (trang chủ hiện bán chạy). Không gợi ý sản phẩm đã mua, đang trong giỏ, hết hàng; khảo sát chọn đồ nam/nữ thì không gợi ý đồ của giới tính kia (`gender.py`), trừ khi khách đã mua, thêm giỏ hoặc yêu thích đồ đó; trừ điểm sản phẩm trùng danh mục để danh sách đa dạng. Mỗi khách lưu 20 sản phẩm kèm lý do vào bảng `recommendation`.
 - **Ưu tiên tương tác gần đây** (`model.py`): trọng số mỗi tương tác ở trên nhân thêm 1 + β × 0,5^(tuổi tính bằng ngày / bán rã), β = 3, bán rã 1 ngày: món vừa thêm giỏ hay vừa xem nặng gấp 4, sau 1 ngày gấp 2,5, sau 1 tuần gần như bình thường. Nhờ vậy thêm 1 món vào giỏ làm trung bình 1,6 trên 8 món trang chủ đổi (trước 0,5). Lý do ghi "bạn vừa thêm vào giỏ / vừa xem" khi tương tác trong 24 giờ.
 - **Tính lại** (`store.py`): hàm xử lý yêu cầu RECOMMENDATION của tiến trình lấy việc (khoảng 20 ms mỗi khách). Lúc khởi động và 02:00 giờ Việt Nam mỗi đêm, ghi yêu cầu cho mọi khách có danh sách, có đơn Đã giao, có lượt xem 30 ngày hoặc đã làm khảo sát (BR-20).
 - **API cho backend** (khoảng 5 ms): `GET /recommendations/related/{productId}?limit=4` (sản phẩm liên quan, US-12), `POST /recommendations/survey` (gợi ý theo khảo sát, US-23; body `categoryIds`, `brandId`, `priceMin`, `priceMax`, `style`, `minRating`, `gender`, `keywords`, `excludeProductIds`, `limit`), `POST /recommendations/bought-together` ("Thường được mua cùng" ở giỏ hàng, chức năng 20; body `productIds` 1–50 mã, `limit`; cộng cột ma trận hay mua cùng của các sản phẩm trong giỏ, chưa ai mua cùng thì rỗng). Xem `/docs`.
@@ -70,10 +71,10 @@ Package `app/recommendation/`. Mô hình dựng trong bộ nhớ từ MySQL (kho
 
 ```powershell
 uv run python -m app.recommendation.evaluate          # vài giây
-uv run python -m app.recommendation.evaluate --grid   # thử thêm 144 bộ trọng số trộn (4 × 4 × 3 × 3) và 15 bộ β × bán rã; trọng số các khối vector chọn tay (vài phút)
+uv run python -m app.recommendation.evaluate --grid   # thử thêm 243 bộ trọng số trộn (3 × 3 × 3 × 3 × 3) và 15 bộ β × bán rã; trọng số các khối vector chọn tay (vài phút)
 ```
 
-Bảng kết quả có thêm dòng "Hybrid, không ưu tiên gần đây" (β = 0) và mốc "Xem gần đây (không mô hình)" để so. Lượt xem trong 48 giờ ngay trước đơn bị giấu bị bỏ (`SESSION_GAP`): khách xem đúng món sắp mua ngay trước khi đặt, giữ lại thì chỉ cần gợi ý lại món vừa xem đã trúng 100% (rò rỉ nhãn; trước 01/11/2026 bảng có lỗi này nên tỷ lệ trúng hybrid là 49%, nay khoảng 19–28% trên 3 bộ mô phỏng, vẫn hơn bán chạy 8–12% và xem gần đây 13–17%). "Hay mua cùng" và "bán chạy" vẫn dựng từ đơn của khách khác kể cả đơn sau thời điểm bị giấu, nên số vẫn hơi lạc quan. Ưu tiên gần đây không làm tăng tỷ lệ trúng ngoại tuyến; CTR trên trang chủ mới là số đo thật.
+Bảng kết quả có thêm dòng "Hybrid, không ưu tiên gần đây" (β = 0) và mốc "Xem gần đây (không mô hình)" để so. Lượt xem trong 48 giờ ngay trước đơn bị giấu bị bỏ (`SESSION_GAP`): khách xem đúng món sắp mua ngay trước khi đặt, giữ lại thì chỉ cần gợi ý lại món vừa xem đã trúng 100% (rò rỉ nhãn; trước 01/11/2026 bảng có lỗi này nên tỷ lệ trúng hybrid là 49%, nay khoảng 21–29% trên 3 bộ mô phỏng, vẫn hơn bán chạy 9–14% và xem gần đây 13–17%). Dòng "Hybrid cũ (chưa có đang bán chạy)" để so: trên dữ liệu mô phỏng, thêm đang bán chạy làm tỷ lệ trúng trung bình 3 bộ giảm nhẹ (26,0% → 25,0%, NDCG 0,097 → 0,095, trong khoảng dao động giữa các seed) vì dữ liệu này không có xu hướng; trên dữ liệu thật của H&M, tuần kiểm tra trúng 10,5% thay vì 4,8% (mục cuối). "Hay mua cùng" và "bán chạy" vẫn dựng từ đơn của khách khác kể cả đơn sau thời điểm bị giấu, nên số vẫn hơi lạc quan. Ưu tiên gần đây không làm tăng tỷ lệ trúng ngoại tuyến; CTR trên trang chủ mới là số đo thật.
 
 ## Phân nhóm khách hàng (Tuần 9)
 
@@ -96,9 +97,11 @@ uv run python -m app.segmentation.evaluate --features   # so các bộ đặc tr
 
 ## Kiểm chứng trên dữ liệu mua hàng thật (H&M)
 
-`scripts/eval_hm.py` chạy nguyên mã gợi ý và phân nhóm ở trên với lịch sử mua thật của khách H&M (cuộc thi H&M Personalized Fashion Recommendations trên Kaggle): gợi ý theo 2 cách chia (giữ lại đơn cuối; cắt theo thời gian, đoán 7 ngày cuối) kèm khoảng tin cậy 95%, phân nhóm kèm độ tuổi, độ ổn định và kiểm tra trên 90 ngày sau mốc. Luật cuộc thi cấm chia sẻ lại dữ liệu nên repo chỉ có kết quả tổng hợp (`data/hm/ket-qua.md`); cách tải dữ liệu và giới hạn ở `data/hm/README.md`.
+`scripts/eval_hm.py` chạy nguyên mã gợi ý và phân nhóm ở trên với lịch sử mua thật của khách H&M (cuộc thi H&M Personalized Fashion Recommendations trên Kaggle): gợi ý theo 2 cách chia (giữ lại đơn cuối; cắt theo thời gian, đoán 7 ngày cuối) kèm khoảng tin cậy 95%, chọn trọng số đang bán chạy trên tuần kiểm định ngay trước tuần kiểm tra, phân nhóm kèm độ tuổi, độ ổn định và kiểm tra trên 90 ngày sau mốc. Luật cuộc thi cấm chia sẻ lại dữ liệu nên repo chỉ có kết quả tổng hợp (`data/hm/ket-qua.md`); cách tải dữ liệu và giới hạn ở `data/hm/README.md`.
+
+Kết quả mẫu 5% khách (06/11/2026): đoán 7 ngày cuối (16–22/09/2020), hybrid trúng 10,5% (khoảng tin cậy 95%: 9,5–11,6%), ngang bán chạy 7 ngày trước mốc (9,6%, chênh lệch chưa phân biệt được) và hơn hẳn hybrid chưa có đang bán chạy (4,8%); giữ lại đơn cuối, 12,3% so với 7,2%. Trước khi có điểm đang bán chạy, hybrid thua cả cách chỉ gợi ý bán chạy 7 ngày (issue #143).
 
 ```powershell
-uv run python -m scripts.eval_hm                # mẫu 5% khách, khoảng 20 phút
-uv run python -m scripts.eval_hm --sample 250   # 25% khách (số phần nghìn), cần nhiều RAM hơn
+uv run python -m scripts.eval_hm                 # mẫu 5% khách, khoảng nửa tiếng, RAM khoảng 1 GB
+uv run python -m scripts.eval_hm --sample 1000   # toàn bộ khách (số phần nghìn), cần nhiều RAM hơn (data/hm/README.md)
 ```

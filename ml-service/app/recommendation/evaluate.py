@@ -3,8 +3,9 @@
 Cách đánh giá "giữ lại đơn cuối" (leave-last-order-out):
 - Khách có ít nhất 2 đơn khác CANCELLED: giấu đơn cuối cùng. Mô hình chỉ thấy các đơn trước đó,
   lượt xem trong 30 ngày trước đơn cuối nhưng bỏ 48 giờ ngay trước đơn (xem SESSION_GAP), và
-  khảo sát; "hay mua cùng" và "bán chạy" dựng từ mọi đơn trừ các đơn bị giấu. Gợi ý trúng = sản
-  phẩm có trong đơn bị giấu mà khách chưa mua trước đó.
+  khảo sát; "hay mua cùng", "bán chạy" và "đang bán chạy" dựng từ mọi đơn trừ các đơn bị giấu
+  ("đang bán chạy" tính tại lúc đặt đơn bị giấu, chỉ từ các đơn trước đó). Gợi ý trúng = sản phẩm
+  có trong đơn bị giấu mà khách chưa mua trước đó.
 - Khởi động lạnh: khách đã làm khảo sát, chỉ dùng khảo sát để đoán đơn đầu tiên của khách. "Bán
   chạy" ở đây đếm cả các đơn đầu tiên đó nên được lợi một chút; khảo sát vẫn phải vượt nó.
 
@@ -22,7 +23,7 @@ import math
 import sys
 import time
 from collections import Counter, defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timedelta
 
@@ -35,6 +36,7 @@ from app.recommendation.copurchase import build_copurchase
 from app.recommendation.data import ProductStats, SurveyProfile, UserSignals
 from app.recommendation.features import ItemVectors
 from app.recommendation.model import DEFAULT_WEIGHTS, Recommender, Weights
+from app.recommendation.trending import SalesHistory
 
 K = 10
 
@@ -45,9 +47,10 @@ gợi ý lại "sản phẩm vừa xem" đã trúng 100% (rò rỉ nhãn, hội 
 đó thì đo được khả năng đoán từ hành vi trước, đúng câu hỏi của gợi ý."""
 
 
-@dataclass
+@dataclass(slots=True)
 class Order:
-    """1 đơn khác CANCELLED."""
+    """1 đơn khác CANCELLED. `slots` bớt khoảng 40 byte mỗi đơn: toàn bộ dữ liệu H&M có hơn 9 triệu
+    đơn."""
 
     id: int
     account_id: int
@@ -55,6 +58,18 @@ class Order:
     status: str
     products: dict[int, int] = field(default_factory=dict)
     """Mã sản phẩm → số lượng."""
+
+
+@dataclass(frozen=True)
+class PurchasePairs:
+    """Cặp (khách, sản phẩm) của các đơn để dựng "hay mua cùng", đọc lại được nhiều lần mà không giữ
+    danh sách cặp trong bộ nhớ (dữ liệu H&M có hàng chục triệu cặp). Cặp trùng không sao: ma trận
+    "hay mua cùng" chỉ đếm 1 lần mỗi khách."""
+
+    orders: list[Order]
+
+    def __iter__(self) -> Iterator[tuple[int, int]]:
+        return ((o.account_id, p) for o in self.orders for p in o.products)
 
 
 @dataclass
@@ -67,12 +82,14 @@ class Case:
 
 @dataclass
 class Dataset:
-    """Dữ liệu đã chia: khách cần đoán, cặp mua để dựng "hay mua cùng" và số đã bán."""
+    """Dữ liệu đã chia: khách cần đoán, cặp mua để dựng "hay mua cùng", số đã bán và các đơn mô
+    hình được thấy (cho "đang bán chạy")."""
 
     behaviour: list[Case]
     cold_start: list[Case]
-    train_pairs: list[tuple[int, int]]
+    train_pairs: Iterable[tuple[int, int]]
     train_sold: Counter
+    train_orders: list[Order] = field(default_factory=list)
 
 
 def load_orders(conn: Connection) -> list[Order]:
@@ -150,8 +167,7 @@ def split(
     sold: Counter = Counter()
     for order in train:
         sold.update(order.products)
-    pairs = sorted({(o.account_id, p) for o in train for p in o.products})
-    return Dataset(behaviour, cold_start, pairs, sold)
+    return Dataset(behaviour, cold_start, PurchasePairs(train), sold, train)
 
 
 def load_dataset(conn: Connection) -> tuple[Dataset, list, dict[int, str]]:
@@ -213,13 +229,25 @@ def build_model(dataset: Dataset, items: list, brands: dict[int, str]) -> Recomm
         for item in items
     }
     copurchase = build_copurchase(dataset.train_pairs, vectors.index, len(items))
-    return Recommender(vectors, items, stats, copurchase, brands)
+    sales = SalesHistory(
+        ((p, o.created_at, q) for o in dataset.train_orders for p, q in o.products.items()),
+        vectors.index,
+        len(items),
+    )
+    return Recommender(vectors, items, stats, copurchase, brands, sales=sales)
 
+
+_SINGLE = Weights(content=0, copurchase=0, popular=0, trending=0, style=0, diversity=0)
+
+PREVIOUS_WEIGHTS = replace(DEFAULT_WEIGHTS, trending=0.0)
+"""Bộ trọng số trước khi có "đang bán chạy" (chọn trên dữ liệu mô phỏng), giữ để so sánh."""
 
 BEHAVIOUR_METHODS = {
-    "Bán chạy": Weights(0, 0, 1, 0, 0),
-    "Nội dung (P(u), cosine)": Weights(1, 0, 0, 0, 0),
-    "Hay mua cùng": Weights(0, 1, 0, 0, 0),
+    "Bán chạy": replace(_SINGLE, popular=1),
+    "Đang bán chạy": replace(_SINGLE, trending=1),
+    "Nội dung (P(u), cosine)": replace(_SINGLE, content=1),
+    "Hay mua cùng": replace(_SINGLE, copurchase=1),
+    "Hybrid cũ (chưa có đang bán chạy)": PREVIOUS_WEIGHTS,
     "Hybrid, không ưu tiên gần đây": replace(DEFAULT_WEIGHTS, recent_boost=0),
     "Hybrid (mặc định)": DEFAULT_WEIGHTS,
 }
@@ -304,24 +332,29 @@ def print_table(results: dict[str, Scores], dataset: Dataset, out) -> None:
 def print_grid(dataset: Dataset, behaviour: Callable[[Weights], Scores], out) -> None:
     """Thử các bộ trọng số, in 10 bộ có NDCG cao nhất."""
     rows = []
-    for content, copurchase, popular, diversity in itertools.product(
-        (0.5, 0.6, 0.7, 0.8), (0.1, 0.2, 0.3, 0.4), (0.0, 0.1, 0.2), (0.0, 0.05, 0.1)
+    for content, copurchase, popular, trending, diversity in itertools.product(
+        (0.5, 0.7, 1.0), (0.1, 0.2, 0.4), (0.0, 0.1, 0.2), (0.0, 0.5, 1.0), (0.0, 0.05, 0.1)
     ):
         weights = replace(
             DEFAULT_WEIGHTS,
             content=content,
             copurchase=copurchase,
             popular=popular,
+            trending=trending,
             diversity=diversity,
         )
         rows.append((behaviour(weights), weights))
     rows.sort(key=lambda r: -r[0].ndcg)
-    print("\n| Nội dung | Mua cùng | Bán chạy | Dàn đều | Tỷ lệ trúng | NDCG | Độ phủ |", file=out)
-    print("|---:|---:|---:|---:|---:|---:|---:|", file=out)
+    print(
+        "\n| Nội dung | Mua cùng | Bán chạy | Đang bán chạy | Dàn đều | Tỷ lệ trúng | NDCG "
+        "| Độ phủ |",
+        file=out,
+    )
+    print("|---:|---:|---:|---:|---:|---:|---:|---:|", file=out)
     for s, w in rows[:10]:
         print(
-            f"| {w.content} | {w.copurchase} | {w.popular} | {w.diversity} | {s.hit_rate:.3f} "
-            f"| {s.ndcg:.3f} | {s.coverage:.3f} |",
+            f"| {w.content} | {w.copurchase} | {w.popular} | {w.trending} | {w.diversity} "
+            f"| {s.hit_rate:.3f} | {s.ndcg:.3f} | {s.coverage:.3f} |",
             file=out,
         )
 
