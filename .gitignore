@@ -24,3 +24,6 @@ ml-service/*.pyc
 data/tiki/raw/
 # Ảnh gốc tải từ Openverse hoặc tải tay (data/anh-san-pham/README.md): chỉ commit ảnh đã thu nhỏ
 data/anh-san-pham/raw/
+# Dữ liệu H&M tải từ Kaggle: luật cuộc thi cấm chia sẻ lại, chỉ commit kết quả (data/hm/README.md)
+data/hm/raw/
+data/hm/mau/
