@@ -80,6 +80,8 @@
 | 58 (\*) | Claude Code | 05–06/11. Đánh giá sản phẩm ngay sau khi nhận hàng (đánh giá nhanh từ trang đơn hàng) | Sinh viên thấy luồng đánh giá cũ quá rườm rà | Form đánh giá nhanh, API, test | Nêu vấn đề, đọc lại rồi bảo "merge đi"; AI merge PR #134 | `bba43c0` |
 | 59 (\*) | Claude Code | 05–06/11. Bổ sung ảnh minh họa cho các danh mục còn thiếu, đủ 42/42 danh mục | Làm tiếp phần ảnh còn thiếu | Ảnh WebP, `categoryPhotos.json`, `nguon-anh.md` | Xem kết quả; AI merge PR #135 | `c415b14` |
 | 60 (\*) | Claude Code | 06/11. Viết `TEST_PLAN_AND_CASES.MD`; cập nhật AI_LOG, AI_REVIEW, LIST_TASK, PROGRESS_LOG đến PR #135 | "Làm cả 1, 2 và 3" (cập nhật log, báo cáo tuần 9–10, kế hoạch kiểm thử) | Kế hoạch kiểm thử 4 tầng, bảng truy vết 70 ca kiểm thử, các dòng nhật ký | Đọc lại và tự merge PR #112 | (PR #112) |
+| 61 (\*) | Claude Code | 06/11. Bổ sung hồ sơ nộp còn thiếu: `SRS_SDD.MD`, `quality_reports/`, `project_history/`, bộ công cụ thực nghiệm người dùng; US-23 và BR-37–BR-42 vào đặc tả trong repo | Hỏi hệ thống còn gì chưa xong để chốt hồ sơ nộp checklist của Khoa | Đặc tả SRS/SDD, sơ đồ, báo cáo chất lượng, lịch sử PR/CI/lỗi | Đọc lại và tự merge PR #136 | `80f04e4` |
+| 62 (\*) | Claude Code | 06/11. Rà lại hệ thống và luận văn: sửa test đỏ ngẫu nhiên trên CI (issue #137); cập nhật Chương 3, 5, 6, Kết luận theo số đo ngày 06/11; xuất lại lịch sử dự án | "Bạn giúp mình kiểm tra lại" (hoàn thiện hệ thống và báo cáo sẵn có) | Sửa test, đoạn văn luận văn, số liệu hồ sơ | Bỏ thực nghiệm người dùng; AI merge PR #138 | `bf2ff0a` |
 
 ## 2. Danh mục lỗi / ảo giác của AI đã phát hiện và sửa chữa
 
@@ -160,17 +162,18 @@ Chỉ tính lỗi lọt qua bước giao bài (sinh viên đã nhận file hoặ
 45. **Mô tả sản phẩm mẫu ghi nhiều màu nhưng không có lựa chọn màu.** Script dựng danh mục mẫu do AI viết sinh phân loại kích cỡ mà bỏ qua màu ghi trong mô tả. Sinh viên phát hiện. (Gây lỗi ở `39647d3`, `a0d5b8d`; sửa ở `df7dafd`; issue #132.)
 46. **Các ô chấm sao trên cùng trang đơn hàng dùng chung `name="rating"`**, nên chọn sao ở sản phẩm này làm mất lựa chọn ở sản phẩm kia khi có nhiều form đánh giá cùng lúc. AI phát hiện khi làm đánh giá nhanh và sửa luôn trong PR #134; lỗi này không mở issue riêng, là thiếu sót so với quy trình. (Gây lỗi ở `cee24ee`, sửa ở `bba43c0`.)
 47. **Chẩn đoán sai PR Dependabot #116 (Java 25).** AI báo với sinh viên rằng backend không khởi động được; đọc lại log thì backend đã khởi động xong, chỉ có healthcheck của Docker Compose báo unhealthy. AI tự sửa lại tin nhắn (gạch bỏ câu sai) và ghi nguyên nhân thận trọng hơn trong `.github/dependabot.yml`. Lỗi quy trình, không ảnh hưởng mã nguồn.
+48. **Test `MlServiceClientTest` do AI viết đặt thời gian chờ 300 ms, quá sát.** Lần gọi HTTP đầu tiên trên máy CI mất khoảng 380 ms nên test đỏ ngẫu nhiên trên `main` sau khi merge PR #112, dù cùng mã đã xanh trên PR. AI phát hiện khi đọc kết quả CI sau merge; sửa bằng thời gian chờ 1 giây trong test, cấu hình thật không đổi. (Gây lỗi ở `78940ef`, sửa ở `bf2ff0a`; issue #137.)
 
 ## 3. Tổng hợp
 
-- **Số lỗi lọt qua bước giao bài:** 47 mục.
+- **Số lỗi lọt qua bước giao bài:** 48 mục.
   - Mục 1–28 (đến 30/10): 22 lỗi mã nguồn, cấu hình; 1 lỗi do kiến thức cũ; 5 lỗi quy trình.
   - Mục 29–40 (30/10–04/11): gộp 27 issue (#65–#111), trong đó 1 lỗi Critical.
-  - Mục 41–47 (04/11–06/11): 5 issue (#113, #124, #126, #130, #132), 1 lỗi không mở issue, 1 lỗi quy trình.
+  - Mục 41–48 (04/11–06/11): 6 issue (#113, #124, #126, #130, #132, #137), 1 lỗi không mở issue, 1 lỗi quy trình.
   - Rubric yêu cầu ≥ 5.
 - **Ai phát hiện:** SonarQube Cloud 10 lỗi (4, 5, 6, 8, 10, 13, 16, 17, 18, 27); AI tự phát hiện khi đọc lại CI, diff, log hoặc khi đo, rà soát 9 lỗi (2, 11, 12, 15, 19, 20, 21, 25, 28); sinh viên tự test hoặc kiểm tra 6 lỗi (3, 7, 9, 23, 24, 26); test tự động trong CI 2 lỗi (14, 22); lộ ra khi cùng chạy lệnh dựng backend 1 lỗi (1).
 - **Ai phát hiện (mục 29–40):** trợ giảng khi xem demo 1 (29); CI 2 (30, 32); SonarQube 1 (31); CI và SonarQube trước khi merge 1 (34); đối chiếu đặc tả sau khi merge 1 (33); buổi tổng duyệt với agent rà code và agent đóng vai hội đồng 5 (35–39); AI tự chấm theo rubric 1 (40).
-- **Ai phát hiện (mục 41–47):** sinh viên tự test 3 (41, 44, 45); AI khi quét khảo sát, đo Lighthouse, làm chức năng hoặc đọc lại log 4 (42, 43, 46, 47).
+- **Ai phát hiện (mục 41–48):** sinh viên tự test 3 (41, 44, 45); AI khi quét khảo sát, đo Lighthouse, làm chức năng hoặc đọc lại log, kết quả CI 5 (42, 43, 46, 47, 48).
 - **Bài học đã thành quy tắc:**
   - Trong `AI_REVIEW.MD`: đọc kết quả SonarQube trước khi merge (R5, sau lỗi 4); AI không ghi vào repository (Nguyên tắc chung, sau lỗi 25); không đưa secret vào prompt (P1: khóa VNPay, khóa SSH, token SonarQube, mật khẩu tài khoản demo do sinh viên tự nhập).
   - Trong quy tắc làm việc của AI ở dự án: luôn `await run(...)` (sau lỗi 8); giữ LF cho file tài liệu (sau lỗi 11); so md5 sau mỗi lần ghi file sang máy sinh viên (sau lỗi 26); đưa lệnh cho đúng loại terminal (sau lỗi 24); thử test CSDL trên MySQL mới trống giống CI (sau lỗi 14); đọc đúng dòng SonarQube chỉ ra rồi mới sửa (sau lỗi 27).

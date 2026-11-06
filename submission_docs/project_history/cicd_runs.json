@@ -2468,5 +2468,70 @@
     "status": "completed",
     "updated_at": "2026-11-05T19:27:31Z",
     "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/actions/runs/42093586849"
+  },
+  {
+    "branch": "docs/ho-so-con-thieu",
+    "conclusion": "success",
+    "created_at": "2026-11-05T22:24:49Z",
+    "event": "pull_request",
+    "id": 42121277894,
+    "name": "CI",
+    "run_number": 180,
+    "sha": "80f04e4701d9c006d2a8db51b8730d5187051d8b",
+    "status": "completed",
+    "updated_at": "2026-11-05T22:28:24Z",
+    "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/actions/runs/42121277894"
+  },
+  {
+    "branch": "main",
+    "conclusion": "failure",
+    "created_at": "2026-11-06T07:39:42Z",
+    "event": "push",
+    "id": 42182331085,
+    "name": "CI",
+    "run_number": 181,
+    "sha": "b0f688dc6db53be8aafd467ad9bb0d78ea9c4779",
+    "status": "completed",
+    "updated_at": "2026-11-06T07:42:20Z",
+    "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/actions/runs/42182331085"
+  },
+  {
+    "branch": "main",
+    "conclusion": "success",
+    "created_at": "2026-11-06T07:39:55Z",
+    "event": "push",
+    "id": 42182354626,
+    "name": "CI",
+    "run_number": 182,
+    "sha": "a1635987d3bac57eb4da2dd8c0c62f5272e5a532",
+    "status": "completed",
+    "updated_at": "2026-11-06T07:57:22Z",
+    "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/actions/runs/42182354626"
+  },
+  {
+    "branch": "fix/test-ml-client-timeout",
+    "conclusion": "success",
+    "created_at": "2026-11-06T07:47:41Z",
+    "event": "pull_request",
+    "id": 42183209371,
+    "name": "CI",
+    "run_number": 183,
+    "sha": "bf2ff0a7e20b1a33fab9bb7d8ae474a5a614756e",
+    "status": "completed",
+    "updated_at": "2026-11-06T07:59:03Z",
+    "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/actions/runs/42183209371"
+  },
+  {
+    "branch": "main",
+    "conclusion": "success",
+    "created_at": "2026-11-06T07:59:21Z",
+    "event": "push",
+    "id": 42184482089,
+    "name": "CI",
+    "run_number": 184,
+    "sha": "45c0cb45e059bcc6aa64f140ea690b6442b453e6",
+    "status": "completed",
+    "updated_at": "2026-11-06T08:04:55Z",
+    "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/actions/runs/42184482089"
   }
 ]

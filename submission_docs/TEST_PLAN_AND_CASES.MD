@@ -102,7 +102,7 @@ node perf/tai-dong-thoi.mjs --users 50 --duration 180
 
 **Danh sách lỗi:** https://github.com/ngocmanhnct/fashion-recommender-shop/issues?q=label%3Abug
 
-**Số liệu đến 06/11/2026:** có 56 issue lỗi (#25 đến #132), **đã đóng cả 56**.
+**Số liệu đến 06/11/2026:** có 57 issue lỗi (#25 đến #137), **đã đóng cả 57**.
 
 Theo mức độ ghi trong issue:
 
@@ -111,8 +111,8 @@ Theo mức độ ghi trong issue:
 | Critical (#94: gửi song song nhiều lần đăng nhập sai vượt được giới hạn 5 lần, đã sửa ở PR #107 kèm test `LoginAttemptServiceTest.parallelAttemptsCannotTryMoreThanFivePasswords`) | 1 |
 | Major hoặc Cao | 17 |
 | Trung bình | 3 |
-| Minor hoặc Thấp | 32 |
-| Không ghi (issue mở trước khi có trường mức độ) | 3 |
+| Minor hoặc Thấp | 33 |
+| Trivial | 3 |
 
 **Nguồn phát hiện:**
 - SonarQube Cloud;
@@ -268,12 +268,12 @@ Các ca này cần dịch vụ bên ngoài, tài khoản thật hoặc mắt ng�
 | Bộ test | Số test | Kết quả | Độ phủ dòng |
 |---|---:|---|---|
 | Backend (JUnit, JaCoCo) | 220 lần chạy | 220 pass, 0 lỗi | 93,4% (nhánh 84,0%) |
-| ml-service (pytest, pytest-cov) | 159 | 159 pass | 96% |
-| Frontend (Vitest) | 409 (53 file) | 409 pass | 86,7% |
+| ml-service (pytest, pytest-cov) | 159 | 159 pass | 97,3% (nhánh 90,6%) |
+| Frontend (Vitest) | 409 (53 file) | 409 pass | 86,7% (nhánh 82,4%) |
 | E2E (Playwright, Chromium) | 6 | 6 pass | — |
 
 - **CI:** các job Backend, Frontend, ML service, Docker images, SonarQube Cloud, gitleaks và Deploy staging đều xanh.
-- **Từ 22/10 đến 06/11/2026:** 48 lần deploy staging thành công.
+- **Từ 22/10 đến 06/11/2026:** 50 lần deploy staging thành công.
 
 ### 8.2 Chỉ tiêu phi chức năng
 
@@ -310,7 +310,7 @@ Các ca này cần dịch vụ bên ngoài, tài khoản thật hoặc mắt ng�
 
 ### 8.4 Lỗi
 
-Có 56 issue lỗi, đã đóng 56, không còn lỗi đang mở. Lỗi Critical duy nhất (#94) đã sửa và có test hồi quy (TC-16).
+Có 57 issue lỗi, đã đóng 57, không còn lỗi đang mở. Lỗi Critical duy nhất (#94) đã sửa và có test hồi quy (TC-16).
 
 ## 9. Hạn chế và việc còn lại
 
