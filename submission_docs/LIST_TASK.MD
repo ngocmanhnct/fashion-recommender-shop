@@ -1,6 +1,6 @@
 # LIST_TASK: ĐỀ TÀI, MỤC TIÊU VÀ BẢNG PHÂN CÔNG CÔNG VIỆC
 
-> Cập nhật 30/10/2026. Nguồn: `ke-hoach-15-tuan.md`, `docs/dac-ta-yeu-cau.md` và lịch sử PR trên GitHub. Đề tài do 1 sinh viên thực hiện, nên mọi đầu việc do một người phụ trách. Cột "Tuần" lấy theo kế hoạch 15 tuần; cột "Trạng thái" tính đến 30/10. Từ Tuần 7, một số việc làm sớm hơn kế hoạch.
+> Cập nhật 06/11/2026. Nguồn: `ke-hoach-15-tuan.md`, `docs/dac-ta-yeu-cau.md` và lịch sử PR trên GitHub. Đề tài do 1 sinh viên thực hiện, nên mọi đầu việc do một người phụ trách. Cột "Tuần" lấy theo kế hoạch 15 tuần; cột "Trạng thái" tính đến 06/11. Từ Tuần 7, một số việc làm sớm hơn kế hoạch.
 
 ## 1. Thông tin đề tài
 
@@ -24,7 +24,7 @@
 
 ## 2. Bảng phân công theo mô-đun
 
-| # | Mô-đun / đầu việc | US | Tuần | Phụ trách | Trạng thái (30/10) |
+| # | Mô-đun / đầu việc | US | Tuần | Phụ trách | Trạng thái (04/11) |
 |---|---|---|---|---|---|
 | 1 | Khảo sát thực tiễn, so sánh đối thủ, KPI nháp | | 1 | Mạnh | Xong |
 | 2 | Đặc tả yêu cầu: US, BR, từ điển dữ liệu, NFR | | 2 | Mạnh | Xong, cập nhật liên tục |
@@ -40,14 +40,22 @@
 | 12 | Thanh toán VNPay sandbox | US-10 | 6 | Mạnh | Xong (PR #19) |
 | 13 | Chốt sản phẩm và metric (bản cam kết Bước 3) | | 7 | Mạnh, GVHD | Đã soạn văn bản, đang bổ sung, chờ GVHD ký |
 | 14 | Quản trị: danh sách khách hàng | US-18 | 7 | Mạnh | Xong (PR #56) |
-| 15 | Khảo sát lần đầu cho người dùng mới | US-23 | 7-8 | Mạnh | Xong (PR #37, Flyway V5) |
+| 15 | Khảo sát lần đầu cho người dùng mới | US-23 | 7-8 | Mạnh | Xong (PR #37, Flyway V5); 04/11 hỏi kỹ hơn, lọc theo giới tính, quét đủ 7.377 đường trả lời (PR #125, #127, Flyway V11, V12) |
 | 16 | Dữ liệu cho học máy: dữ liệu mô phỏng, EDA | | 8 | Mạnh | Xong (PR #43, #46) |
 | 17 | Phân nhóm khách hàng (RFM + K-Means) và trang quản trị | US-19 | 9 | Mạnh | Xong (PR #55, #56, #60) |
-| 18 | Gợi ý sản phẩm: liên quan và cá nhân hóa | US-12, 13 | 10 | Mạnh | Xong (PR #52, #53); đo tỷ lệ bấm gợi ý (PR #54) |
-| 19 | Kiểm thử toàn diện, coverage, hoàn thiện pipeline có deploy | | 11 | Mạnh | Phần lớn đã xong: độ phủ và deploy staging (PR #22), giám sát UptimeRobot (PR #61), test frontend (PR #62), test đầu cuối (PR #64). Còn tài liệu kế hoạch và ca kiểm thử |
-| 20 | Triển khai và thực nghiệm ≥ 10 người dùng (SUS) | | 12-13 | Mạnh | Chưa làm thực nghiệm; staging đã chạy từ 22/10 |
-| 21 | Luận văn, slide, video demo | | 13-15 | Mạnh | Đang viết luận văn trên Google Doc |
-| — | Ngoài cam kết: wishlist, đánh giá, mã giảm giá | US-14, 15, 21, 22 | nếu còn thời gian | Mạnh | Chưa làm |
+| 18 | Gợi ý sản phẩm: liên quan và cá nhân hóa | US-12, 13 | 10 | Mạnh | Xong (PR #52, #53); đo tỷ lệ bấm gợi ý (PR #54); ưu tiên tương tác gần đây, hàng "Vì bạn vừa xem" (PR #68) |
+| 19 | Kiểm thử toàn diện, coverage, hoàn thiện pipeline có deploy | | 11 | Mạnh | Phần lớn đã xong: độ phủ và deploy staging (PR #22), giám sát UptimeRobot (PR #61), test frontend (PR #62), test đầu cuối (PR #64), tổng duyệt toàn hệ thống sửa 14 lỗi (PR #107), sao lưu CSDL và rollback staging, đo tải 50 người dùng (P95 đạt) và Lighthouse (PR #114), kế hoạch và ca kiểm thử `TEST_PLAN_AND_CASES.MD` (PR #112) |
+| 20 | Triển khai và thực nghiệm ≥ 10 người dùng (SUS) | | 12-13 | Mạnh | Chưa làm thực nghiệm (chưa tìm được người tham gia); staging đã chạy từ 22/10 |
+| 21 | Luận văn, slide, video demo | | 13-15 | Mạnh | Đang viết luận văn trên Google Doc; 04/11 sửa các chỗ lệch với code và Bảng 4.1 |
+| 22 | Yêu thích, đánh giá sản phẩm | US-14, 15 | 9 | Mạnh | Xong (PR #75, #76) |
+| 23 | "Thường được mua cùng" ở giỏ hàng | | 9 | Mạnh | Xong (PR #74) |
+| 24 | Mã giảm giá; tặng mã theo nhóm; tự tặng mã khi vào nhóm | US-21, 22, 24, 26 | 9 | Mạnh | Xong (PR #82, #83, #84, #110) |
+| 25 | Hồ sơ nhóm khách hàng, danh sách cần chăm sóc | US-25 | 9 | Mạnh | Xong (PR #79) |
+| 26 | Thử nghiệm A/B gợi ý | US-27 | 9 | Mạnh | Xong (PR #85, #87, #110); chưa có số liệu thật |
+| 27 | Bảng điều khiển quản trị | US-28 | 9 | Mạnh | Xong (PR #88) |
+| 28 | Hồ sơ cá nhân, quên mật khẩu qua email | US-29 | 9 | Mạnh | Xong (PR #91) |
+| 29 | Làm mới giao diện; ảnh sản phẩm thật theo danh mục | | 9-10 | Mạnh | Xong: giao diện (PR #77); ảnh minh họa CC0/public domain cho 42/42 danh mục (PR #129, #131, #135) |
+| 30 | Phân loại "Màu sắc" cho sản phẩm mẫu; đánh giá nhanh sau khi nhận hàng | US-15 | 10 | Mạnh | Xong (PR #133, #134) |
 
 ## 3. Tỷ lệ đóng góp
 
@@ -55,4 +63,4 @@
 |---|---|---|
 | Đoàn Ngọc Mạnh | Toàn bộ: phân tích, thiết kế, lập trình, kiểm thử, triển khai, viết báo cáo | 100% |
 
-Việc dùng công cụ AI (Claude) được kê khai trong AI_LOG.MD, theo TC2.3.
+Việc dùng công cụ AI (Claude) được kê khai trong AI_LOG.MD, theo TC2.3. Từ 31/10, phần lập trình, kiểm thử và thao tác Git của các mục 18, 19, 22–30 do Claude thực hiện theo yêu cầu và lựa chọn của sinh viên (AI_LOG dòng 36 trở đi).
