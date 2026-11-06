@@ -198,7 +198,7 @@ function SurveyRunner({ survey }) {
   );
 }
 
-/** Xem kết quả, rồi lưu lại theo người dùng (quà tặng không lưu vào sở thích, BR-38). */
+/** Xem kết quả, rồi lưu lại theo người dùng (quà tặng không lưu vào sở thích, BR-42). */
 async function finish(answers, user) {
   const evaluation = await surveyApi.evaluateSurvey(answers);
   const gift = evaluation.profile.purpose === 'GIFT';

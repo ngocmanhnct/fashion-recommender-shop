@@ -118,6 +118,16 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 - Gợi ý tính sẵn, cập nhật vài giây sau hành động rõ ý và khoảng 30 giây sau lượt xem (xem BR-20); mở trang chủ không phải chờ tính. Trang chủ có thêm hàng "Vì bạn vừa xem / vừa thêm vào giỏ …" gồm sản phẩm liên quan của hành động gần nhất trong 24 giờ, đổi ngay theo từng hành động; trong lúc danh sách đang được tính lại, trang chủ báo "Đang cập nhật" và tự tải lại, sản phẩm mới so với lần khách thấy trước có nhãn "Mới"  
 - Tín hiệu hành vi đầu vào phân cấp trọng số theo **loại hành vi**: đã mua \> đã thêm giỏ hàng \> chỉ xem — dùng 3 nguồn dữ liệu đã có sẵn ở Mục 3, không đo thời gian xem (dwell time) vì cần cơ chế tracking phức tạp và dễ nhiễu. Trọng số cụ thể chốt khi cài đặt mô hình **\[Giả định\]**
 
+**US-23: Khảo sát sở thích lần đầu cho người dùng mới** *(bổ sung 07/10/2026 theo yêu cầu của GVHD; cài đặt 22/10/2026, migration V5; hỏi kỹ hơn từ 04/11/2026, migration V11, V12)* Là khách mới chưa có lịch sử mua hay xem, tôi muốn trả lời vài câu hỏi ngắn về nhu cầu, để thấy ngay gợi ý hợp với mình thay vì chỉ thấy sản phẩm bán chạy. Tiêu chí chấp nhận:
+
+- Trang chủ mời khách chưa có dữ liệu làm khảo sát (trang `/survey`); khách bỏ qua được, hệ thống ghi trạng thái SKIPPED và không hỏi lại
+- Câu hỏi rẽ nhánh theo câu trả lời trước (mua cho bản thân hay tìm quà, đồ nam hay đồ nữ, loại sản phẩm, dịp sử dụng, thương hiệu, khoảng giá, kiểu người mua); cây câu hỏi lưu trong CSDL, backend kiểm tra đúng thứ tự câu, số đáp án và thương hiệu được đề nghị
+- Kết quả hiện ngay 8 sản phẩm gợi ý; chọn đồ nam hoặc đồ nữ thì không gợi ý sản phẩm của giới tính kia (BR-41, BR-42); sản phẩm trong khoảng giá khách chọn đứng trước
+- Khách chưa đăng nhập vẫn làm được; kết quả lưu ở trình duyệt và được gửi lên tài khoản ngay lần đầu tải trang sau khi đăng nhập
+- Nhánh tìm quà chỉ xem kết quả, không lưu vào sở thích của tài khoản (BR-42)
+- Lưu khảo sát ghi yêu cầu tính lại gợi ý (BR-20); khi khách đã có hành vi đủ ngưỡng (BR-19), gợi ý trang chủ chuyển sang dựa trên hành vi
+- ml-service lỗi hoặc chậm quá 500 ms thì dùng gợi ý theo quy tắc, vẫn đủ 8 sản phẩm (BR-22)
+
 ### Epic 7 — Tính năng phụ, ưu tiên thấp (có thể cắt nếu thiếu thời gian)
 
 **US-14: Lưu sản phẩm vào danh sách yêu thích (wishlist)** Là người mua đã đăng nhập, tôi muốn lưu sản phẩm vào danh sách yêu thích, để xem lại sau mà không cần tìm lại. Tiêu chí chấp nhận: thêm/xóa khỏi wishlist; xem danh sách wishlist riêng. Cài đặt (31/10/2026): nút "Yêu thích" ở trang chi tiết sản phẩm (khách chưa đăng nhập bấm thì đăng nhập rồi quay lại) và trang "Yêu thích" riêng, sản phẩm thêm sau đứng trước; ghi ở cấp sản phẩm, thêm lại hay bỏ sản phẩm không có trong danh sách thì không làm gì; tối đa 100 sản phẩm **\[Giả định\]**; sản phẩm hết hàng vẫn hiện, sản phẩm đã ngừng bán thì ẩn (dòng vẫn giữ); thêm/bỏ yêu cầu tính lại gợi ý như hành động rõ ý (BR-20).
@@ -222,7 +232,7 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, đặc tả đầy đủ trong báo cáo), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý), US-28 (bảng điều khiển của Quản trị viên), US-29 (hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu).**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, tiêu chí chấp nhận ở Epic 6), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý), US-28 (bảng điều khiển của Quản trị viên), US-29 (hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu).**
 
 ## 2\. Business rules
 
@@ -358,6 +368,17 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 - **BR-47 — Số liệu bảng điều khiển** *(bổ sung 31/10/2026, US-28)*: một đơn thuộc ngày nó được đặt (`orders.created_at`, đổi sang giờ Việt Nam), vì chưa lưu lúc giao. Doanh thu = tổng `total_amount` (đã gồm phí vận chuyển, đã trừ giảm giá) của đơn DELIVERED; giá trị đơn trung bình = doanh thu / số đơn DELIVERED; số đơn đặt tính mọi trạng thái; khách hàng mới = tài khoản CUSTOMER tạo trong khoảng. Sản phẩm bán chạy xếp theo tổng số lượng trong đơn DELIVERED, bằng nhau thì theo tiền hàng. Doanh thu từ gợi ý = tổng `line_total` của các dòng đơn DELIVERED mà cùng khách đã bấm sản phẩm đó trong một khối gợi ý (RECOMMENDATION_CLICKED, mọi vị trí) trong 7 ngày trước lúc đặt; tỷ lệ của nó tính trên tổng `subtotal_amount` (tiền hàng chưa trừ giảm giá) của đơn DELIVERED. Đây là số quy cho gợi ý, không phải bằng chứng gợi ý làm tăng doanh thu (khách có thể vẫn mua dù không có gợi ý); bằng chứng nhân quả là thử nghiệm A/B (BR-46).
 
 - **BR-48 — Liên kết đặt lại mật khẩu** *(bổ sung 31/10/2026, US-29)*: mã trong liên kết là 32 byte ngẫu nhiên (`SecureRandom`, mã hóa base64url); CSDL chỉ lưu SHA-256 của mã (`password_reset_token.token_hash`), nên người đọc được CSDL cũng không dựng lại được liên kết. Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần; đặt mật khẩu mới xong thì mọi liên kết khác của tài khoản cũng mất hiệu lực, đổi mật khẩu ở trang hồ sơ cũng vậy. Chống gửi thư liên tục: cùng 1 tài khoản không gửi thư mới trong 60 giây sau thư trước, tối đa 5 thư mỗi giờ; vượt giới hạn hoặc email không có tài khoản thì vẫn trả cùng một câu trả lời (202) và không gửi gì. Thư gửi sau khi giao dịch ghi xong, ở luồng nền, để thời gian phản hồi không lộ email có tài khoản hay không. **\[Giả định\]** JWT đã cấp không bị thu hồi khi đổi hoặc đặt lại mật khẩu (JWT không lưu trạng thái, hết hạn sau 24 giờ, NFR-03); thu hồi cần danh sách chặn hoặc phiên bản token, là hướng mở rộng.
+
+### 2.9 Khảo sát sở thích và đơn thanh toán trực tuyến (BR-37 đến BR-42)
+
+*Bổ sung 06/11/2026 vào file này cho đủ BR-01 đến BR-48; nội dung lấy từ Phụ lục A của báo cáo (đã có từ 22/10/2026), mã nguồn ghi đúng các số này.*
+
+- **BR-37 — Mời khảo sát một lần** *(US-23)*: khảo sát sở thích chỉ tự hiện một lần, bỏ qua được và làm lại được từ mục "Gợi ý cho bạn" trên trang chủ.
+- **BR-38 — Thứ tự nguồn gợi ý trang chủ** *(US-13, US-23)*: đủ dữ liệu hành vi (BR-19) thì theo hành vi; chưa đủ nhưng có sở thích khảo sát thì theo sở thích; không có cả hai thì sản phẩm bán chạy nhất. Trong gợi ý theo hành vi, sở thích khảo sát có trọng số thấp nhất.
+- **BR-39 — Đơn trực tuyến chờ thanh toán** *(US-10, US-17)*: đơn thanh toán trực tuyến được tạo ở trạng thái Chờ xử lý với trạng thái thanh toán PENDING và chỉ được chuyển sang Đang xử lý khi trạng thái thanh toán là PAID. Giao diện hiển thị nhãn "Chờ thanh toán" cho đơn này; danh sách đơn của Quản trị viên hiển thị trạng thái thanh toán cạnh trạng thái đơn.
+- **BR-40 — Đổi trạng thái đơn tuần tự** *(US-10, US-17, US-20)*: mọi thay đổi trạng thái đơn và trạng thái thanh toán khóa dòng tài khoản rồi đọc lại đơn bằng truy vấn có khóa (SELECT … FOR UPDATE) và kiểm tra trạng thái hiện tại trước khi đổi, nên callback VNPay, tác vụ tự hủy và yêu cầu hủy chạy lần lượt và không thể cùng thành công trên một đơn. Callback báo thanh toán thành công đến khi đơn đã bị hủy thì hệ thống vẫn ghi nhận PAID và tự khởi tạo hoàn tiền 100% theo BR-28, không khôi phục đơn. Mỗi giao dịch VNPay chỉ được xử lý một lần; nhận lại cùng callback không cập nhật hay hoàn tiền thêm.
+- **BR-41 — Cây câu hỏi rẽ nhánh** *(US-23)*: khảo sát là cây câu hỏi lưu trong CSDL (Mục 3.16): mỗi đáp án trỏ tới câu hỏi tiếp theo, mỗi đường đi dài 6 đến 8 câu khi mua cho bản thân và 4 đến 5 câu khi tìm quà. Câu đầu hỏi mục đích (tìm đồ nam, tìm đồ nữ hoặc tìm quà); tiếp theo là loại đồ cần tìm (tối đa 3), gu ăn mặc và dịp sử dụng, trong đó dịp sử dụng thu hẹp từng loại đồ đã chọn về các danh mục hợp dịp (loại nào không có danh mục hợp dịp thì giữ nguyên); câu hỏi tiêu chí quan trọng nhất xác định phong cách mua sắm (tiết kiệm, thương hiệu, cầu toàn, theo xu hướng). Hệ thống chỉ nhận câu trả lời đi đúng thứ tự trên cây.
+- **BR-42 — Kết quả khảo sát** *(US-13, US-23)*: gợi ý theo sở thích khảo sát được xếp hạng lại theo phong cách mua sắm và mỗi sản phẩm kèm lý do theo phong cách, ví dụ "Giá tốt trong tầm giá bạn chọn". Kết quả nhánh tìm quà chỉ dùng để gợi ý ngay sau khi làm xong, không lưu thành sở thích của người mua. Người dùng chọn đồ nam hoặc đồ nữ thì mọi gợi ý theo khảo sát, kể cả phần lấp bằng sản phẩm bán chạy, chỉ gồm đồ đúng giới tính đó và đồ dùng chung (cách suy giới tính của sản phẩm ở Mục 3.16). Gợi ý theo hành vi cũng giữ quy tắc này, trừ khi người mua đã mua, thêm vào giỏ hoặc yêu thích đồ của giới tính kia.
 
 ---
 
@@ -742,7 +763,7 @@ Khóa chính (account\_id, task\_type): mỗi tài khoản có tối đa 1 yêu 
 
 Giới tính của sản phẩm: danh mục kết thúc bằng " nam"/" nữ" theo danh mục; danh mục dùng chung (Balo, Kính mát...) theo tên sản phẩm (chỉ ghi "nam" là đồ nam, chỉ ghi "nữ" là đồ nữ); tên ghi cả hai hoặc "unisex" là đồ dùng chung (`ProductGender` ở backend, `gender.py` ở dịch vụ học máy).
 
-Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result` hay `user_preference` (BR-38: sở thích là của người mua, không phải của người nhận quà). Lưu khảo sát ghi một yêu cầu tính lại RECOMMENDATION (Mục 3.15).
+Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result` hay `user_preference` (BR-42: sở thích là của người mua, không phải của người nhận quà). Lưu khảo sát ghi một yêu cầu tính lại RECOMMENDATION (Mục 3.15).
 
 ---
 
