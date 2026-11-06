@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 /**
- * Bắt đầu một thử nghiệm A/B gợi ý ở trang chủ (US-27).
+ * Bắt đầu một thử nghiệm A/B gợi ý ở trang chủ (US-13).
  *
  * @param name tên để admin phân biệt các lần thử nghiệm
  * @param treatmentPercent phần trăm khách vào nhóm thấy gợi ý của ml-service, 10 đến 90

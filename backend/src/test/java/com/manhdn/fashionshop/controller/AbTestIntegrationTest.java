@@ -41,7 +41,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Kiểm tra thử nghiệm A/B gợi ý ở trang chủ (US-27, BR-46) với MySQL thật: chia nhóm, nhóm CONTROL
+ * Kiểm tra thử nghiệm A/B gợi ý ở trang chủ (US-13, BR-46) với MySQL thật: chia nhóm, nhóm CONTROL
  * thấy sản phẩm bán chạy, số liệu từng nhóm và vòng đời thử nghiệm. Mỗi test rollback ở cuối.
  */
 @SpringBootTest

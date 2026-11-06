@@ -44,7 +44,7 @@ import org.springframework.transaction.annotation.Transactional;
  * giờ, tính lúc mở trang như khối sản phẩm liên quan (US-12). Sản phẩm đã có ở hàng này không lặp
  * lại ở danh sách chính.
  *
- * <p>Khi có thử nghiệm A/B đang chạy (US-27), khách thuộc nhóm CONTROL thấy sản phẩm bán chạy (trừ
+ * <p>Khi có thử nghiệm A/B đang chạy (US-13), khách thuộc nhóm CONTROL thấy sản phẩm bán chạy (trừ
  * sản phẩm đã mua hoặc đang trong giỏ, giống danh sách học máy) thay cho cả 2 phần trên; nhóm
  * TREATMENT thấy như bình thường.
  */

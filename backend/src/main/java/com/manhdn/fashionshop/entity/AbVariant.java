@@ -1,6 +1,6 @@
 package com.manhdn.fashionshop.entity;
 
-/** Nhóm của khách trong thử nghiệm A/B gợi ý (US-27). */
+/** Nhóm của khách trong thử nghiệm A/B gợi ý (US-13). */
 public enum AbVariant {
   /** Thấy gợi ý của ml-service như bình thường. */
   TREATMENT,

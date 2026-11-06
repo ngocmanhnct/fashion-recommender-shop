@@ -23,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Hồ sơ một nhóm khách hàng cho Quản trị viên (US-25): mô tả nhóm bằng các con số dễ hành động hơn
  * R, F, M (doanh thu, giá trị đơn, nhịp mua, gắn bó, danh mục, giới tính, độ tuổi) và chỉ ra khách
- * cần chăm sóc (BR-43). Chỉ đọc; nhóm của khách do ml-service ghi (BR-23).
+ * cần chăm sóc (BR-44). Chỉ đọc; nhóm của khách do ml-service ghi (BR-23).
  */
 @Service
 public class SegmentProfileService {
@@ -34,7 +34,7 @@ public class SegmentProfileService {
   /** Số khách cần chăm sóc trả về (quá nhịp mua nhiều nhất trước). */
   static final int CARE_LIST_SIZE = 20;
 
-  /** BR-43: quá nhịp mua khi số ngày chưa mua vượt 1,5 lần nhịp mua riêng... */
+  /** BR-44: quá nhịp mua khi số ngày chưa mua vượt 1,5 lần nhịp mua riêng... */
   static final double CARE_FACTOR = 1.5;
 
   /** ...và vượt ít nhất 30 ngày, để khách mua dồn nhiều đơn trong vài ngày không bị báo nhầm. */
@@ -132,7 +132,7 @@ public class SegmentProfileService {
   }
 
   /**
-   * Mã tài khoản của mọi khách cần chăm sóc trong nhóm (BR-43), để tặng mã (US-26).
+   * Mã tài khoản của mọi khách cần chăm sóc trong nhóm (BR-44), để tặng mã (US-24).
    *
    * @param segmentId mã số nhóm
    * @return khách quá nhịp mua nhiều nhất trước
@@ -160,7 +160,7 @@ public class SegmentProfileService {
     return days(p.firstOrderAt(), p.lastOrderAt()) / (p.orders() - 1);
   }
 
-  /** BR-43: khách mua từ 2 đơn, chưa mua lại quá 1,5 lần nhịp riêng và quá 30 ngày. */
+  /** BR-44: khách mua từ 2 đơn, chưa mua lại quá 1,5 lần nhịp riêng và quá 30 ngày. */
   private boolean needsCare(CustomerPurchases p, LocalDateTime now) {
     double since = days(p.lastOrderAt(), now);
     return since > Math.max(CARE_FACTOR * intervalDays(p), CARE_MIN_DAYS);

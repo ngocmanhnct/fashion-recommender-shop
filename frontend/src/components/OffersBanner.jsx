@@ -7,7 +7,7 @@ import { describeDiscount } from '../services/voucherLabels';
 import Icon from './Icon';
 
 /**
- * Dải báo ở trang chủ khi khách có mã giảm giá được tặng riêng (US-24, US-26): số mã, mã sắp hết
+ * Dải báo ở trang chủ khi khách có mã giảm giá được tặng riêng (US-24): số mã, mã sắp hết
  * hạn nhất và liên kết tới "Ưu đãi của bạn". Khách chưa có mã hoặc chưa đăng nhập thì không hiện.
  */
 function OffersBanner() {

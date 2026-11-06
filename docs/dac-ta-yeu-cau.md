@@ -46,9 +46,9 @@ Website bán hàng thời trang tích hợp Machine Learning (gợi ý mua hàng
 
 - Đăng nhập bằng email \+ mật khẩu  
 - Báo lỗi chung chung khi sai thông tin (không lộ email có tồn tại hay không, tránh dò tài khoản)  
-- Có chức năng "quên mật khẩu" (đặc tả ở US-29)  
+- Có chức năng "quên mật khẩu" (đặc tả ở US-04, US-05)  
 - Sau đăng nhập, quay lại đúng trang đang thao tác dở (vd đang ở giữa checkout)  
-- Thời hạn phiên đăng nhập (JWT): 24 giờ — xem NFR-03 (Mục 12\) **\[Giả định\]**. Link đặt lại mật khẩu: hết hạn sau 30 phút, dùng 1 lần (BR-48)
+- Thời hạn phiên đăng nhập (JWT): 24 giờ — xem NFR-03 (Mục 12\) **\[Giả định\]**. Link đặt lại mật khẩu: hết hạn sau 30 phút, dùng 1 lần (BR-47)
 
 ### Epic 3 — Giỏ hàng & đặt hàng
 
@@ -186,26 +186,27 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 
 - Trang tổng quan phân nhóm hiện thêm doanh thu và tỷ lệ doanh thu của từng nhóm; mỗi nhóm mở được trang hồ sơ riêng  
 - Hồ sơ nhóm có: số khách và tỷ lệ, doanh thu và tỷ lệ, số đơn Đã giao, giá trị đơn trung bình, nhịp mua (số ngày trung bình giữa 2 đơn liên tiếp), thời gian gắn bó trung bình, 5 danh mục mua nhiều nhất, phân bố giới tính và nhóm tuổi (khách chưa khai hiện riêng là "Chưa khai")  
-- Hồ sơ có danh sách khách cần chăm sóc theo BR-43, mỗi khách mở được trang chi tiết khách hàng (US-18)  
+- Hồ sơ có danh sách khách cần chăm sóc theo BR-44, mỗi khách mở được trang chi tiết khách hàng (US-18)  
 - Chỉ tính đơn Đã giao, như R, F, M (BR-23)
 
-**US-26: Tặng mã giảm giá theo nhóm khách hàng và xem kết quả** *(bổ sung 31/10/2026)* Là admin, tôi muốn hệ thống gợi ý việc nên làm với từng nhóm khách và tặng mã giảm giá riêng cho cả nhóm hoặc cho khách cần chăm sóc trong nhóm, rồi xem bao nhiêu khách quay lại mua, để biết ưu đãi có đáng tiền giảm hay không. Tiêu chí chấp nhận:
+**US-24: Tự động tặng mã giảm giá theo nhóm khách hàng** *(bổ sung 31/10/2026; gồm tặng mã ngay cho cả nhóm hoặc khách cần chăm sóc và chương trình tự tặng mã cho khách mới vào nhóm)* Là admin, tôi muốn hệ thống gợi ý việc nên làm với từng nhóm khách, tặng mã giảm giá riêng cho cả nhóm hoặc cho khách cần chăm sóc, và bật cho một nhóm chương trình tự tặng mã để mỗi khách vừa được xếp vào nhóm nhận ưu đãi đúng lúc, rồi xem bao nhiêu khách quay lại mua, để biết ưu đãi có đáng tiền giảm hay không. Tiêu chí chấp nhận:
 
-- Mỗi nhóm có mục tiêu chăm sóc (hiện ở trang tổng quan phân nhóm) và ưu đãi gợi ý tính theo thói quen của chính nhóm (vd đơn tối thiểu theo giá trị đơn trung bình của nhóm), kèm đối tượng gợi ý: cả nhóm hoặc khách cần chăm sóc (BR-43)
+*Tặng mã ngay:*
+
+- Mỗi nhóm có mục tiêu chăm sóc (hiện ở trang tổng quan phân nhóm) và ưu đãi gợi ý tính theo thói quen của chính nhóm (vd đơn tối thiểu theo giá trị đơn trung bình của nhóm), kèm đối tượng gợi ý: cả nhóm hoặc khách cần chăm sóc (BR-44)
 - Admin tặng mã bằng biểu mẫu mã giảm giá đã điền sẵn ưu đãi gợi ý, sửa được trước khi tặng; danh sách khách được tặng chốt lúc tặng
-- Mã tặng là mã riêng: chỉ khách được tặng dùng được (BR-44); khách thấy mã ở trang "Ưu đãi của bạn" và chọn mã bằng 1 lần bấm ở trang thanh toán
+- Mã tặng là mã riêng: chỉ khách được tặng dùng được (BR-43); khách thấy mã ở trang "Ưu đãi của bạn" và chọn mã bằng 1 lần bấm ở trang thanh toán
 - Kết quả mỗi lần tặng: số khách được tặng, số khách đã đặt đơn với mã và tỷ lệ, số đơn, doanh thu, tổng tiền đã giảm, doanh thu trên mỗi đồng giảm (chỉ tính đơn chưa hủy)
-- Tự tặng mã khi khách mới vào nhóm: xem US-24
 
-**US-24: Tự tặng mã giảm giá cho khách mới vào nhóm** *(bổ sung 31/10/2026)* Là admin, tôi muốn bật cho một nhóm khách một chương trình tự tặng mã, để mỗi khách vừa được xếp vào nhóm (vd khách vừa có đơn đầu tiên vào nhóm Khách mới) nhận ưu đãi đúng lúc mà tôi không phải bấm tặng mỗi lần. Tiêu chí chấp nhận:
+*Tự tặng mã cho khách mới vào nhóm:*
 
-- Admin bật chương trình ở hồ sơ nhóm bằng biểu mẫu mã giảm giá điền sẵn ưu đãi gợi ý (US-26), kèm số ngày mỗi khách được dùng mã kể từ lúc nhận; thời hạn của mã là thời gian chạy chương trình
-- Chỉ khách vào nhóm **sau** lúc bật mới nhận mã (khách đang ở trong nhóm lúc bật thì dùng "Tặng mã cho cả nhóm"); mỗi khách nhận tối đa 1 lần cho mỗi chương trình (BR-45)
+- Admin bật chương trình ở hồ sơ nhóm bằng biểu mẫu mã giảm giá điền sẵn ưu đãi gợi ý, kèm số ngày mỗi khách được dùng mã kể từ lúc nhận; thời hạn của mã là thời gian chạy chương trình
+- Chỉ khách vào nhóm **sau** lúc bật mới nhận mã (khách đang ở trong nhóm lúc bật thì dùng "Tặng mã cho cả nhóm"); mỗi khách nhận tối đa 1 lần cho mỗi chương trình (BR-43)
 - Khách nhận mã chậm nhất khoảng 1 phút sau khi được xếp vào nhóm; mã hiện ở "Ưu đãi của bạn", ở trang thanh toán và ở dải báo trên trang chủ
 - Mỗi nhóm có tối đa 1 chương trình đang chạy; admin dừng được, khách đã nhận vẫn dùng được đến hạn riêng
-- Kết quả của chương trình hiện cùng bảng kết quả các lần tặng mã (US-26), số khách được tặng tăng dần theo thời gian
+- Kết quả của chương trình hiện cùng bảng kết quả các lần tặng mã, số khách được tặng tăng dần theo thời gian
 
-**US-27: Thử nghiệm A/B gợi ý học máy so với sản phẩm bán chạy** *(bổ sung 31/10/2026)* Là admin, tôi muốn chia khách thành 2 nhóm ngẫu nhiên, một nhóm thấy gợi ý học máy và một nhóm thấy sản phẩm bán chạy ở cùng chỗ trên trang chủ, rồi so sánh tỷ lệ bấm và tỷ lệ mua của 2 nhóm, để có bằng chứng bằng số rằng gợi ý học máy hiệu quả hơn cách đơn giản nhất. Tiêu chí chấp nhận:
+**US-13 (mở rộng): Thử nghiệm A/B gợi ý học máy so với sản phẩm bán chạy** *(bổ sung 31/10/2026)* Là admin, tôi muốn chia khách thành 2 nhóm ngẫu nhiên, một nhóm thấy gợi ý học máy và một nhóm thấy sản phẩm bán chạy ở cùng chỗ trên trang chủ, rồi so sánh tỷ lệ bấm và tỷ lệ mua của 2 nhóm, để có bằng chứng bằng số rằng gợi ý học máy hiệu quả hơn cách đơn giản nhất. Tiêu chí chấp nhận:
 
 - Admin bắt đầu thử nghiệm ở trang "Hiệu quả gợi ý" với tên và tỷ lệ khách vào nhóm gợi ý (10-90%, mặc định 50%); mỗi lúc chỉ chạy 1 thử nghiệm, admin dừng được bất cứ lúc nào
 - Khi thử nghiệm chạy, khách đã có danh sách gợi ý riêng được chia nhóm ở lần đầu mở trang chủ, cố định trong suốt thử nghiệm (BR-46): nhóm A (gợi ý học máy) thấy danh sách học máy, nhóm B (bán chạy) thấy sản phẩm bán chạy trong cùng khối "Gợi ý cho bạn", trừ sản phẩm đã mua hoặc đang trong giỏ như danh sách học máy. Hai nhóm thấy cùng một giao diện: không có hàng "Vì bạn vừa xem", cùng dòng mô tả, không lý do gợi ý, giờ cập nhật hay nhãn "Mới" *(sửa 04/11/2026)*; khách không được báo mình thuộc nhóm nào
@@ -214,25 +215,25 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Mỗi tỷ lệ theo khách có chênh lệch A − B, giá trị p và kết luận (BR-46); xem lại được kết quả của các thử nghiệm đã dừng
 - Cùng trang có bảng tỷ lệ bấm theo vị trí và nguồn gợi ý trong 7, 30 hoặc 90 ngày gần nhất
 
-**US-28: Bảng điều khiển của Quản trị viên** *(bổ sung 31/10/2026)* Là admin, tôi muốn mở trang quản trị là thấy ngay tình hình cửa hàng trong một khoảng ngày: doanh thu, đơn hàng, sản phẩm bán chạy và hiệu quả gợi ý, để biết cửa hàng đang thế nào mà không phải mở từng trang. Tiêu chí chấp nhận:
+**US-26: Xem trang tổng quan (bảng điều khiển của Quản trị viên)** *(bổ sung 31/10/2026)* Là admin, tôi muốn mở trang quản trị là thấy ngay tình hình cửa hàng trong một khoảng ngày: doanh thu, đơn hàng, sản phẩm bán chạy và hiệu quả gợi ý, để biết cửa hàng đang thế nào mà không phải mở từng trang. Tiêu chí chấp nhận:
 
 - Trang `/admin` là bảng điều khiển (mục "Bảng điều khiển", nhóm "Tổng quan" đầu menu); mặc định 30 ngày gần nhất, chọn nhanh 7, 30, 90 ngày hoặc chọn ngày tự do, tối đa 366 ngày; ngày bắt đầu sau ngày kết thúc thì báo lỗi, không tải
-- Ngày tính theo giờ Việt Nam. Số tổng: doanh thu, số đơn đã giao, giá trị đơn trung bình, số đơn đặt (mọi trạng thái), số khách hàng mới (BR-47)
+- Ngày tính theo giờ Việt Nam. Số tổng: doanh thu, số đơn đã giao, giá trị đơn trung bình, số đơn đặt (mọi trạng thái), số khách hàng mới (BR-45)
 - Biểu đồ cột doanh thu theo ngày (ngày không có đơn là 0), rê chuột hoặc Tab vào cột để xem số, có dạng bảng
 - Số đơn theo 5 trạng thái kèm tỷ lệ; 10 sản phẩm bán nhiều nhất trong đơn đã giao (số lượng, tiền hàng), bấm tên để mở trang sửa sản phẩm
-- Hiệu quả gợi ý: lượt hiện, lượt bấm, tỷ lệ bấm theo vị trí và theo nguồn, doanh thu từ gợi ý và tỷ lệ của nó trên tiền hàng (BR-47), tóm tắt thử nghiệm A/B đang chạy (US-27) với liên kết sang trang "Hiệu quả gợi ý"
+- Hiệu quả gợi ý: lượt hiện, lượt bấm, tỷ lệ bấm theo vị trí và theo nguồn, doanh thu từ gợi ý và tỷ lệ của nó trên tiền hàng (BR-45), tóm tắt thử nghiệm A/B đang chạy (US-13) với liên kết sang trang "Hiệu quả gợi ý"
 
-**US-29: Hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu** *(bổ sung 31/10/2026, mở rộng US-04, US-05)* Là người dùng đã có tài khoản, tôi muốn sửa thông tin cá nhân, đổi mật khẩu và lấy lại mật khẩu khi quên, để tự quản lý tài khoản mà không cần nhờ quản trị viên. Tiêu chí chấp nhận:
+**US-04, US-05 (mở rộng): Hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu** *(bổ sung 31/10/2026)* Là người dùng đã có tài khoản, tôi muốn sửa thông tin cá nhân, đổi mật khẩu và lấy lại mật khẩu khi quên, để tự quản lý tài khoản mà không cần nhờ quản trị viên. Tiêu chí chấp nhận:
 
 - Trang `/profile` (liên kết "Hồ sơ" ở thanh trên cùng, cả Khách hàng lẫn Quản trị viên): sửa họ tên (bắt buộc), giới tính, ngày sinh (phải trước hôm nay); email chỉ xem, không đổi được
 - Đổi mật khẩu: nhập mật khẩu hiện tại, mật khẩu mới theo BR-02 và nhập lại; mật khẩu hiện tại sai thì báo lỗi và tính như 1 lần đăng nhập sai (NFR-03); mật khẩu mới trùng mật khẩu hiện tại thì báo lỗi; đổi xong thì mọi liên kết đặt lại mật khẩu chưa dùng mất hiệu lực
 - Trang đăng nhập có liên kết "Quên mật khẩu?" dẫn tới `/forgot-password`: nhập email, hệ thống gửi email có liên kết `/reset-password?token=…`; luôn báo "nếu email có tài khoản thì sẽ nhận được thư", kể cả email chưa đăng ký, để không lộ email nào có tài khoản (như US-05)
-- Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần (BR-48); liên kết sai, đã dùng hoặc hết hạn thì báo lỗi kèm nút xin liên kết mới
+- Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần (BR-47); liên kết sai, đã dùng hoặc hết hạn thì báo lỗi kèm nút xin liên kết mới
 - Đặt mật khẩu mới thành công thì chuyển về trang đăng nhập với thông báo, đồng thời gỡ khóa đăng nhập tạm thời (NFR-03) của tài khoản đó
 
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, tiêu chí chấp nhận ở Epic 6), US-24 (tự tặng mã cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (tặng mã theo nhóm khách hàng), US-27 (thử nghiệm A/B gợi ý), US-28 (bảng điều khiển của Quản trị viên), US-29 (hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu).**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, tiêu chí chấp nhận ở Epic 6), US-24 (tặng mã theo nhóm khách hàng: tặng ngay và tự tặng cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (trang tổng quan của Quản trị viên); thử nghiệm A/B gợi ý là phần mở rộng của US-13, hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu là phần mở rộng của US-04, US-05. Số US và BR khớp luận văn (Phụ lục A) và bản cam kết.**
 
 ## 2\. Business rules
 
@@ -321,7 +322,7 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
 - **BR-23**: Mô hình phân nhóm (K-Means) được huấn luyện lại mỗi tuần trên toàn bộ khách hàng có ít nhất 1 đơn hoàn tất, vì K-Means cần chạy trên toàn bộ tập khách hàng cùng lúc. Khi một đơn chuyển sang Đã giao, R, F, M của khách đó được tính lại và khách được gán ngay vào nhóm có tâm gần nhất của mô hình hiện tại, không huấn luyện lại; việc gán chạy nền qua `recompute_request` (loại việc `SEGMENT_ASSIGN`) như BR-20. Mỗi đêm, nếu chưa đến hạn huấn luyện lại, mọi khách được gán lại vào nhóm có tâm gần nhất theo R, F, M tại thời điểm đó (R tăng theo ngày dù khách không mua). **\[Giả định\]** tần suất huấn luyện lại.  
 - **BR-24**: Khách hàng chưa có đơn hàng hoàn tất nào không được đưa vào phân cụm — hiển thị riêng là "Chưa phân nhóm (chưa có đơn Đã giao)" thay vì gán cưỡng vào một cụm gây sai lệch tâm cụm. Nhãn này cố ý khác tên nhóm K-Means "Khách mới" (mã NEW: khách đã có 1-2 đơn Đã giao gần đây) để 2 khái niệm không bị nhầm *(sửa 04/11/2026)*. *(US-19)*  
-- **BR-43 — Khách cần chăm sóc:** khách mua từ 2 đơn Đã giao trở lên có nhịp mua riêng = (ngày đơn Đã giao gần nhất − ngày đơn Đã giao đầu tiên) ÷ (số đơn − 1). Khách cần chăm sóc khi số ngày từ đơn Đã giao gần nhất đến hôm nay vượt **cả** 1,5 lần nhịp mua riêng **và** 30 ngày (ngưỡng 30 ngày để khách mua dồn nhiều đơn trong vài ngày không bị báo ngay). Danh sách xếp theo số lần quá nhịp (số ngày chưa mua ÷ nhịp mua), lâu nhất trước. Khách mới mua 1 đơn chưa có nhịp nên không xét. **\[Giả định\]** hệ số 1,5 và ngưỡng 30 ngày. *(US-25)*
+- **BR-44 — Khách cần chăm sóc:** khách mua từ 2 đơn Đã giao trở lên có nhịp mua riêng = (ngày đơn Đã giao gần nhất − ngày đơn Đã giao đầu tiên) ÷ (số đơn − 1). Khách cần chăm sóc khi số ngày từ đơn Đã giao gần nhất đến hôm nay vượt **cả** 1,5 lần nhịp mua riêng **và** 30 ngày (ngưỡng 30 ngày để khách mua dồn nhiều đơn trong vài ngày không bị báo ngay). Danh sách xếp theo số lần quá nhịp (số ngày chưa mua ÷ nhịp mua), lâu nhất trước. Khách mới mua 1 đơn chưa có nhịp nên không xét. **\[Giả định\]** hệ số 1,5 và ngưỡng 30 ngày. *(US-25)*
 
 ### 2.7 Quy tắc chung
 
@@ -360,18 +361,20 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
   Cơ chế: `UPDATE voucher SET used_count = used_count - 1 WHERE id = :voucherId`, thực hiện cùng lúc với hoàn tồn kho (BR-16), tại đúng thời điểm đơn chuyển "Đã hủy".
 
-- **BR-44 — Mã tặng riêng** *(bổ sung 31/10/2026)*: mã tạo từ chiến dịch theo nhóm (US-26) có `recipients_only = TRUE` và chỉ dùng được bởi các tài khoản trong `voucher_recipient` của mã đó; khách khác nhập mã thì bước xem trước báo "Mã này chỉ dành cho khách được tặng" và bước xác nhận từ chối như các điều kiện khác của BR-30. Danh sách người nhận chốt lúc tặng: khách vào nhóm sau đó không nhận được, khách rời nhóm sau đó vẫn dùng được. Mã riêng mặc định mỗi khách 1 lượt, không giới hạn tổng. *(US-26)*
+- **BR-43 — Mã tặng theo nhóm khách hàng** *(bổ sung 31/10/2026, US-24)*: (a) **Mã riêng:** mã tạo từ chiến dịch theo nhóm (US-24) có `recipients_only = TRUE` và chỉ dùng được bởi các tài khoản trong `voucher_recipient` của mã đó; khách khác nhập mã thì bước xem trước báo "Mã này chỉ dành cho khách được tặng" và bước xác nhận từ chối như các điều kiện khác của BR-30. Danh sách người nhận chốt lúc tặng: khách vào nhóm sau đó không nhận được, khách rời nhóm sau đó vẫn dùng được. Mã riêng mặc định mỗi khách 1 lượt, không giới hạn tổng. (b) **Tự tặng khi khách mới vào nhóm:** mỗi nhóm có tối đa 1 chương trình tự tặng đang chạy. ml-service ghi đè `account_segment` mỗi lần xếp nhóm nên không giữ lúc khách vào nhóm; backend tự ghi nhóm hiện tại và lúc vào nhóm của mỗi khách vào `segment_entry` (khách mới được phân nhóm hoặc đổi sang nhóm khác thì lúc vào nhóm là thời điểm backend thấy thay đổi, khách vẫn ở nhóm cũ thì giữ nguyên). Mỗi phút, chương trình tự tặng đang chạy (mã còn bật và trong thời hạn) tặng mã cho khách đang thuộc nhóm có lúc vào nhóm **sau** lúc bật chương trình và chưa nhận mã đó; hạn dùng riêng của khách = min(lúc nhận + số ngày đã đặt, hạn của mã), tính theo giờ Việt Nam như BR-30. Khách rời nhóm rồi quay lại không nhận lần hai từ cùng chương trình. Mỗi khách nhận tối đa 1 mã tự tặng trong 30 ngày (tính theo lúc nhận), dù lượt xếp nhóm lại chuyển khách qua nhiều nhóm có chương trình đang chạy; khách vào nhóm trong thời gian đó được hoãn, đủ 30 ngày mà vẫn ở nhóm và chương trình còn chạy thì nhận mã của nhóm *(sửa 04/11/2026)*. **\[Giả định\]** quét mỗi phút là đủ gần thời gian thực vì khách chỉ đổi nhóm sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm.
 
-- **BR-45 — Khách mới vào nhóm** *(bổ sung 31/10/2026)*: ml-service ghi đè `account_segment` mỗi lần xếp nhóm nên không giữ lúc khách vào nhóm; backend tự ghi nhóm hiện tại và lúc vào nhóm của mỗi khách vào `segment_entry` (khách mới được phân nhóm hoặc đổi sang nhóm khác thì lúc vào nhóm là thời điểm backend thấy thay đổi, khách vẫn ở nhóm cũ thì giữ nguyên). Mỗi phút, chương trình tự tặng đang chạy (mã còn bật và trong thời hạn) tặng mã cho khách đang thuộc nhóm có lúc vào nhóm **sau** lúc bật chương trình và chưa nhận mã đó; hạn dùng riêng của khách = min(lúc nhận + số ngày đã đặt, hạn của mã), tính theo giờ Việt Nam như BR-30. Khách rời nhóm rồi quay lại không nhận lần hai từ cùng chương trình. Mỗi khách nhận tối đa 1 mã tự tặng trong 30 ngày (tính theo lúc nhận), dù lượt xếp nhóm lại chuyển khách qua nhiều nhóm có chương trình đang chạy; khách vào nhóm trong thời gian đó được hoãn, đủ 30 ngày mà vẫn ở nhóm và chương trình còn chạy thì nhận mã của nhóm *(sửa 04/11/2026)*. **\[Giả định\]** quét mỗi phút là đủ gần thời gian thực vì khách chỉ đổi nhóm sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm. *(US-24)*
 
-- **BR-46 — Thử nghiệm A/B gợi ý** *(bổ sung 31/10/2026, US-27)*: nhóm của khách chọn bằng băm, không bằng số ngẫu nhiên: lấy 4 byte đầu của SHA-256(`ab:{mã thử nghiệm}:{mã tài khoản}`) chia lấy dư 100, nhỏ hơn tỷ lệ nhóm gợi ý thì vào nhóm A (TREATMENT), còn lại nhóm B (CONTROL). Cách này ngẫu nhiên giữa các khách nhưng cố định với từng khách, và đổi giữa các lần thử nghiệm; nhóm được ghi vào `ab_assignment` kèm lúc chia ở lần đầu khách đủ điều kiện mở trang chủ. Chỉ số so sánh tính theo khách (mỗi khách là 1 quan sát độc lập): tỷ lệ khách bấm gợi ý trang chủ ít nhất 1 lần, tỷ lệ khách đặt ít nhất 1 đơn chưa hủy, tỷ lệ khách đặt đơn có sản phẩm đã bấm từ gợi ý trang chủ trước lúc đặt. Hai tỷ lệ x₁/n₁ (A) và x₂/n₂ (B) được so bằng kiểm định z hai tỷ lệ, hai phía: p̂ = (x₁ + x₂)/(n₁ + n₂), z = (x₁/n₁ − x₂/n₂) / √(p̂(1 − p̂)(1/n₁ + 1/n₂)), giá trị p = 2(1 − Φ(|z|)). Kết luận: nhóm nào dưới 30 khách thì "chưa đủ khách để kết luận"; p < 0,05 thì nhóm có tỷ lệ cao hơn "cao hơn rõ rệt"; còn lại "chưa thấy khác biệt có ý nghĩa". Tỷ lệ bấm theo lượt hiện chỉ để tham khảo, không kiểm định (các lượt hiện của cùng một khách không độc lập).
-- **BR-47 — Số liệu bảng điều khiển** *(bổ sung 31/10/2026, US-28)*: một đơn thuộc ngày nó được đặt (`orders.created_at`, đổi sang giờ Việt Nam), vì chưa lưu lúc giao. Doanh thu = tổng `total_amount` (đã gồm phí vận chuyển, đã trừ giảm giá) của đơn DELIVERED; giá trị đơn trung bình = doanh thu / số đơn DELIVERED; số đơn đặt tính mọi trạng thái; khách hàng mới = tài khoản CUSTOMER tạo trong khoảng. Sản phẩm bán chạy xếp theo tổng số lượng trong đơn DELIVERED, bằng nhau thì theo tiền hàng. Doanh thu từ gợi ý = tổng `line_total` của các dòng đơn DELIVERED mà cùng khách đã bấm sản phẩm đó trong một khối gợi ý (RECOMMENDATION_CLICKED, mọi vị trí) trong 7 ngày trước lúc đặt; tỷ lệ của nó tính trên tổng `subtotal_amount` (tiền hàng chưa trừ giảm giá) của đơn DELIVERED. Đây là số quy cho gợi ý, không phải bằng chứng gợi ý làm tăng doanh thu (khách có thể vẫn mua dù không có gợi ý); bằng chứng nhân quả là thử nghiệm A/B (BR-46).
 
-- **BR-48 — Liên kết đặt lại mật khẩu** *(bổ sung 31/10/2026, US-29)*: mã trong liên kết là 32 byte ngẫu nhiên (`SecureRandom`, mã hóa base64url); CSDL chỉ lưu SHA-256 của mã (`password_reset_token.token_hash`), nên người đọc được CSDL cũng không dựng lại được liên kết. Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần; đặt mật khẩu mới xong thì mọi liên kết khác của tài khoản cũng mất hiệu lực, đổi mật khẩu ở trang hồ sơ cũng vậy. Chống gửi thư liên tục: cùng 1 tài khoản không gửi thư mới trong 60 giây sau thư trước, tối đa 5 thư mỗi giờ; vượt giới hạn hoặc email không có tài khoản thì vẫn trả cùng một câu trả lời (202) và không gửi gì. Thư gửi sau khi giao dịch ghi xong, ở luồng nền, để thời gian phản hồi không lộ email có tài khoản hay không. **\[Giả định\]** JWT đã cấp không bị thu hồi khi đổi hoặc đặt lại mật khẩu (JWT không lưu trạng thái, hết hạn sau 24 giờ, NFR-03); thu hồi cần danh sách chặn hoặc phiên bản token, là hướng mở rộng.
+- **BR-45 — Số liệu bảng điều khiển** *(bổ sung 31/10/2026, US-26)*: một đơn thuộc ngày nó được đặt (`orders.created_at`, đổi sang giờ Việt Nam), vì chưa lưu lúc giao. Doanh thu = tổng `total_amount` (đã gồm phí vận chuyển, đã trừ giảm giá) của đơn DELIVERED; giá trị đơn trung bình = doanh thu / số đơn DELIVERED; số đơn đặt tính mọi trạng thái; khách hàng mới = tài khoản CUSTOMER tạo trong khoảng. Sản phẩm bán chạy xếp theo tổng số lượng trong đơn DELIVERED, bằng nhau thì theo tiền hàng. Doanh thu từ gợi ý = tổng `line_total` của các dòng đơn DELIVERED mà cùng khách đã bấm sản phẩm đó trong một khối gợi ý (RECOMMENDATION_CLICKED, mọi vị trí) trong 7 ngày trước lúc đặt; tỷ lệ của nó tính trên tổng `subtotal_amount` (tiền hàng chưa trừ giảm giá) của đơn DELIVERED. Đây là số quy cho gợi ý, không phải bằng chứng gợi ý làm tăng doanh thu (khách có thể vẫn mua dù không có gợi ý); bằng chứng nhân quả là thử nghiệm A/B (BR-46).
+- **BR-46 — Thử nghiệm A/B gợi ý** *(bổ sung 31/10/2026, US-13)*: nhóm của khách chọn bằng băm, không bằng số ngẫu nhiên: lấy 4 byte đầu của SHA-256(`ab:{mã thử nghiệm}:{mã tài khoản}`) chia lấy dư 100, nhỏ hơn tỷ lệ nhóm gợi ý thì vào nhóm A (TREATMENT), còn lại nhóm B (CONTROL). Cách này ngẫu nhiên giữa các khách nhưng cố định với từng khách, và đổi giữa các lần thử nghiệm; nhóm được ghi vào `ab_assignment` kèm lúc chia ở lần đầu khách đủ điều kiện mở trang chủ. Chỉ số so sánh tính theo khách (mỗi khách là 1 quan sát độc lập): tỷ lệ khách bấm gợi ý trang chủ ít nhất 1 lần, tỷ lệ khách đặt ít nhất 1 đơn chưa hủy, tỷ lệ khách đặt đơn có sản phẩm đã bấm từ gợi ý trang chủ trước lúc đặt. Hai tỷ lệ x₁/n₁ (A) và x₂/n₂ (B) được so bằng kiểm định z hai tỷ lệ, hai phía: p̂ = (x₁ + x₂)/(n₁ + n₂), z = (x₁/n₁ − x₂/n₂) / √(p̂(1 − p̂)(1/n₁ + 1/n₂)), giá trị p = 2(1 − Φ(|z|)). Kết luận: nhóm nào dưới 30 khách thì "chưa đủ khách để kết luận"; p < 0,05 thì nhóm có tỷ lệ cao hơn "cao hơn rõ rệt"; còn lại "chưa thấy khác biệt có ý nghĩa". Tỷ lệ bấm theo lượt hiện chỉ để tham khảo, không kiểm định (các lượt hiện của cùng một khách không độc lập).
+
+- **BR-47 — Liên kết đặt lại mật khẩu** *(bổ sung 31/10/2026, US-05)*: mã trong liên kết là 32 byte ngẫu nhiên (`SecureRandom`, mã hóa base64url); CSDL chỉ lưu SHA-256 của mã (`password_reset_token.token_hash`), nên người đọc được CSDL cũng không dựng lại được liên kết. Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần; đặt mật khẩu mới xong thì mọi liên kết khác của tài khoản cũng mất hiệu lực, đổi mật khẩu ở trang hồ sơ cũng vậy. Chống gửi thư liên tục: cùng 1 tài khoản không gửi thư mới trong 60 giây sau thư trước, tối đa 5 thư mỗi giờ; vượt giới hạn hoặc email không có tài khoản thì vẫn trả cùng một câu trả lời (202) và không gửi gì. Thư gửi sau khi giao dịch ghi xong, ở luồng nền, để thời gian phản hồi không lộ email có tài khoản hay không. **\[Giả định\]** JWT đã cấp không bị thu hồi khi đổi hoặc đặt lại mật khẩu (JWT không lưu trạng thái, hết hạn sau 24 giờ, NFR-03); thu hồi cần danh sách chặn hoặc phiên bản token, là hướng mở rộng.
+- **BR-48 — Hồ sơ cá nhân** *(bổ sung 31/10/2026, US-04)*: Người mua (và Quản trị viên, với tài khoản của chính mình) sửa được họ tên (bắt buộc), giới tính, ngày sinh (phải trước ngày hiện tại); email là định danh đăng nhập nên không sửa được (BR-01). Đổi mật khẩu phải nhập đúng mật khẩu hiện tại, nhập sai được tính như một lần đăng nhập sai (NFR-03); mật khẩu mới theo BR-02 và phải khác mật khẩu hiện tại.
+- **BR-49 — Thường được mua cùng** *(bổ sung 31/10/2026, US-07, US-12)*: khối "Thường được mua cùng" ở trang giỏ hàng hiện tối đa 4 sản phẩm có tổng độ tương đồng mua cùng (mô hình "hay mua cùng" của ml-service, Mục 10) cao nhất với các sản phẩm trong giỏ; bỏ sản phẩm đã có trong giỏ, hết hàng hoặc ngừng bán. ml-service không trả lời thì xếp theo số đơn có chung sản phẩm với giỏ (quy tắc, như BR-22) và không lấp bằng sản phẩm bán chạy. Giỏ trống hoặc không có sản phẩm nào có quan hệ mua cùng thì ẩn khối này.
 
 ### 2.9 Khảo sát sở thích và đơn thanh toán trực tuyến (BR-37 đến BR-42)
 
-*Bổ sung 06/11/2026 vào file này cho đủ BR-01 đến BR-48; nội dung lấy từ Phụ lục A của báo cáo (đã có từ 22/10/2026), mã nguồn ghi đúng các số này.*
+*Bổ sung 06/11/2026 vào file này cho đủ BR-01 đến BR-49; nội dung lấy từ Phụ lục A của báo cáo (đã có từ 22/10/2026), mã nguồn ghi đúng các số này.*
 
 - **BR-37 — Mời khảo sát một lần** *(US-23)*: khảo sát sở thích chỉ tự hiện một lần, bỏ qua được và làm lại được từ mục "Gợi ý cho bạn" trên trang chủ.
 - **BR-38 — Thứ tự nguồn gợi ý trang chủ** *(US-13, US-23)*: đủ dữ liệu hành vi (BR-19) thì theo hành vi; chưa đủ nhưng có sở thích khảo sát thì theo sở thích; không có cả hai thì sản phẩm bán chạy nhất. Trong gợi ý theo hành vi, sở thích khảo sát có trọng số thấp nhất.
@@ -382,7 +385,7 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
 ---
 
-**Tổng cộng: 36 business rule gốc**, bao phủ toàn bộ 9 epic ở Mục 1\. Bổ sung sau: BR-37 đến BR-48. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
+**Tổng cộng: 36 business rule gốc**, bao phủ toàn bộ 9 epic ở Mục 1\. Bổ sung sau: BR-37 đến BR-49. Trạng thái xử lý các điểm còn mở (nếu có) theo dõi ở `ho-so-du-an.md` Mục 6\.
 
 ## 3\. Từ điển dữ liệu
 
@@ -635,7 +638,7 @@ UNIQUE(account\_id, product\_id).
 | max\_discount\_amount | BIGINT UNSIGNED | NULLABLE | Trần số tiền giảm cho mã PERCENT, NULL \= không giới hạn; mã FIXED để NULL (bổ sung 14/10/2026, migration V2) |
 | used\_count | INT UNSIGNED | NOT NULL, DEFAULT 0 | Bộ đếm tổng lượt đã dùng, tăng/giảm bằng UPDATE có điều kiện (BR-30) — không suy ra bằng COUNT, vì COUNT không chặn được 2 request đồng thời cùng lọt qua điều kiện |
 | is\_active | BOOLEAN | NOT NULL, DEFAULT TRUE | US-22: cho phép admin vô hiệu hóa mã thủ công trước hạn |
-| recipients\_only | BOOLEAN | NOT NULL, DEFAULT FALSE | TRUE \= mã tặng riêng, chỉ khách trong `voucher_recipient` dùng được (BR-44, US-26, migration V7) |
+| recipients\_only | BOOLEAN | NOT NULL, DEFAULT FALSE | TRUE \= mã tặng riêng, chỉ khách trong `voucher_recipient` dùng được (BR-43, US-24, migration V7) |
 | created\_at | DATETIME | NOT NULL |  |
 
 *Không có bảng `voucher_usage` riêng: giới hạn **tổng** dùng cột `used_count` ở trên (an toàn với race condition). Giới hạn **theo tài khoản** vẫn dùng truy vấn đếm trên `order` (`WHERE voucher_id = :id AND account_id = :accountId AND status != 'CANCELLED'`) — rủi ro race condition ở đây thấp hơn nhiều, không đáng thêm cơ chế riêng.*
@@ -769,18 +772,18 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 
 ### 3.17 Chiến dịch tặng mã theo nhóm — `voucher_recipient`, `segment_campaign`, `segment_entry`
 
-*Nguồn: US-26, BR-44. Migration V7 (31/10/2026), kèm cột mới `voucher.recipients_only` (BOOLEAN NOT NULL DEFAULT FALSE, Mục 3.11; không đổi được sau khi tạo mã).*
+*Nguồn: US-24, BR-43. Migration V7 (31/10/2026), kèm cột mới `voucher.recipients_only` (BOOLEAN NOT NULL DEFAULT FALSE, Mục 3.11; không đổi được sau khi tạo mã).*
 
 | Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
 | :---- | :---- | :---- | :---- | :---- |
 | voucher\_recipient | voucher\_id | BIGINT UNSIGNED | PK (cùng account\_id), FK → voucher.id | Mã riêng được tặng |
-| voucher\_recipient | account\_id | BIGINT UNSIGNED | PK, FK → account.id, INDEX | Khách được tặng; chỉ những khách này dùng được mã (BR-44) |
+| voucher\_recipient | account\_id | BIGINT UNSIGNED | PK, FK → account.id, INDEX | Khách được tặng; chỉ những khách này dùng được mã (BR-43) |
 | voucher\_recipient | granted\_at | DATETIME | NULLABLE | Lúc nhận mã tự tặng (giờ Việt Nam, V8); NULL ở lần tặng tay |
-| voucher\_recipient | expires\_at | DATETIME | NULLABLE | Hạn dùng riêng của khách (BR-45, giờ Việt Nam, V8); NULL \= theo hạn của mã |
+| voucher\_recipient | expires\_at | DATETIME | NULLABLE | Hạn dùng riêng của khách (BR-43, giờ Việt Nam, V8); NULL \= theo hạn của mã |
 | segment\_campaign | id | BIGINT UNSIGNED | PK |  |
 | segment\_campaign | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng created\_at) | Mã nhóm lúc tặng (VIP, LOYAL...) |
 | segment\_campaign | segment\_name | VARCHAR(100) | NOT NULL | Tên nhóm lúc tặng: ml-service ghi đè `customer_segment` mỗi lần huấn luyện lại nên lưu bản sao, không dùng khóa ngoại |
-| segment\_campaign | target | ENUM('ALL','CARE','AUTO') | NOT NULL | ALL \= cả nhóm, CARE \= khách cần chăm sóc (BR-43), AUTO \= tự tặng khách mới vào nhóm (US-24, V8) |
+| segment\_campaign | target | ENUM('ALL','CARE','AUTO') | NOT NULL | ALL \= cả nhóm, CARE \= khách cần chăm sóc (BR-44), AUTO \= tự tặng khách mới vào nhóm (US-24, V8) |
 | segment\_campaign | valid\_days | INT | NULLABLE | AUTO: số ngày mỗi khách được dùng mã kể từ lúc nhận (V8) |
 | segment\_campaign | auto\_enabled | BOOLEAN | NOT NULL, DEFAULT FALSE | AUTO đang chạy; mỗi nhóm tối đa 1 (kiểm tra ở backend, V8) |
 | segment\_campaign | voucher\_id | BIGINT UNSIGNED | UNIQUE, NOT NULL, FK → voucher.id | Mỗi chiến dịch 1 mã riêng |
@@ -788,13 +791,13 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 | segment\_campaign | created\_at | DATETIME | NOT NULL |  |
 | segment\_entry | account\_id | BIGINT UNSIGNED | PK, FK → account.id | Khách đã phân nhóm (V8, US-24) |
 | segment\_entry | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng entered\_at) | Nhóm hiện tại, backend chép từ `account_segment` mỗi phút |
-| segment\_entry | entered\_at | DATETIME | NOT NULL | Lúc backend thấy khách vào nhóm này (BR-45) |
+| segment\_entry | entered\_at | DATETIME | NOT NULL | Lúc backend thấy khách vào nhóm này (BR-43) |
 
 Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (các đơn chưa hủy có `voucher_id` của chiến dịch): số khách mua, số đơn, doanh thu (`total_amount`), tiền đã giảm (`discount_amount`).
 
 ### 3.18 Thử nghiệm A/B gợi ý — `ab_experiment`, `ab_assignment`
 
-*Nguồn: US-27, BR-46. Migration V9 (31/10/2026).*
+*Nguồn: US-13, BR-46. Migration V9 (31/10/2026).*
 
 | Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
 | :---- | :---- | :---- | :---- | :---- |
@@ -812,12 +815,12 @@ Kết quả thử nghiệm không lưu sẵn mà tính khi xem từ `product_eve
 
 ### 3.19 Đặt lại mật khẩu — `password_reset_token`
 
-*Nguồn: US-29, BR-48. Migration V10 (31/10/2026).*
+*Nguồn: US-04, US-05, BR-47. Migration V10 (31/10/2026).*
 
 | Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
 | :---- | :---- | :---- | :---- | :---- |
 | password\_reset\_token | id | BIGINT UNSIGNED | PK |  |
-| password\_reset\_token | account\_id | BIGINT UNSIGNED | FK → account.id, INDEX (cùng created\_at) | Đếm số thư đã gửi trong 60 giây và 1 giờ (BR-48) |
+| password\_reset\_token | account\_id | BIGINT UNSIGNED | FK → account.id, INDEX (cùng created\_at) | Đếm số thư đã gửi trong 60 giây và 1 giờ (BR-47) |
 | password\_reset\_token | token\_hash | CHAR(64) | NOT NULL, UNIQUE | SHA-256 (hex) của mã trong liên kết; không lưu mã gốc |
 | password\_reset\_token | created\_at | DATETIME | NOT NULL |  |
 | password\_reset\_token | expires\_at | DATETIME | NOT NULL | created\_at + 30 phút |
@@ -953,7 +956,7 @@ Luồng đơn giản nhất trong 3 luồng, nhưng là ví dụ "sạch" nhất
 Vài điểm đáng chú ý, bám sát acceptance criteria đã chốt ở US-05 (Mục 1):
 
 - **Lỗi trả về chung chung** khi sai email hoặc sai mật khẩu (không phân biệt 2 trường hợp) — tránh lộ email nào đã có tài khoản (user enumeration).  
-- **Không vẽ nhánh "quên mật khẩu"** — sơ đồ vẽ lúc tính năng này chưa chốt; nay đã đặc tả ở US-29 và BR-48 (bổ sung 31/10/2026), là luồng riêng, không thuộc luồng đăng nhập.  
+- **Không vẽ nhánh "quên mật khẩu"** — sơ đồ vẽ lúc tính năng này chưa chốt; nay đã đặc tả ở US-04, US-05 và BR-47 (bổ sung 31/10/2026), là luồng riêng, không thuộc luồng đăng nhập.  
 - **Thời hạn JWT: 24 giờ** — xem NFR-03 (Mục 12\) để biết lý do chọn con số này.
 
 ![][image6]
@@ -1029,14 +1032,14 @@ Khác Mục 1-11 (mô tả **hệ thống làm được gì**), NFR mô tả **h
 
 ### NFR-02 — Số người dùng đồng thời
 
-Hệ thống chịu được **≥50 người dùng đồng thời** mà thời gian phản hồi vẫn trong ngưỡng NFR-01. **\[Giả định\]** Phù hợp quy mô demo/bảo vệ trên 1 VPS giá rẻ (Mục 11), không phải mục tiêu vận hành thương mại thật; cao hơn nhóm thực nghiệm người dùng thật đã có (≥10 người, `ho-so-du-an.md` Mục 3\) để còn dư biên độ khi kiểm thử tải ở Tuần 11\.
+Hệ thống chịu được **≥50 người dùng đồng thời** mà thời gian phản hồi vẫn trong ngưỡng NFR-01. **\[Giả định\]** Phù hợp quy mô demo/bảo vệ trên 1 VPS giá rẻ (Mục 11), không phải mục tiêu vận hành thương mại thật. Đã đo ngày 04/11/2026 với 50 người dùng ảo đồng thời trong 180 giây: P95 đạt ngưỡng NFR-01 (`perf/README.md`).
 
 ### NFR-03 — Bảo mật (định lượng)
 
 - **JWT hết hạn sau 24 giờ** kể từ lúc đăng nhập. **\[Giả định\]** Vì sao 24 giờ: chưa thiết kế refresh token (giữ đơn giản cho dự án 1 người/15 tuần), nên thời hạn cần đủ dài để không ngắt quãng phiên mua sắm (US-05 — quay lại đúng trang đang thao tác dở), nhưng vẫn có giới hạn rõ ràng thay vì token sống vĩnh viễn nếu bị lộ; 24 giờ khớp chu kỳ quay lại phổ biến của người mua sắm thật (khác ứng dụng ngân hàng cần thời hạn ngắn hơn nhiều).  
 - **Mật khẩu hash bằng BCrypt**, cost factor giữ mặc định của `BCryptPasswordEncoder` trong Spring Security (10) — không tự ý đổi nếu chưa đo tải thực tế: cao hơn làm chậm cả đăng nhập lẫn đăng ký, thấp hơn làm yếu khả năng chống brute-force nếu CSDL rò rỉ.  
 - **Giới hạn đăng nhập sai: tối đa 5 lần/15 phút cho cùng 1 email**, vượt ngưỡng thì khóa tạm 15 phút (không khóa vĩnh viễn — tránh bị lợi dụng để khóa tài khoản người khác bằng cách cố tình đăng nhập sai nhiều lần). **\[Giả định\]** Đếm bằng bộ nhớ đệm tự hết hạn (vd Caffeine), không cần bảng CSDL riêng.  
-- **Liên kết đặt lại mật khẩu hết hạn sau 30 phút, dùng 1 lần**, CSDL chỉ lưu SHA-256 của mã (BR-48, bổ sung 31/10/2026). 30 phút đủ để mở hộp thư và đặt mật khẩu, mà vẫn ngắn nếu thư bị người khác đọc được.
+- **Liên kết đặt lại mật khẩu hết hạn sau 30 phút, dùng 1 lần**, CSDL chỉ lưu SHA-256 của mã (BR-47, bổ sung 31/10/2026). 30 phút đủ để mở hộp thư và đặt mật khẩu, mà vẫn ngắn nếu thư bị người khác đọc được.
 
 ### NFR-04 — Tính sẵn sàng hệ thống
 

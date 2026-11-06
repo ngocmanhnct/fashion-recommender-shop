@@ -34,7 +34,7 @@ function isoDate(date) {
 }
 
 /**
- * Trang quản trị /admin/recommendations: thử nghiệm A/B gợi ý ở trang chủ (US-27; khách có danh
+ * Trang quản trị /admin/recommendations: thử nghiệm A/B gợi ý ở trang chủ (US-13; khách có danh
  * sách gợi ý riêng được chia ngẫu nhiên vào nhóm thấy gợi ý học máy hoặc nhóm thấy sản phẩm bán
  * chạy, so sánh bằng kiểm định z hai tỷ lệ) và tỷ lệ bấm theo vị trí, nguồn gợi ý.
  */

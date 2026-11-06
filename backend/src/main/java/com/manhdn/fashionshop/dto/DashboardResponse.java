@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Trang tổng quan của Quản trị viên (US-28) trong một khoảng ngày theo giờ Việt Nam: kinh doanh và
- * hiệu quả gợi ý. Doanh thu chỉ tính đơn Đã giao (BR-47).
+ * Trang tổng quan của Quản trị viên (US-26) trong một khoảng ngày theo giờ Việt Nam: kinh doanh và
+ * hiệu quả gợi ý. Doanh thu chỉ tính đơn Đã giao (BR-45).
  *
  * @param from ngày đầu (tính cả ngày này)
  * @param to ngày cuối (tính cả ngày này)

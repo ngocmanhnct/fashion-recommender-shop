@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * Một liên kết đặt lại mật khẩu đã gửi qua email, bảng password_reset_token (migration V10, BR-48).
+ * Một liên kết đặt lại mật khẩu đã gửi qua email, bảng password_reset_token (migration V10, BR-47).
  * Chỉ lưu bản băm SHA-256 của chuỗi trong liên kết; dùng được 1 lần và hết hạn sau 30 phút.
  */
 @Entity

@@ -5,7 +5,7 @@ import java.util.List;
 
 /**
  * Hồ sơ một nhóm khách hàng cho Quản trị viên (US-25): quy mô, doanh thu, thói quen mua, danh mục
- * ưa thích, giới tính, độ tuổi và danh sách khách cần chăm sóc (BR-43). Chỉ tính đơn Đã giao.
+ * ưa thích, giới tính, độ tuổi và danh sách khách cần chăm sóc (BR-44). Chỉ tính đơn Đã giao.
  *
  * @param code mã nhóm
  * @param name tên nhóm
@@ -23,9 +23,9 @@ import java.util.List;
  * @param topCategories tối đa 5 danh mục mua nhiều nhất
  * @param genders số khách theo giới tính
  * @param ageGroups số khách theo nhóm tuổi
- * @param careCount số khách cần chăm sóc (BR-43)
+ * @param careCount số khách cần chăm sóc (BR-44)
  * @param careList tối đa 20 khách cần chăm sóc, quá nhịp mua nhiều nhất trước
- * @param suggestion việc nên làm với nhóm và ưu đãi gợi ý (US-26)
+ * @param suggestion việc nên làm với nhóm và ưu đãi gợi ý (US-24)
  */
 public record SegmentProfileResponse(
     String code,
@@ -66,7 +66,7 @@ public record SegmentProfileResponse(
   public record Bucket(String key, long count, double share) {}
 
   /**
-   * Một khách đã quá nhịp mua quen thuộc của chính họ (BR-43).
+   * Một khách đã quá nhịp mua quen thuộc của chính họ (BR-44).
    *
    * @param accountId mã tài khoản
    * @param fullName họ tên

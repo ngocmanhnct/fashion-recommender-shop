@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** Truy vấn chiến dịch ưu đãi theo nhóm (US-26). */
+/** Truy vấn chiến dịch ưu đãi theo nhóm (US-24). */
 public interface SegmentCampaignRepository extends JpaRepository<SegmentCampaign, Long> {
 
   /** Nhóm segmentCode có chương trình tự tặng đang chạy không (mỗi nhóm tối đa 1, US-24). */

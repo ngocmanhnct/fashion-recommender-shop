@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** API thử nghiệm A/B gợi ý ở trang chủ cho Quản trị viên (US-27; chỉ ADMIN, SecurityConfig). */
+/** API thử nghiệm A/B gợi ý ở trang chủ cho Quản trị viên (US-13; chỉ ADMIN, SecurityConfig). */
 @RestController
 @RequestMapping("/api/admin/ab-tests")
 public class AbTestAdminController {

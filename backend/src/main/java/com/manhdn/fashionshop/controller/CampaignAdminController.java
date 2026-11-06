@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-/** API chiến dịch ưu đãi theo nhóm khách hàng của Quản trị viên (US-26). */
+/** API chiến dịch ưu đãi theo nhóm khách hàng của Quản trị viên (US-24). */
 @RestController
 @RequestMapping("/api/admin")
 public class CampaignAdminController {
@@ -28,7 +28,7 @@ public class CampaignAdminController {
   }
 
   /**
-   * Tặng mã giảm giá riêng cho cả nhóm hoặc khách cần chăm sóc của nhóm (US-26), hoặc bật tự tặng
+   * Tặng mã giảm giá riêng cho cả nhóm hoặc khách cần chăm sóc của nhóm (US-24), hoặc bật tự tặng
    * cho khách mới vào nhóm (AUTO, US-24).
    *
    * @param code mã nhóm, vd AT_RISK

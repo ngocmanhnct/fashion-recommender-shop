@@ -39,8 +39,8 @@ const TARGET_LABELS = {
 /**
  * Trang quản trị /admin/segments/:code (US-25): hồ sơ 1 nhóm khách hàng. Tóm tắt nhóm bằng doanh
  * thu, giá trị đơn, nhịp mua, thời gian gắn bó, danh mục mua nhiều, giới tính và độ tuổi; cuối
- * trang là khách cần chăm sóc, tức khách đã lâu không mua so với nhịp mua của chính họ (BR-43).
- * Đầu trang là việc nên làm với nhóm (US-26): mục tiêu, ưu đãi gợi ý theo thói quen của nhóm và
+ * trang là khách cần chăm sóc, tức khách đã lâu không mua so với nhịp mua của chính họ (BR-44).
+ * Đầu trang là việc nên làm với nhóm (US-24): mục tiêu, ưu đãi gợi ý theo thói quen của nhóm và
  * nút tặng mã riêng cho cả nhóm hoặc cho khách cần chăm sóc; cuối trang là kết quả các lần tặng.
  */
 function SegmentDetailPage() {
@@ -174,7 +174,7 @@ function SegmentProfile({ code }) {
 }
 
 /**
- * Việc nên làm với nhóm (US-26): mục tiêu và ưu đãi gợi ý; bấm nút tặng mở biểu mẫu mã điền sẵn
+ * Việc nên làm với nhóm (US-24): mục tiêu và ưu đãi gợi ý; bấm nút tặng mở biểu mẫu mã điền sẵn
  * ưu đãi đó, admin sửa được trước khi tặng. Nút của đối tượng được gợi ý là nút chính.
  */
 function NextAction({ profile, campaigns }) {
@@ -434,7 +434,7 @@ function CampaignResults({ campaigns }) {
   );
 }
 
-/** Khách cần chăm sóc (BR-43): mua từ 2 đơn, đã quá 1,5 lần nhịp mua riêng và quá 30 ngày. */
+/** Khách cần chăm sóc (BR-44): mua từ 2 đơn, đã quá 1,5 lần nhịp mua riêng và quá 30 ngày. */
 function CareList({ profile }) {
   const { careCount, careList } = profile;
   return (

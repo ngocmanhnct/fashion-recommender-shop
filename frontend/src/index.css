@@ -3045,7 +3045,7 @@ legend {
   color: var(--muted);
 }
 
-/* Việc nên làm với nhóm và tặng mã theo nhóm (US-26) */
+/* Việc nên làm với nhóm và tặng mã theo nhóm (US-24) */
 .next-action {
   margin: 16px 0;
   border-left: 4px solid var(--accent);
@@ -3082,7 +3082,7 @@ legend {
   background: var(--accent-soft);
 }
 
-/* Ưu đãi của bạn (US-26) */
+/* Ưu đãi của bạn (US-24) */
 .voucher-chips {
   display: flex;
   flex-wrap: wrap;
@@ -3408,7 +3408,7 @@ legend {
   color: var(--star);
 }
 
-/* Hiệu quả gợi ý: thử nghiệm A/B (US-27) */
+/* Hiệu quả gợi ý: thử nghiệm A/B (US-13) */
 .ab-running {
   display: flex;
   flex-wrap: wrap;
@@ -3490,7 +3490,7 @@ legend {
   min-width: 560px;
 }
 
-/* Bảng điều khiển quản trị (US-28) */
+/* Bảng điều khiển quản trị (US-26) */
 .dash-range {
   display: flex;
   flex-wrap: wrap;

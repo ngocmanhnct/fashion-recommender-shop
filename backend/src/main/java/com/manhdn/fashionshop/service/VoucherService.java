@@ -103,11 +103,11 @@ public class VoucherService {
   }
 
   /**
-   * Tạo mã đang bật và trả về entity, dùng chung cho mã công khai và mã tặng riêng (US-26). Phải
+   * Tạo mã đang bật và trả về entity, dùng chung cho mã công khai và mã tặng riêng (US-24). Phải
    * gọi trong giao dịch của người gọi.
    *
    * @param request điều kiện của mã
-   * @param recipientsOnly true nếu chỉ khách được tặng dùng được (BR-44)
+   * @param recipientsOnly true nếu chỉ khách được tặng dùng được (BR-43)
    * @return mã vừa lưu, đã có id
    * @throws InvalidRequestException nếu điều kiện mâu thuẫn
    * @throws ConflictException nếu trùng mã
@@ -129,7 +129,7 @@ public class VoucherService {
   }
 
   /**
-   * Mã riêng khách được tặng và đang dùng được (US-26): đang bật, trong thời hạn, còn lượt, khách
+   * Mã riêng khách được tặng và đang dùng được (US-24): đang bật, trong thời hạn, còn lượt, khách
    * chưa dùng hết lượt của mình. Hết hạn sớm nhất đứng trước.
    *
    * @param accountId tài khoản khách

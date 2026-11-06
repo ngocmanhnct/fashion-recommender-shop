@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-/** Truy cập bảng password_reset_token (BR-48). */
+/** Truy cập bảng password_reset_token (BR-47). */
 public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
 
   /**

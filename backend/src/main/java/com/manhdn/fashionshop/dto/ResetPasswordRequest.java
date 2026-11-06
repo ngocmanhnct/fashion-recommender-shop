@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 /**
- * Đặt mật khẩu mới bằng liên kết gửi qua email (chức năng 21, BR-48).
+ * Đặt mật khẩu mới bằng liên kết gửi qua email (chức năng 21, BR-47).
  *
  * @param token chuỗi trong liên kết
  * @param newPassword mật khẩu mới, cùng quy tắc với lúc đăng ký (BR-02)

@@ -1,4 +1,4 @@
-// Nhãn hiển thị của trang "Hiệu quả gợi ý" (US-27): vị trí, nguồn gợi ý và kết luận thử nghiệm A/B.
+// Nhãn hiển thị của trang "Hiệu quả gợi ý" (US-13): vị trí, nguồn gợi ý và kết luận thử nghiệm A/B.
 
 const P_VALUE = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 4 });
 

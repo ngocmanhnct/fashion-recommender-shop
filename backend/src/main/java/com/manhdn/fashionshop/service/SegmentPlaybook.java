@@ -5,7 +5,7 @@ import com.manhdn.fashionshop.entity.CampaignTarget;
 import com.manhdn.fashionshop.entity.DiscountType;
 
 /**
- * Cách chăm sóc từng kiểu nhóm khách (US-26), theo mã nhóm ml-service đặt (VIP, LOYAL, SAVER, NEW,
+ * Cách chăm sóc từng kiểu nhóm khách (US-24), theo mã nhóm ml-service đặt (VIP, LOYAL, SAVER, NEW,
  * AT_RISK, LOST). Mức đơn tối thiểu của nhóm mua đều tính từ giá trị đơn trung bình của chính nhóm,
  * để mã kéo khách mua đơn lớn hơn thói quen. Các con số là gợi ý ban đầu (giả định), Quản trị viên
  * sửa được trước khi tặng.

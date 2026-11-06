@@ -40,8 +40,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Kiểm tra API hồ sơ nhóm khách hàng (US-25), danh sách khách cần chăm sóc (BR-43) và chiến dịch
- * tặng mã riêng theo nhóm (US-26, BR-44) với MySQL thật; dữ liệu phân nhóm ghi thẳng bằng SQL như
+ * Kiểm tra API hồ sơ nhóm khách hàng (US-25), danh sách khách cần chăm sóc (BR-44) và chiến dịch
+ * tặng mã riêng theo nhóm (US-24, BR-43) với MySQL thật; dữ liệu phân nhóm ghi thẳng bằng SQL như
  * ml-service. Mỗi test rollback ở cuối.
  */
 @SpringBootTest
@@ -217,7 +217,7 @@ class SegmentProfileIntegrationTest {
         .andExpect(jsonPath("$.buyers").value(0))
         .andExpect(jsonPath("$.revenuePerDiscount").doesNotExist());
 
-    // Chỉ khách cần chăm sóc (Lan) được tặng; khách cùng nhóm khác thì không dùng được (BR-44).
+    // Chỉ khách cần chăm sóc (Lan) được tặng; khách cùng nhóm khác thì không dùng được (BR-43).
     assertThat(voucherService.check(loyal, code, 300_000).discount()).isEqualTo(50_000);
     assertThat(voucherService.check(regular, code, 300_000).error())
         .isEqualTo("Mã này chỉ dành cho khách được tặng");

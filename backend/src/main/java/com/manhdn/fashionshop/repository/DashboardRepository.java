@@ -9,7 +9,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Các truy vấn gộp cho trang tổng quan của Quản trị viên (US-28). Dùng JDBC vì đều là phép đếm,
+ * Các truy vấn gộp cho trang tổng quan của Quản trị viên (US-26). Dùng JDBC vì đều là phép đếm,
  * cộng trên nhiều bảng. Khoảng thời gian [start, end) tính theo giờ lưu trong CSDL (giờ JVM).
  */
 @Repository
@@ -93,7 +93,7 @@ public class DashboardRepository {
 
   /**
    * Tiền hàng từ gợi ý: tổng thành tiền các dòng của đơn Đã giao đặt trong khoảng mà khách đã bấm
-   * sản phẩm đó ở một khối gợi ý trong {@code windowDays} ngày trước lúc đặt (BR-47).
+   * sản phẩm đó ở một khối gợi ý trong {@code windowDays} ngày trước lúc đặt (BR-45).
    */
   public long recommendedRevenue(LocalDateTime start, LocalDateTime end, int windowDays) {
     Long sum =

@@ -28,7 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Thử nghiệm A/B cho gợi ý ở trang chủ (US-27, BR-46).
+ * Thử nghiệm A/B cho gợi ý ở trang chủ (US-13, BR-46).
  *
  * <p>Khi có thử nghiệm đang chạy, khách đủ điều kiện (có danh sách gợi ý riêng do ml-service tính)
  * được chia vào nhóm lúc mở trang chủ lần đầu: TREATMENT thấy gợi ý như bình thường, CONTROL thấy

@@ -28,11 +28,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Chiến dịch ưu đãi theo nhóm khách hàng (US-26): Quản trị viên tặng mã giảm giá riêng cho cả một
- * nhóm hoặc cho khách cần chăm sóc của nhóm (BR-43), chỉ những khách đó dùng được mã (BR-44); sau
+ * Chiến dịch ưu đãi theo nhóm khách hàng (US-24): Quản trị viên tặng mã giảm giá riêng cho cả một
+ * nhóm hoặc cho khách cần chăm sóc của nhóm (BR-44), chỉ những khách đó dùng được mã (BR-43); sau
  * đó đo kết quả bằng đơn hàng dùng mã: bao nhiêu khách quay lại mua, doanh thu, tiền đã giảm.
  *
- * <p>Chương trình tự tặng (US-24, BR-45) là chiến dịch AUTO: chưa ai nhận lúc bật; mỗi lượt của
+ * <p>Chương trình tự tặng (US-24, BR-43) là chiến dịch AUTO: chưa ai nhận lúc bật; mỗi lượt của
  * {@link #grantAutoOffers()} thêm các khách vừa vào nhóm vào danh sách nhận, mỗi khách dùng mã
  * trong số ngày đã đặt kể từ lúc nhận.
  */
@@ -169,7 +169,7 @@ public class CampaignService {
   }
 
   /**
-   * Một lượt tự tặng (US-24, BR-45): ghi lúc vào nhóm của khách vừa được phân nhóm hoặc đổi nhóm,
+   * Một lượt tự tặng (US-24, BR-43): ghi lúc vào nhóm của khách vừa được phân nhóm hoặc đổi nhóm,
    * rồi tặng mã của các chương trình đang chạy cho khách vào nhóm sau lúc bật chương trình.
    *
    * @return số khách vừa được tặng

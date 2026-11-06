@@ -32,7 +32,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Kiểm tra trang tổng quan của Quản trị viên (US-28, BR-47) với MySQL thật. Dữ liệu đặt vào các
+ * Kiểm tra trang tổng quan của Quản trị viên (US-26, BR-45) với MySQL thật. Dữ liệu đặt vào các
  * ngày năm 2031 để không lẫn với dữ liệu khác trong CSDL test. Mỗi test rollback ở cuối.
  */
 @SpringBootTest

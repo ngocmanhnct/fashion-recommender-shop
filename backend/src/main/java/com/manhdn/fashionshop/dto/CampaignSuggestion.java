@@ -4,7 +4,7 @@ import com.manhdn.fashionshop.entity.CampaignTarget;
 import com.manhdn.fashionshop.entity.DiscountType;
 
 /**
- * Việc nên làm với một nhóm khách hàng và ưu đãi gợi ý để làm việc đó (US-26). Quản trị viên sửa
+ * Việc nên làm với một nhóm khách hàng và ưu đãi gợi ý để làm việc đó (US-24). Quản trị viên sửa
  * được mọi con số trước khi tặng.
  *
  * @param goal mục tiêu, vd "Có đơn thứ hai"

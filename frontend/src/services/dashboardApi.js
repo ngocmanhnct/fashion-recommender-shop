@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
 
-// Bảng điều khiển của Quản trị viên (US-28): doanh thu, đơn hàng, sản phẩm bán chạy, hiệu quả gợi ý.
+// Bảng điều khiển của Quản trị viên (US-26): doanh thu, đơn hàng, sản phẩm bán chạy, hiệu quả gợi ý.
 
 /**
  * Số liệu từ ngày from đến ngày to (yyyy-MM-dd, theo giờ Việt Nam, tối đa 366 ngày):

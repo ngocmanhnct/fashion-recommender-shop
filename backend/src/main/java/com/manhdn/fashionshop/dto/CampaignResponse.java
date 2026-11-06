@@ -4,7 +4,7 @@ import com.manhdn.fashionshop.entity.CampaignTarget;
 import java.time.LocalDateTime;
 
 /**
- * Một chiến dịch ưu đãi theo nhóm và kết quả của nó (US-26). Kết quả chỉ tính đơn chưa hủy dùng mã
+ * Một chiến dịch ưu đãi theo nhóm và kết quả của nó (US-24). Kết quả chỉ tính đơn chưa hủy dùng mã
  * của chiến dịch.
  *
  * @param id mã số chiến dịch

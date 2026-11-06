@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 /**
- * Bảng voucher_recipient: khách được tặng mã riêng (BR-44). Dùng JDBC vì một chiến dịch ghi một lúc
+ * Bảng voucher_recipient: khách được tặng mã riêng (BR-43). Dùng JDBC vì một chiến dịch ghi một lúc
  * cả nghìn dòng và bảng không cần entity.
  */
 @Repository

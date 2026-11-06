@@ -32,7 +32,7 @@ const MAX_POLLS = 6;
  *   nhật và nhãn "Mới" cho sản phẩm chưa có ở lần khách thấy trước. Khi backend báo đang tính lại,
  *   khối tự tải lại sau vài giây để khách thấy danh sách mới mà không phải tải lại trang.
  * Chưa có danh sách riêng, chưa đăng nhập, hay tải lỗi thì hiện phần khảo sát thay danh sách.
- * Khách trong thử nghiệm A/B (US-27) thấy cùng một giao diện ở cả 2 nhóm: không có hàng "Vì bạn
+ * Khách trong thử nghiệm A/B (US-13) thấy cùng một giao diện ở cả 2 nhóm: không có hàng "Vì bạn
  * vừa xem" (backend không gửi), cùng dòng mô tả, không lý do, giờ cập nhật hay nhãn "Mới". Nhóm
  * CONTROL nhận sản phẩm bán chạy trong khối "Gợi ý cho bạn", nên 2 nhóm chỉ khác cách chọn sản phẩm.
  */

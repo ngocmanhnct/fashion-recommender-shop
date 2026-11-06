@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
 /**
- * Một lần tặng mã giảm giá riêng cho một nhóm khách hàng, bảng segment_campaign (US-26). Mã và tên
+ * Một lần tặng mã giảm giá riêng cho một nhóm khách hàng, bảng segment_campaign (US-24). Mã và tên
  * nhóm là bản sao lúc tặng, vì ml-service ghi đè bảng nhóm mỗi lần huấn luyện lại.
  */
 @Entity

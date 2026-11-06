@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
 
-// Hiệu quả gợi ý cho Quản trị viên: thử nghiệm A/B gợi ý ở trang chủ (US-27) và tỷ lệ bấm theo vị
+// Hiệu quả gợi ý cho Quản trị viên: thử nghiệm A/B gợi ý ở trang chủ (US-13) và tỷ lệ bấm theo vị
 // trí, nguồn.
 
 /** Danh sách thử nghiệm, mới nhất trước: [{ id, name, treatmentPercent, startedAt, endedAt, running }]. */

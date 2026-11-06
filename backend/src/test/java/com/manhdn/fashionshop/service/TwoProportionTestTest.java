@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.within;
 import com.manhdn.fashionshop.entity.AbVariant;
 import org.junit.jupiter.api.Test;
 
-/** Kiểm tra kiểm định z hai tỷ lệ và cách chia nhóm theo băm (US-27, BR-46). */
+/** Kiểm tra kiểm định z hai tỷ lệ và cách chia nhóm theo băm (US-13, BR-46). */
 class TwoProportionTestTest {
 
   @Test

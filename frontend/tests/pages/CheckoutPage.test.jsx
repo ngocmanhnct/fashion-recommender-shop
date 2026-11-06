@@ -49,7 +49,7 @@ describe('CheckoutPage', () => {
     vi.mocked(getMyVouchers).mockResolvedValue([]);
   });
 
-  it('mã được tặng hiện thành nút, bấm là áp dụng (US-26)', async () => {
+  it('mã được tặng hiện thành nút, bấm là áp dụng (US-24)', async () => {
     vi.mocked(getMyVouchers).mockResolvedValue([
       { code: 'LOYAL-3110', discountType: 'FIXED', discountValue: 50000, minOrderAmount: 250000 },
       { code: 'VIP-3110', discountType: 'PERCENT', discountValue: 10, maxDiscountAmount: 200000 },
