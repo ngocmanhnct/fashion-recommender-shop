@@ -29,9 +29,9 @@ của chính nó, tính lại mỗi đêm.
    uv run python -m scripts.eval_hm
    ```
 
-   Script ghi `data/hm/ket-qua.md`. Đọc hết tệp giao dịch mất vài phút, phần đánh giá thêm khoảng
-   10–15 phút. Cách ánh xạ sang cửa hàng, cách lấy mẫu 5% khách, 2 cách chia và các phép kiểm tra
-   phân nhóm ghi ở đầu `ml-service/scripts/eval_hm.py`.
+   Script ghi `data/hm/ket-qua.md`. Với mẫu 5% khách, lần chạy ngày 06/11/2026 mất khoảng 20 phút
+   (đọc tệp khoảng nửa phút, RAM cao nhất 2,4 GB). Cách ánh xạ sang cửa hàng, cách lấy mẫu 5%
+   khách, 2 cách chia và các phép kiểm tra phân nhóm ghi ở đầu `ml-service/scripts/eval_hm.py`.
 
 ## Giới hạn
 
