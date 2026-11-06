@@ -2,7 +2,7 @@
 
 > Phục vụ TC2.7. Đề tài: Website bán hàng có tích hợp học máy trong gợi ý mua hàng và phân nhóm khách hàng. Sinh viên: Đoàn Ngọc Mạnh (23110124).
 
-**Tình trạng ngày 06/11/2026: chưa thực nghiệm.** File này mới có phương pháp, kịch bản và công cụ chấm. Các ô ghi *(chưa có số liệu)* chỉ được điền bằng kết quả thật sau buổi thử, không điền số ước đoán.
+**Tình trạng ngày 06/11/2026: không thực nghiệm.** Sinh viên không tìm được người tham gia nên quyết định không làm thực nghiệm người dùng trong đề tài; luận văn ghi đây là hạn chế (mục 6.6) và hướng phát triển. File này giữ phương pháp, kịch bản và công cụ chấm để dùng khi làm sau. Các ô ghi *(chưa có số liệu)* chỉ được điền bằng kết quả thật sau buổi thử, không điền số ước đoán.
 
 ## 1. Mục tiêu và ngưỡng đạt
 

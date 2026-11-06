@@ -1,12 +1,12 @@
 # Lịch sử dự án (project_history)
 
-Xuất ngày 06/11/2026 từ GitHub REST API của repo `ngocmanhnct/fashion-recommender-shop`.
+Xuất ngày 06/11/2026 (sau khi merge PR #138, lần chạy CI cuối lúc 07:59 UTC) từ GitHub REST API của repo `ngocmanhnct/fashion-recommender-shop`.
 
 | File | Nội dung | Số dòng |
 |---|---|---|
-| `pr_history.json` | Mọi pull request: số, tiêu đề, trạng thái, người tạo, nhánh, lúc tạo, lúc merge, lúc đóng | 79 PR: 76 đã merge, 2 đóng không merge (#1 và #116 của Dependabot), 1 đang mở (#112, hồ sơ nộp) |
-| `cicd_runs.json` | Mọi lần chạy GitHub Actions: workflow, sự kiện, nhánh, commit, kết quả | 190 lần: 179 lần workflow CI (162 thành công, 8 thất bại, 9 bị hủy) và 11 lần Dependabot |
-| `bug_tracker.json` | Mọi issue có nhãn `bug`, kèm nội dung theo mẫu báo lỗi (mức độ, thành phần, cách tái hiện, nguyên nhân) | 56 issue, đã đóng 56 |
+| `pr_history.json` | Mọi pull request: số, tiêu đề, trạng thái, người tạo, nhánh, lúc tạo, lúc merge, lúc đóng | 81 PR: 79 đã merge, 2 đóng không merge (#1 và #116 của Dependabot) |
+| `cicd_runs.json` | Mọi lần chạy GitHub Actions: workflow, sự kiện, nhánh, commit, kết quả | 195 lần: 184 lần workflow CI (166 thành công, 9 thất bại, 9 bị hủy) và 11 lần Dependabot |
+| `bug_tracker.json` | Mọi issue có nhãn `bug`, kèm nội dung theo mẫu báo lỗi (mức độ, thành phần, cách tái hiện, nguyên nhân) | 57 issue, đã đóng 57 |
 
 GitHub chỉ còn giữ các lần chạy từ 11/10/2026; các lần chạy CI sớm hơn (Tuần 4) không còn trên GitHub nên không có trong file.
 
@@ -26,20 +26,20 @@ Workflow `.github/workflows/ci.yml` chạy trên mỗi PR vào `main` và mỗi 
 
 Workflow `rollback.yml` chạy tay để đưa staging về image của một commit cũ. Mọi thay đổi vào `main` đi qua PR và phải xanh các job bắt buộc.
 
-Số lần deploy staging thành công từ 22/10 đến 06/11/2026: 48 (đếm job Deploy staging có kết quả success; chi tiết theo tuần ở `PROGRESS_LOG.MD`).
+Số lần deploy staging thành công từ 22/10 đến 06/11/2026: 50 (đếm job Deploy staging có kết quả success; chi tiết theo tuần ở `PROGRESS_LOG.MD`).
 
 ## Lỗi theo mức độ
 
-Mức độ lấy từ trường "Mức độ" của mẫu báo lỗi. Một số issue mở trước khi có mẫu nên ghi theo lời (Cao, Trung bình, Thấp); bảng gộp các cách ghi gần nghĩa.
+Mức độ lấy từ trường "Mức độ" của mẫu báo lỗi. Một số issue mở trước khi có mẫu, hoặc mở bằng API không theo mẫu, nên ghi theo lời (Cao, Trung bình, Thấp); bảng gộp các cách ghi gần nghĩa.
 
 | Mức độ | Số issue |
 |---|---:|
 | Critical | 1 (#94, đã sửa, có test hồi quy) |
 | Major hoặc Cao | 17 |
-| Trung bình | 2 |
-| Minor hoặc Thấp | 32 |
+| Trung bình | 3 |
+| Minor hoặc Thấp | 33 |
 | Trivial | 3 |
-| Không ghi | 1 |
+| **Tổng** | **57** |
 
 Mỗi PR sửa lỗi ghi `Fixes #<số>` để issue tự đóng khi merge; vài PR thiếu dòng này nên issue được đóng tay (ghi trong `AI_LOG.MD`).
 

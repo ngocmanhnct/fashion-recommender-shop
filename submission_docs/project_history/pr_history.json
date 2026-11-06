@@ -722,12 +722,12 @@
   {
     "author": "ngocmanhnct",
     "base": "main",
-    "closed_at": null,
+    "closed_at": "2026-11-06T07:39:39Z",
     "created_at": "2026-11-04T10:02:27Z",
     "head": "docs/ho-so-nop-0411",
-    "merged_at": null,
+    "merged_at": "2026-11-06T07:39:39Z",
     "number": 112,
-    "state": "open",
+    "state": "closed",
     "title": "Hồ sơ nộp Khoa đến PR #135: TEST_PLAN_AND_CASES, AI_LOG, báo cáo Tuần 9 và 10",
     "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/pull/112"
   },
@@ -946,5 +946,29 @@
     "state": "closed",
     "title": "Bổ sung ảnh minh họa cho các danh mục còn thiếu",
     "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/pull/135"
+  },
+  {
+    "author": "ngocmanhnct",
+    "base": "main",
+    "closed_at": "2026-11-06T07:39:53Z",
+    "created_at": "2026-11-05T22:24:45Z",
+    "head": "docs/ho-so-con-thieu",
+    "merged_at": "2026-11-06T07:39:53Z",
+    "number": 136,
+    "state": "closed",
+    "title": "Hồ sơ nộp Khoa: SRS_SDD, quality_reports, project_history, bộ thực nghiệm SUS",
+    "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/pull/136"
+  },
+  {
+    "author": "ngocmanhnct",
+    "base": "main",
+    "closed_at": "2026-11-06T07:59:18Z",
+    "created_at": "2026-11-06T07:47:37Z",
+    "head": "fix/test-ml-client-timeout",
+    "merged_at": "2026-11-06T07:59:18Z",
+    "number": 138,
+    "state": "closed",
+    "title": "Sửa test MlServiceClientTest đỏ ngẫu nhiên vì thời gian chờ quá sát",
+    "url": "https://github.com/ngocmanhnct/fashion-recommender-shop/pull/138"
   }
 ]
