@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.manhdn.fashionshop.repository.AbAssignmentRepository.VariantStats;
 
 /**
- * Kết quả một thử nghiệm A/B gợi ý ở trang chủ (US-27, BR-46): số liệu của 2 nhóm và phép so sánh
+ * Kết quả một thử nghiệm A/B gợi ý ở trang chủ (US-13, BR-46): số liệu của 2 nhóm và phép so sánh
  * từng tỷ lệ theo khách.
  *
  * @param experiment thông tin thử nghiệm

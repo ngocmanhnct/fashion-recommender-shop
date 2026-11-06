@@ -5,7 +5,7 @@ import com.manhdn.fashionshop.entity.Voucher;
 import java.time.LocalDateTime;
 
 /**
- * Một mã giảm giá riêng khách được tặng và còn dùng được (US-26, trang "Ưu đãi của bạn").
+ * Một mã giảm giá riêng khách được tặng và còn dùng được (US-24, trang "Ưu đãi của bạn").
  *
  * @param code mã để nhập ở trang thanh toán
  * @param discountType giảm theo phần trăm hay số tiền cố định

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Xin liên kết đặt lại mật khẩu (chức năng 21, BR-48).
+ * Xin liên kết đặt lại mật khẩu (chức năng 21, BR-47).
  *
  * @param email email của tài khoản
  */

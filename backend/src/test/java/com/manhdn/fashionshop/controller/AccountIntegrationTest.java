@@ -36,7 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 /**
- * Hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu (chức năng 21, BR-48) qua HTTP với MySQL thật. Không
+ * Hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu (chức năng 21, BR-47) qua HTTP với MySQL thật. Không
  * chạy trong transaction: email chỉ gửi sau khi giao dịch commit, nên dữ liệu được xóa ở cuối mỗi
  * test. Máy chủ email là bản giả.
  */

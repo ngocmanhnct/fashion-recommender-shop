@@ -52,7 +52,7 @@ export function voucherFormOf(voucher) {
 }
 
 /**
- * Biểu mẫu điền sẵn từ ưu đãi gợi ý cho một nhóm khách (US-26): bắt đầu từ bây giờ, hết hạn sau
+ * Biểu mẫu điền sẵn từ ưu đãi gợi ý cho một nhóm khách (US-24): bắt đầu từ bây giờ, hết hạn sau
  * suggestion.validDays ngày, mỗi khách 1 lượt, không giới hạn tổng (chỉ khách được tặng dùng được).
  * Mã gợi ý là mã nhóm kèm ngày tặng, vd AT_RISK-3110.
  */

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class SegmentEntryRepository {
 
-  /** Mỗi khách nhận tối đa 1 mã tự tặng trong chừng này ngày, dù đổi nhóm nhiều lần (BR-45). */
+  /** Mỗi khách nhận tối đa 1 mã tự tặng trong chừng này ngày, dù đổi nhóm nhiều lần (BR-43). */
   public static final int AUTO_OFFER_COOLDOWN_DAYS = 30;
 
   private final NamedParameterJdbcTemplate jdbc;

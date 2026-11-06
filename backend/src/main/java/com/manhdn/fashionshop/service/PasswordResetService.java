@@ -26,7 +26,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
- * Quên mật khẩu (chức năng 21, BR-48): gửi liên kết đặt lại mật khẩu qua email, rồi đặt mật khẩu
+ * Quên mật khẩu (chức năng 21, BR-47): gửi liên kết đặt lại mật khẩu qua email, rồi đặt mật khẩu
  * mới bằng liên kết đó.
  *
  * <p>Liên kết chứa 1 chuỗi ngẫu nhiên 256 bit; CSDL chỉ lưu bản băm SHA-256 của chuỗi. Liên kết

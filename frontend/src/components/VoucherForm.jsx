@@ -4,7 +4,7 @@ import { voucherRequestOf } from '../services/voucherForm';
 
 /**
  * Biểu mẫu điều kiện của một mã giảm giá, dùng chung cho trang quản trị mã (tạo, sửa) và chiến
- * dịch tặng mã theo nhóm khách (US-26).
+ * dịch tặng mã theo nhóm khách (US-24).
  *
  * - initialForm: giá trị ban đầu các ô (services/voucherForm.js).
  * - lockCode: mã đã có người dùng thì không đổi được chuỗi mã.

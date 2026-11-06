@@ -4,7 +4,7 @@ import com.manhdn.fashionshop.entity.AbExperiment;
 import java.time.LocalDateTime;
 
 /**
- * Một lần thử nghiệm A/B gợi ý (US-27).
+ * Một lần thử nghiệm A/B gợi ý (US-13).
  *
  * @param id mã thử nghiệm
  * @param name tên thử nghiệm

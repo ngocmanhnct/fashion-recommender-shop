@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/** API mã giảm giá của khách hàng (US-26, trang "Ưu đãi của bạn"). */
+/** API mã giảm giá của khách hàng (US-24, trang "Ưu đãi của bạn"). */
 @RestController
 @RequestMapping("/api/vouchers")
 public class VoucherController {

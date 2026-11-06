@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Tặng mã giảm giá riêng cho một nhóm khách (US-26) hoặc bật tự tặng cho khách mới vào nhóm
+ * Tặng mã giảm giá riêng cho một nhóm khách (US-24) hoặc bật tự tặng cho khách mới vào nhóm
  * (US-24).
  *
  * @param target cả nhóm, chỉ khách cần chăm sóc, hoặc tự tặng (AUTO)

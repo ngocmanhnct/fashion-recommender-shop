@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Trang tổng quan của Quản trị viên (US-28): doanh thu theo ngày, số đơn theo trạng thái, sản phẩm
+ * Trang tổng quan của Quản trị viên (US-26): doanh thu theo ngày, số đơn theo trạng thái, sản phẩm
  * bán chạy và hiệu quả gợi ý trong một khoảng ngày. Ngày tính theo giờ Việt Nam, kể cả khi máy chủ
  * chạy giờ UTC (Docker).
  */
@@ -80,7 +80,7 @@ public class DashboardService {
    * Số liệu tổng quan từ đầu ngày {@code from} đến hết ngày {@code to} (giờ Việt Nam). Bỏ trống thì
    * lấy {@value #DEFAULT_DAYS} ngày gần nhất tính đến hôm nay.
    *
-   * <p>Doanh thu chỉ tính đơn Đã giao, theo ngày đặt đơn (BR-47). Số đơn theo trạng thái tính mọi
+   * <p>Doanh thu chỉ tính đơn Đã giao, theo ngày đặt đơn (BR-45). Số đơn theo trạng thái tính mọi
    * đơn đặt trong khoảng. Tiền hàng từ gợi ý là thành tiền các dòng đơn Đã giao mà khách đã bấm sản
    * phẩm đó ở một khối gợi ý trong {@value #RECOMMENDATION_WINDOW_DAYS} ngày trước lúc đặt.
    *

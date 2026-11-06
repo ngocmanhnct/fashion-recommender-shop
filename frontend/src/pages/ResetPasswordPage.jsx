@@ -5,7 +5,7 @@ import { resetPassword } from '../services/authApi';
 import { getErrorMessage, getFieldErrors } from '../services/errorMessage';
 
 /**
- * Trang /reset-password?token=... (chức năng 21, BR-48), mở từ liên kết trong email: đặt mật khẩu
+ * Trang /reset-password?token=... (chức năng 21, BR-47), mở từ liên kết trong email: đặt mật khẩu
  * mới rồi chuyển tới trang đăng nhập. Liên kết sai, đã dùng hoặc hết hạn thì mời xin liên kết mới.
  */
 function ResetPasswordPage() {

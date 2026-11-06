@@ -20,7 +20,7 @@
 - `frontend` (React);
 - `ml-service` (FastAPI: gợi ý, phân nhóm, hàng đợi tính lại).
 
-Phạm vi nghiệp vụ là 29 user story trong đặc tả: 22 story gốc và US-23 đến US-29 bổ sung sau. Cùng với đó là các business rule BR-01 đến BR-48.
+Phạm vi nghiệp vụ là 26 user story trong đặc tả: 22 story gốc và US-23 đến US-26 bổ sung sau (thử nghiệm A/B, hồ sơ cá nhân và quên mật khẩu là phần mở rộng của US-13, US-04, US-05). Cùng với đó là các business rule BR-01 đến BR-49.
 
 **Ngoài phạm vi:**
 - Cổng VNPay thật: chỉ dùng sandbox.
@@ -151,7 +151,7 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-09 | US-03 | Sản phẩm đã xóa hoặc không tồn tại trả 404 và không ghi gì | − | I | `ProductViewIntegrationTest.deletedProductOrMissingAccountGives404AndWritesNothing` |
 | TC-10 | US-03 | Trang chi tiết: chọn phân loại, ảnh minh họa theo danh mục, nút thêm giỏ | + | F | `pages/ProductDetailPage.test.jsx`, `components/ProductImage.test.jsx`, `services/variantSelection.test.js`, `services/categoryPhotos.test.js` |
 
-### 6.2 Tài khoản (US-04, US-05, US-29)
+### 6.2 Tài khoản (US-04, US-05)
 
 | Mã | US / BR | Tiêu chí chấp nhận (tóm tắt) | Loại | Tầng | Test tự động |
 |---|---|---|---|---|---|
@@ -162,9 +162,9 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-15 | US-05 | Sai 4 lần chưa khóa; sai lần thứ 5 trong 15 phút thì khóa, kể cả mật khẩu đúng; hết 15 phút thì mở | B | U, I | `LoginAttemptServiceTest.fourFailuresDoNotLock`, `.fifthFailureWithinWindowLocks`, `.lockExpiresAfterFifteenMinutes`; `AuthControllerIntegrationTest.fiveFailuresLockEvenTheCorrectPassword` |
 | TC-16 | US-05 (Critical #94) | Gửi song song nhiều lần sai cũng không thử được quá 5 mật khẩu | − / B | U | `LoginAttemptServiceTest.parallelAttemptsCannotTryMoreThanFivePasswords` |
 | TC-17 | Bảo mật | Không token hoặc token sai trả 401; API admin trả 403 cho khách; `/actuator/health` công khai | − | I, U | `AuthControllerIntegrationTest.requestsWithoutValidTokenGet401`, `.adminApiIsForbiddenForCustomerAndOpenForAdmin`, `.healthStaysPublic`; `JwtServiceTest.expiredTokenIsRejected`, `.tokenSignedWithOtherKeyIsRejected`, `.secretShorterThan32BytesIsRefused` |
-| TC-18 | US-29 | Sửa hồ sơ; giá trị sai bị từ chối; mật khẩu có dấu quá 72 byte trả 400 (không phải 500) | + / − / B | I, F | `AccountIntegrationTest.customerUpdatesProfileAndInvalidValuesAreRejected`, `.changePasswordNeedsCurrentPasswordAndLocksAfterFiveWrongTries`; `pages/ProfilePage.test.jsx` |
-| TC-19 | US-29, BR-48 | Quên mật khẩu: gửi liên kết dùng 1 lần, CSDL chỉ lưu mã băm; email lạ nhận cùng câu trả lời; gửi lại bị giới hạn | + / − | I, F | `AccountIntegrationTest.forgotPasswordEmailsSingleUseLinkAndStoresOnlyItsHash`, `.unknownEmailGetsSameAnswerAndResendIsLimited`; `pages/PasswordResetPages.test.jsx` |
-| TC-20 | US-29, BR-48 | Liên kết hết hạn 30 phút hoặc cũ hơn lần đổi mật khẩu bị từ chối; đặt lại mở khóa đăng nhập | − / B | I | `AccountIntegrationTest.expiredLinkAndLinksOlderThanAPasswordChangeAreRejected`, `.resetUnlocksLoginLockedByWrongPasswords` |
+| TC-18 | US-04, BR-48 | Sửa hồ sơ; giá trị sai bị từ chối; mật khẩu có dấu quá 72 byte trả 400 (không phải 500) | + / − / B | I, F | `AccountIntegrationTest.customerUpdatesProfileAndInvalidValuesAreRejected`, `.changePasswordNeedsCurrentPasswordAndLocksAfterFiveWrongTries`; `pages/ProfilePage.test.jsx` |
+| TC-19 | US-05, BR-47 | Quên mật khẩu: gửi liên kết dùng 1 lần, CSDL chỉ lưu mã băm; email lạ nhận cùng câu trả lời; gửi lại bị giới hạn | + / − | I, F | `AccountIntegrationTest.forgotPasswordEmailsSingleUseLinkAndStoresOnlyItsHash`, `.unknownEmailGetsSameAnswerAndResendIsLimited`; `pages/PasswordResetPages.test.jsx` |
+| TC-20 | US-05, BR-47 | Liên kết hết hạn 30 phút hoặc cũ hơn lần đổi mật khẩu bị từ chối; đặt lại mở khóa đăng nhập | − / B | I | `AccountIntegrationTest.expiredLinkAndLinksOlderThanAPasswordChangeAreRejected`, `.resetUnlocksLoginLockedByWrongPasswords` |
 | TC-21 | US-05 | Token hết hạn hoặc đăng xuất ở tab khác thì giao diện đăng xuất; trang cần quyền chuyển tới đăng nhập | − | F, E | `context/AuthProvider.test.jsx`, `components/RequireRole.test.jsx`, `services/tokenStorage.test.js`; `e2e/auth.spec.js` (khách chưa đăng nhập vào trang đơn hàng) |
 
 ### 6.3 Giỏ hàng (US-06, US-07, US-08)
@@ -176,7 +176,7 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-24 | US-07, BR-11 | Đọc giỏ tự loại dòng ngừng bán hoặc hết hàng, giảm dòng vượt tồn kho, có thông báo | + / − | I, F | `CartIntegrationTest.readingCartRemovesUnavailableLinesAndReducesQuantityWithNotices`, `.updateAndRemoveLine`; `pages/CartPage.test.jsx` |
 | TC-25 | US-06, BR-06, BR-07 | Giỏ khách vãng lai lưu ở trình duyệt; khi đăng nhập thì gộp vào giỏ tài khoản, cộng dồn tối đa bằng tồn kho | + / B | I, F, E | `CartIntegrationTest.mergeSumsSameVariantCapsAtStockAndSkipsUnavailable`, `.previewIsPublicAndWritesNothing`; `context/CartProvider.test.jsx`, `services/guestCart.test.js`; `e2e/cart.spec.js` |
 | TC-26 | US-08 | Giỏ trên server chỉ cho khách đã đăng nhập; bấm mua khi chưa đăng nhập thì chuyển tới đăng nhập | − | I, E | `CartIntegrationTest.cartNeedsCustomerToken`; `e2e/cart.spec.js` |
-| TC-27 | US-07 | "Thường được mua cùng": giữ thứ tự của ml-service, bỏ sản phẩm đang trong giỏ hoặc hết hàng; ml-service tắt thì đếm đơn chung, không lấp bán chạy; cần 1 đến 50 sản phẩm | + / − / B | I | `RecommendationIntegrationTest.boughtTogetherKeepsMlOrderAndSkipsCartAndSoldOutProducts`, `.withoutMlServiceBoughtTogetherCountsSharedOrdersAndDoesNotFill`, `.boughtTogetherNeedsOneToFiftyProducts` |
+| TC-27 | US-07, BR-49 | "Thường được mua cùng": giữ thứ tự của ml-service, bỏ sản phẩm đang trong giỏ hoặc hết hàng; ml-service tắt thì đếm đơn chung, không lấp bán chạy; cần 1 đến 50 sản phẩm | + / − / B | I | `RecommendationIntegrationTest.boughtTogetherKeepsMlOrderAndSkipsCartAndSoldOutProducts`, `.withoutMlServiceBoughtTogetherCountsSharedOrdersAndDoesNotFill`, `.boughtTogetherNeedsOneToFiftyProducts` |
 
 ### 6.4 Đặt hàng và thanh toán (US-09, US-10, US-11, US-20)
 
@@ -193,7 +193,7 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-36 | BR-16 (#93) | Đọc lại đơn sau khi chờ khóa thấy bản mới nhất, không hoàn kho 2 lần | B | I | `PaymentIntegrationTest.lockedReadSeesOrderChangedByAnotherTransactionAfterSnapshot` |
 | TC-37 | US-11 | Danh sách và chi tiết đơn của tôi | + | F | `pages/OrderDetailPage.test.jsx`, `services/orderApi.test.js`, `services/orderLabels.test.js` |
 
-### 6.5 Gợi ý sản phẩm (US-12, US-13, US-23, US-27)
+### 6.5 Gợi ý sản phẩm (US-12, US-13, US-23)
 
 | Mã | US / BR | Tiêu chí chấp nhận (tóm tắt) | Loại | Tầng | Test tự động |
 |---|---|---|---|---|---|
@@ -210,9 +210,9 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-48 | US-23 | Kiểu tiết kiệm nới ngân sách 30% và xếp theo giá; kiểu thương hiệu đưa thương hiệu đã chọn lên đầu; trong ngân sách đứng trước | + / B | I, U | `SurveyIntegrationTest.saverPathKeepsMenCategoriesStretchesBudgetAndSortsByPrice`, `.brandPathOffersBrandsOfChosenCategoriesAndPutsChosenBrandFirst`; `test_recommendation_model.py::test_survey_keeps_to_the_budget_then_fills_from_outside` |
 | TC-49 | US-23, BR-38 | Nhánh tìm quà chỉ xem kết quả, không lưu; lưu khảo sát thì ghi sở thích và yêu cầu tính lại; bỏ qua thì không hỏi lại | + / − | I | `SurveyIntegrationTest.giftPathIsEvaluatedButNeverSaved`, `.savingStoresPreferencesRequestsRecomputeAndRedoReplacesThem`, `.skippingIsRememberedSoTheSurveyDoesNotShowAgain`, `.ownSurveyNeedsCustomerToken` |
 | TC-50 | US-13 (CTR) | Ghi lượt hiện, lượt bấm theo vị trí và nguồn; khách vãng lai ghi không tài khoản; admin bị bỏ qua; dữ liệu sai bị từ chối | + / − | I, F | `RecommendationEventIntegrationTest.*` (6 ca); `components/RecommendationGrid.test.jsx` |
-| TC-51 | US-27, BR-46 | A/B: chia nhóm theo băm cố định; nhóm đối chứng thấy bán chạy (bỏ đã mua, đang trong giỏ); kết quả đếm theo nhóm; dưới 30 khách mỗi nhóm thì chưa kết luận | + / − / B | I, U | `AbTestIntegrationTest.*` (4 ca); `AbTestServiceTest.verdictsFollowSampleSizeAndSignificance`; `TwoProportionTestTest.*` |
+| TC-51 | US-13, BR-46 | A/B: chia nhóm theo băm cố định; nhóm đối chứng thấy bán chạy (bỏ đã mua, đang trong giỏ); kết quả đếm theo nhóm; dưới 30 khách mỗi nhóm thì chưa kết luận | + / − / B | I, U | `AbTestIntegrationTest.*` (4 ca); `AbTestServiceTest.verdictsFollowSampleSizeAndSignificance`; `TwoProportionTestTest.*` |
 
-### 6.6 Phân nhóm khách hàng và ưu đãi (US-18, US-19, US-21, US-22, US-24, US-25, US-26)
+### 6.6 Phân nhóm khách hàng và ưu đãi (US-18, US-19, US-21, US-22, US-24, US-25)
 
 | Mã | US / BR | Tiêu chí chấp nhận (tóm tắt) | Loại | Tầng | Test tự động |
 |---|---|---|---|---|---|
@@ -220,13 +220,13 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-53 | BR-23, BR-24 | Ít hơn 20 khách thì không huấn luyện; khách mới gán vào tâm gần nhất, không huấn luyện lại; khách không còn đơn thì bỏ nhóm | − / B | U, I | `test_segmentation_model.py::test_train_needs_enough_varied_customers`, `::test_assign_new_customer_to_nearest_center`; `test_segmentation_db.py::test_assign_uses_current_model_without_retraining`, `::test_assign_without_model_trains_first_and_without_orders_removes_row` |
 | TC-54 | BR-23 (#59) | Huấn luyện lại mỗi tuần; mỗi đêm gán lại theo R mới (khách lâu không mua chuyển nhóm); lỗi phân nhóm không chặn gợi ý | + / − | I | `test_segmentation_db.py::test_retrain_if_due_once_a_week`, `::test_nightly_reassigns_with_current_recency_without_retraining`, `::test_reassign_moves_lapsed_customer_to_lost`, `::test_nightly_job_survives_segmentation_error` |
 | TC-55 | US-18, US-19 | Admin xem danh sách khách (lọc tên, email, nhóm), chi tiết, đơn; kết quả phân nhóm; khách bị cấm | + / − | I, F | `CustomerAdminIntegrationTest.*` (9 ca); `pages/SegmentPages.test.jsx`, `pages/AdminListPages.test.jsx` |
-| TC-56 | US-25, BR-43 | Hồ sơ nhóm: doanh thu, nhịp mua, danh mục, giới tính và tuổi; danh sách cần chăm sóc theo nhịp riêng của khách | + / B | I | `SegmentProfileIntegrationTest.profileSummarizesRevenueRhythmAndCategories`, `.profileSplitsCustomersByGenderAndAge`, `.careListHasRepeatBuyersPastTheirOwnRhythm`, `.segmentWithoutRepeatBuyersHasNoRhythm` |
+| TC-56 | US-25, BR-44 | Hồ sơ nhóm: doanh thu, nhịp mua, danh mục, giới tính và tuổi; danh sách cần chăm sóc theo nhịp riêng của khách | + / B | I | `SegmentProfileIntegrationTest.profileSummarizesRevenueRhythmAndCategories`, `.profileSplitsCustomersByGenderAndAge`, `.careListHasRepeatBuyersPastTheirOwnRhythm`, `.segmentWithoutRepeatBuyersHasNoRhythm` |
 | TC-57 | US-21, BR-30–BR-33 | Mã hợp lệ được áp ở bước xem trước, mã sai có lý do; đặt đơn dùng mã 1 lần, hủy đơn trả lại lượt; hết lượt thì dừng; không giảm hàng xuống dưới 5.000đ | + / − / B | I, F | `VoucherIntegrationTest.previewAppliesValidCodeAndExplainsWhyOthersFail`, `.placingOrderWithVoucherUsesItOnceAndCancellingGivesItBack`, `.voucherStopsAtTotalUsageLimit`, `.discountNeverTakesGoodsBelowFiveThousand`; `pages/CheckoutPage.test.jsx` |
 | TC-58 | US-22 | Admin tạo, sửa, tắt mã; dữ liệu sai bị từ chối; chỉ admin | + / − | I, F | `VoucherIntegrationTest.adminCreatesListsUpdatesAndTurnsOffVoucher`, `.invalidVouchersAreRejected`, `.onlyAdminManagesVouchers`; `pages/VoucherAdminPage.test.jsx` |
-| TC-59 | US-26, BR-44 | Tặng mã cho khách cần chăm sóc, chỉ họ dùng được; đếm đơn dùng mã; cần người nhận và mã hợp lệ | + / − | I | `SegmentProfileIntegrationTest.giftingCareCustomersCreatesCodeOnlyTheyCanUse`, `.campaignResultsCountOrdersPlacedWithTheCode`, `.campaignNeedsRecipientsValidCodeAndAdmin` |
-| TC-60 | US-24, BR-45 (#109) | Tự tặng mã chỉ cho khách vào nhóm sau khi bật; tối đa 1 mã mỗi 30 ngày khi đổi nhóm; 1 chương trình mỗi nhóm | + / B | I, U | `SegmentProfileIntegrationTest.autoOfferGoesOnlyToCustomersWhoEnterTheGroupAfterItStarts`, `.customerGetsAtMostOneAutoOfferIn30DaysWhenMovingBetweenGroups`, `.autoOfferNeedsDaysRunsOneAtATimeAndStops`; `CampaignJobsTest.eachRunGrantsAutoOffers` |
+| TC-59 | US-24, BR-43 | Tặng mã cho khách cần chăm sóc, chỉ họ dùng được; đếm đơn dùng mã; cần người nhận và mã hợp lệ | + / − | I | `SegmentProfileIntegrationTest.giftingCareCustomersCreatesCodeOnlyTheyCanUse`, `.campaignResultsCountOrdersPlacedWithTheCode`, `.campaignNeedsRecipientsValidCodeAndAdmin` |
+| TC-60 | US-24, BR-43 (#109) | Tự tặng mã chỉ cho khách vào nhóm sau khi bật; tối đa 1 mã mỗi 30 ngày khi đổi nhóm; 1 chương trình mỗi nhóm | + / B | I, U | `SegmentProfileIntegrationTest.autoOfferGoesOnlyToCustomersWhoEnterTheGroupAfterItStarts`, `.customerGetsAtMostOneAutoOfferIn30DaysWhenMovingBetweenGroups`, `.autoOfferNeedsDaysRunsOneAtATimeAndStops`; `CampaignJobsTest.eachRunGrantsAutoOffers` |
 
-### 6.7 Quản trị (US-16, US-17, US-28) và tính năng phụ (US-14, US-15)
+### 6.7 Quản trị (US-16, US-17, US-26) và tính năng phụ (US-14, US-15)
 
 | Mã | US / BR | Tiêu chí chấp nhận (tóm tắt) | Loại | Tầng | Test tự động |
 |---|---|---|---|---|---|
@@ -234,7 +234,7 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-62 | US-16, BR-36 | Xóa mềm ẩn sản phẩm và trả SKU về NULL; danh mục còn sản phẩm không xóa được; trùng tên không phân biệt hoa thường | − | I | `CatalogAdminIntegrationTest.softDeleteHidesProductAndReleasesSku`, `.categoryWithProductsCannotBeDeleted`, `.categoryCrudAndDuplicateNameIgnoringCase` |
 | TC-63 | US-16 | API admin từ chối khách và người chưa đăng nhập | − | I | `CatalogAdminIntegrationTest.adminApisRejectCustomerAndAnonymous` |
 | TC-64 | US-17, BR-12, BR-13 | Admin chỉ chuyển đơn tới trạng thái kế tiếp; hủy được đến trước Đã giao | + / − | I, E | `OrderIntegrationTest.adminMovesOrderForwardOneStepAndCanCancelUntilDelivered`; `e2e/admin-order.spec.js`; `pages/OrderAdminDetailPage.test.jsx` |
-| TC-65 | US-28, BR-47 | Bảng điều khiển: doanh thu đơn Đã giao theo ngày giờ Việt Nam, bán chạy, hiệu quả gợi ý; khoảng trống ra số 0; khoảng ngày sai trả 400 | + / − / B | I, F | `DashboardIntegrationTest.*` (3 ca); `pages/DashboardPage.test.jsx` |
+| TC-65 | US-26, BR-45 | Bảng điều khiển: doanh thu đơn Đã giao theo ngày giờ Việt Nam, bán chạy, hiệu quả gợi ý; khoảng trống ra số 0; khoảng ngày sai trả 400 | + / − / B | I, F | `DashboardIntegrationTest.*` (3 ca); `pages/DashboardPage.test.jsx` |
 | TC-66 | US-14 | Thêm 2 lần vẫn 1 dòng, mới nhất trước; bỏ không có cũng không lỗi; tối đa 100; chỉ khách | + / − / B | I, F | `WishlistIntegrationTest.*` (4 ca); `pages/WishlistPage.test.jsx`, `components/WishlistButton.test.jsx` |
 | TC-67 | US-15, BR-17, BR-18 | Chỉ sản phẩm thuộc đơn Đã giao mới đánh giá được, sửa được; dữ liệu sai và sản phẩm đã xóa bị từ chối; danh sách chờ đánh giá mỗi sản phẩm 1 lần | + / − | I, F | `ReviewIntegrationTest.*` (6 ca); `components/ProductReviews.test.jsx`, `components/PendingReviews.test.jsx` |
 

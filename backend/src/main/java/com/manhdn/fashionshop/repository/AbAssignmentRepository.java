@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Nhóm của khách trong thử nghiệm A/B (bảng ab_assignment) và số liệu của từng nhóm (US-27). Dùng
+ * Nhóm của khách trong thử nghiệm A/B (bảng ab_assignment) và số liệu của từng nhóm (US-13). Dùng
  * JDBC: số liệu là các truy vấn gộp trên nhật ký sự kiện và đơn hàng.
  */
 @Repository

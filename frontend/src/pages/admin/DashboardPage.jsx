@@ -53,9 +53,9 @@ function niceCeil(value) {
 }
 
 /**
- * Trang quản trị /admin (US-28): tổng quan trong khoảng ngày chọn (mặc định 30 ngày gần nhất).
+ * Trang quản trị /admin (US-26): tổng quan trong khoảng ngày chọn (mặc định 30 ngày gần nhất).
  * Doanh thu theo ngày, đơn theo trạng thái, sản phẩm bán chạy, và hiệu quả gợi ý (tỷ lệ bấm theo
- * vị trí, nguồn; doanh thu từ sản phẩm khách bấm trong gợi ý rồi mua, BR-47).
+ * vị trí, nguồn; doanh thu từ sản phẩm khách bấm trong gợi ý rồi mua, BR-45).
  */
 function DashboardPage() {
   const [range, setRange] = useState(() => lastDays(30));

@@ -90,7 +90,7 @@ public class CustomerAdminController {
 
   /**
    * Hồ sơ một nhóm khách hàng (US-25): doanh thu, giá trị mỗi đơn, nhịp mua, thời gian gắn bó, danh
-   * mục mua nhiều, giới tính, độ tuổi và khách cần chăm sóc (BR-43).
+   * mục mua nhiều, giới tính, độ tuổi và khách cần chăm sóc (BR-44).
    *
    * @param code mã nhóm, vd VIP
    * @return 200 kèm hồ sơ nhóm, 404 nếu không có nhóm này

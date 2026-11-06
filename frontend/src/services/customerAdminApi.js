@@ -34,14 +34,14 @@ export function getSegments() {
 
 /**
  * Hồ sơ 1 nhóm (US-25): doanh thu, nhịp mua, danh mục mua nhiều, giới tính, độ tuổi và khách cần
- * chăm sóc (BR-43).
+ * chăm sóc (BR-44).
  */
 export function getSegmentProfile(code) {
   return apiClient.get(`${BASE}/segments/${encodeURIComponent(code)}`).then((res) => res.data);
 }
 
 /**
- * Tặng mã giảm giá riêng cho một nhóm (US-26): target ALL = cả nhóm, CARE = khách cần chăm sóc,
+ * Tặng mã giảm giá riêng cho một nhóm (US-24): target ALL = cả nhóm, CARE = khách cần chăm sóc,
  * AUTO = tự tặng cho khách mới vào nhóm (US-24, kèm validDays: số ngày mỗi khách được dùng mã);
  * voucher là điều kiện mã như khi tạo mã thường. Trả về chiến dịch vừa tạo.
  */

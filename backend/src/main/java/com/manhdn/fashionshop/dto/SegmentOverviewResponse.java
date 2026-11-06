@@ -43,7 +43,7 @@ public record SegmentOverviewResponse(
    * @param avgMonetary M trung bình (VNĐ, làm tròn)
    * @param revenue tổng tiền các đơn Đã giao của khách hiện thuộc nhóm (VNĐ)
    * @param revenueShare tỷ lệ trên doanh thu của mọi khách đã phân nhóm (%), làm tròn 1 chữ số
-   * @param goal việc nên làm với nhóm (US-26)
+   * @param goal việc nên làm với nhóm (US-24)
    */
   public record SegmentStats(
       String code,

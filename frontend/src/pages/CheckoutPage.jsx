@@ -21,7 +21,7 @@ const FREE_SHIPPING_THRESHOLD = 500_000;
  *
  * Mã giảm giá (US-21): bấm "Áp dụng" thì tóm tắt tính lại kèm số tiền giảm, hoặc báo vì sao mã
  * không dùng được. Chỉ mã backend đã nhận mới được gửi khi đặt hàng. Mã riêng khách được tặng
- * (US-26) hiện thành nút bên dưới ô nhập, bấm là áp dụng.
+ * (US-24) hiện thành nút bên dưới ô nhập, bấm là áp dụng.
  *
  * Mã định danh lần đặt hàng (BR-10) được sinh 1 lần khi mở trang: bấm lại sau khi mất mạng gửi
  * cùng mã, backend trả lại đơn đã tạo thay vì tạo thêm đơn.

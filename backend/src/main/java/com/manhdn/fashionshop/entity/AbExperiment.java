@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 
-/** Một lần thử nghiệm A/B gợi ý ở trang chủ, bảng ab_experiment (US-27). */
+/** Một lần thử nghiệm A/B gợi ý ở trang chủ, bảng ab_experiment (US-13). */
 @Entity
 @Table(name = "ab_experiment")
 public class AbExperiment {

@@ -70,7 +70,7 @@ public class Voucher {
   /**
    * Tạo mã mới đang bật, chưa ai dùng.
    *
-   * @param recipientsOnly true nếu chỉ khách được tặng dùng được (BR-44)
+   * @param recipientsOnly true nếu chỉ khách được tặng dùng được (BR-43)
    */
   public Voucher(String code, LocalDateTime createdAt, boolean recipientsOnly) {
     this.recipientsOnly = recipientsOnly;

@@ -1,6 +1,6 @@
 import apiClient from './apiClient';
 
-// Mã giảm giá phía khách hàng (US-26): các mã riêng khách được tặng qua chiến dịch theo nhóm.
+// Mã giảm giá phía khách hàng (US-24): các mã riêng khách được tặng qua chiến dịch theo nhóm.
 
 /**
  * Mã riêng khách được tặng và còn dùng được, hết hạn sớm nhất trước:

@@ -108,7 +108,7 @@ public class AuthController {
   }
 
   /**
-   * Xin liên kết đặt lại mật khẩu qua email (BR-48). Không cần đăng nhập. Trả 202 dù email có tài
+   * Xin liên kết đặt lại mật khẩu qua email (BR-47). Không cần đăng nhập. Trả 202 dù email có tài
    * khoản hay không (không lộ email nào đã đăng ký); 400 nếu email sai định dạng.
    *
    * @param request email của tài khoản
@@ -120,7 +120,7 @@ public class AuthController {
   }
 
   /**
-   * Đặt mật khẩu mới bằng liên kết trong email (BR-48). Không cần đăng nhập. Trả 204; 400 nếu liên
+   * Đặt mật khẩu mới bằng liên kết trong email (BR-47). Không cần đăng nhập. Trả 204; 400 nếu liên
    * kết không hợp lệ, đã dùng, đã hết hạn hoặc mật khẩu không hợp lệ.
    *
    * @param request chuỗi trong liên kết và mật khẩu mới (BR-02)

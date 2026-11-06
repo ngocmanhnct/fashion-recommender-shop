@@ -5,7 +5,7 @@ import { requestPasswordReset } from '../services/authApi';
 import { getErrorMessage, getFieldErrors } from '../services/errorMessage';
 
 /**
- * Trang /forgot-password (chức năng 21, BR-48): nhập email để nhận liên kết đặt lại mật khẩu. Câu
+ * Trang /forgot-password (chức năng 21, BR-47): nhập email để nhận liên kết đặt lại mật khẩu. Câu
  * báo sau khi gửi giống nhau dù email có tài khoản hay không, để không dò được email đã đăng ký.
  */
 function ForgotPasswordPage() {

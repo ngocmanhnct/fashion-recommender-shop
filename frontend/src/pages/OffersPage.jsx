@@ -7,7 +7,7 @@ import { getMyVouchers } from '../services/voucherApi';
 import { describeDiscount } from '../services/voucherLabels';
 
 /**
- * Trang "Ưu đãi của bạn" /offers (US-26): các mã giảm giá cửa hàng tặng riêng cho khách và còn dùng
+ * Trang "Ưu đãi của bạn" /offers (US-24): các mã giảm giá cửa hàng tặng riêng cho khách và còn dùng
  * được, hết hạn sớm nhất trước. Ở trang thanh toán khách bấm chọn mã, không cần gõ lại.
  */
 function OffersPage() {

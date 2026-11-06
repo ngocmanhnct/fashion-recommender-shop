@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-/** Truy cập bảng ab_experiment (US-27). */
+/** Truy cập bảng ab_experiment (US-13). */
 public interface AbExperimentRepository extends JpaRepository<AbExperiment, Long> {
 
   /** Thử nghiệm đang chạy, nếu có (nhiều nhất 1). */
