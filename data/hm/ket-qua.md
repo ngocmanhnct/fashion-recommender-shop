@@ -12,18 +12,36 @@ Số khách cần đoán: 42050, đánh giá 10000 khách chọn ngẫu nhiên (
 
 | Cách gợi ý | Tỷ lệ trúng | Khoảng tin cậy 95% | NDCG@10 | Độ phủ |
 |---|---:|---|---:|---:|
-| Bán chạy | 7,0% | 6,4% – 7,5% | 0,018 | 0,1% |
+| Bán chạy | 7,0% | 6,5% – 7,4% | 0,018 | 0,1% |
+| Đang bán chạy | 10,6% | 10,0% – 11,2% | 0,030 | 0,6% |
 | Nội dung (P(u), cosine) | 1,6% | 1,4% – 1,9% | 0,005 | 44,0% |
-| Hay mua cùng | 8,6% | 8,0% – 9,1% | 0,026 | 27,7% |
-| Hybrid, không ưu tiên gần đây | 7,2% | 6,7% – 7,7% | 0,023 | 27,0% |
-| Hybrid (mặc định) | 7,2% | 6,7% – 7,7% | 0,023 | 27,1% |
+| Hay mua cùng | 8,6% | 8,0% – 9,1% | 0,026 | 27,6% |
+| Hybrid cũ (chưa có đang bán chạy) | 7,2% | 6,7% – 7,8% | 0,023 | 27,1% |
+| Hybrid, không ưu tiên gần đây | 12,3% | 11,7% – 12,9% | 0,036 | 2,7% |
+| Hybrid (mặc định) | 12,3% | 11,7% – 13,0% | 0,036 | 2,7% |
 
 | So sánh | Chênh lệch tỷ lệ trúng (điểm %) | Khoảng tin cậy 95% | Kết luận |
 |---|---:|---|---|
-| Hybrid − Bán chạy | +0,3 | −0,3 – +0,9 | chưa phân biệt được |
-| Hybrid − Nội dung (P(u), cosine) | +5,6 | +5,1 – +6,1 | hybrid tốt hơn |
-| Hybrid − Hay mua cùng | −1,3 | −1,7 – −0,9 | hybrid kém hơn |
-| Hybrid − Hybrid, không ưu tiên gần đây | +0,1 | −0,0 – +0,1 | chưa phân biệt được |
+| Hybrid − Bán chạy | +5,4 | +4,8 – +5,9 | hybrid tốt hơn |
+| Hybrid − Đang bán chạy | +1,7 | +1,2 – +2,2 | hybrid tốt hơn |
+| Hybrid − Nội dung (P(u), cosine) | +10,7 | +10,0 – +11,3 | hybrid tốt hơn |
+| Hybrid − Hay mua cùng | +3,8 | +3,2 – +4,3 | hybrid tốt hơn |
+| Hybrid − Hybrid cũ (chưa có đang bán chạy) | +5,1 | +4,5 – +5,7 | hybrid tốt hơn |
+| Hybrid − Hybrid, không ưu tiên gần đây | +0,0 | −0,0 – +0,1 | chưa phân biệt được |
+
+### Chọn trọng số "đang bán chạy" (tuần kiểm định 09/09–15/09/2020)
+
+Mô hình thấy đến hết 08/09/2020, đoán 7 ngày sau; số khách cần đoán: 3050, đánh giá 3050. Các trọng số khác giữ như mặc định; chọn bộ có NDCG@10 cao nhất, rồi mới đo trên tuần kiểm tra ở cách 2.
+
+| w_t | Chu kỳ bán rã (ngày) | Tỷ lệ trúng | NDCG@10 | Ghi chú |
+|---:|---:|---:|---:|---|
+| 0,0 | — | 5,2% | 0,016 |  |
+| 0,5 | 3 | 10,4% | 0,028 |  |
+| 0,5 | 7 | 10,2% | 0,028 |  |
+| 1,0 | 3 | 10,5% | 0,029 |  |
+| 1,0 | 7 | 10,7% | 0,029 | NDCG cao nhất, đang dùng (model.Weights) |
+| 2,0 | 3 | 10,2% | 0,027 |  |
+| 2,0 | 7 | 10,5% | 0,028 |  |
 
 ### Cách 2: cắt theo thời gian (mô hình thấy đến hết 15/09/2020, đoán 7 ngày sau)
 
@@ -33,18 +51,22 @@ Số khách cần đoán: 3031; K = 10; 36191 sản phẩm.
 |---|---:|---|---:|---:|
 | Bán chạy 7 ngày trước mốc (không mô hình) | 9,6% | 8,7% – 10,7% | 0,025 | 0,0% |
 | Bán chạy | 4,1% | 3,4% – 4,8% | 0,011 | 0,1% |
+| Đang bán chạy | 9,3% | 8,3% – 10,3% | 0,023 | 0,0% |
 | Nội dung (P(u), cosine) | 1,3% | 0,9% – 1,7% | 0,005 | 19,2% |
 | Hay mua cùng | 5,7% | 5,0% – 6,6% | 0,016 | 6,9% |
-| Hybrid, không ưu tiên gần đây | 4,7% | 4,0% – 5,5% | 0,013 | 8,1% |
-| Hybrid (mặc định) | 4,8% | 4,1% – 5,6% | 0,014 | 8,1% |
+| Hybrid cũ (chưa có đang bán chạy) | 4,8% | 4,1% – 5,6% | 0,014 | 8,1% |
+| Hybrid, không ưu tiên gần đây | 10,5% | 9,5% – 11,7% | 0,028 | 0,4% |
+| Hybrid (mặc định) | 10,5% | 9,5% – 11,6% | 0,028 | 0,4% |
 
 | So sánh | Chênh lệch tỷ lệ trúng (điểm %) | Khoảng tin cậy 95% | Kết luận |
 |---|---:|---|---|
-| Hybrid − Bán chạy 7 ngày trước mốc (không mô hình) | −4,8 | −6,1 – −3,6 | hybrid kém hơn |
-| Hybrid − Bán chạy | +0,8 | −0,1 – +1,6 | chưa phân biệt được |
-| Hybrid − Nội dung (P(u), cosine) | +3,5 | +2,7 – +4,3 | hybrid tốt hơn |
-| Hybrid − Hay mua cùng | −0,9 | −1,7 – −0,2 | hybrid kém hơn |
-| Hybrid − Hybrid, không ưu tiên gần đây | +0,1 | +0,0 – +0,2 | chưa phân biệt được |
+| Hybrid − Bán chạy 7 ngày trước mốc (không mô hình) | +0,9 | −0,2 – +2,0 | chưa phân biệt được |
+| Hybrid − Bán chạy | +6,4 | +5,4 – +7,6 | hybrid tốt hơn |
+| Hybrid − Đang bán chạy | +1,2 | +0,3 – +2,1 | hybrid tốt hơn |
+| Hybrid − Nội dung (P(u), cosine) | +9,2 | +8,0 – +10,3 | hybrid tốt hơn |
+| Hybrid − Hay mua cùng | +4,8 | +3,7 – +5,8 | hybrid tốt hơn |
+| Hybrid − Hybrid cũ (chưa có đang bán chạy) | +5,7 | +4,6 – +6,7 | hybrid tốt hơn |
+| Hybrid − Hybrid, không ưu tiên gần đây | −0,0 | −0,2 – +0,1 | chưa phân biệt được |
 
 ## Phân nhóm khách hàng
 
@@ -97,4 +119,4 @@ Mô hình chỉ thấy dữ liệu trước mốc (64.516 khách, K = 4, Silhoue
 | Khách mới | 8.679 | 39,1% | 0,05 |
 | Tất cả | 64.516 | 34,6% | 0,07 |
 
-Thời gian chạy (sau khi đọc tệp): 1.176 giây.
+Thời gian chạy (sau khi đọc tệp): 2.183 giây.

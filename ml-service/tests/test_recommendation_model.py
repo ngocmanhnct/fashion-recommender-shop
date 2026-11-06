@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 import numpy as np
 import pytest
 
+from app.recommendation import copurchase
 from app.recommendation.copurchase import build_copurchase
 from app.recommendation.data import ProductStats, SurveyProfile, UserSignals
 from app.recommendation.features import CatalogItem, ItemVectors, normalize_text
@@ -13,10 +14,12 @@ from app.recommendation.gender import product_gender
 from app.recommendation.model import (
     SOURCE_BEHAVIOUR,
     SOURCE_SURVEY,
+    TRENDING_REASON,
     Recommender,
     Weights,
     short_name,
 )
+from app.recommendation.trending import TRENDING_FULL_VOLUME, SalesHistory
 
 SHOES, BAGS, SOCKS = 1, 2, 3
 BITIS, ADIDAS = 10, 11
@@ -135,6 +138,20 @@ def test_copurchase_without_purchases_is_empty(vectors):
     assert build_copurchase([], vectors.index, len(ITEMS)).nnz == 0
 
 
+def test_copurchase_in_blocks_keeps_the_same_neighbours(vectors, monkeypatch):
+    # 1 khách mua 4 sản phẩm: mọi cặp giống nhau như nhau.
+    pairs = [(1, p) for p in (1, 2, 3, 4)]
+    monkeypatch.setattr(copurchase, "TOP_NEIGHBOURS", 2)
+    whole = build_copurchase(pairs, vectors.index, len(ITEMS))
+    monkeypatch.setattr(copurchase, "BLOCK_PRODUCTS", 3)
+    blocks = build_copurchase(pairs, vectors.index, len(ITEMS))
+    assert (whole != blocks).nnz == 0
+    rows = sorted(vectors.index[p] for p in (1, 2, 3, 4))
+    # Bằng nhau thì giữ sản phẩm đứng trước trong danh mục.
+    assert sorted(whole[rows[0]].indices) == rows[1:3]
+    assert sorted(whole[rows[3]].indices) == rows[:2]
+
+
 # ---- trang chủ ----
 
 
@@ -192,6 +209,54 @@ def test_recency_factor_halves_each_half_life(model):
     assert model._recency(NOW, NOW + timedelta(hours=1)) == pytest.approx(4.0)  # lệch giờ máy
     model.weights = Weights(recent_boost=0)
     assert model._recency(NOW, NOW) == 1.0
+
+
+# ---- đang bán chạy ----
+
+INDEX = {1: 0, 2: 1, 3: 2}
+
+
+def test_trending_decays_with_age_and_skips_sales_outside_the_window():
+    sales = SalesHistory(
+        [
+            (1, NOW - timedelta(days=1), 30),
+            (2, NOW - timedelta(days=4), 30),
+            (3, NOW + timedelta(hours=1), 50),  # sau thời điểm gợi ý
+            (3, NOW - timedelta(days=31), 50),  # ngoài 30 ngày
+            (9, NOW - timedelta(days=1), 5),  # sản phẩm không còn bán
+        ],
+        INDEX,
+        3,
+    )
+    trend = sales.trending(NOW, 3.0)
+    top = 30 * 0.5 ** (1 / 3)  # ≈ 23,8 lượt, đủ TRENDING_FULL_VOLUME nên không thu nhỏ
+    assert trend[0] == pytest.approx(1.0)
+    assert trend[1] == pytest.approx(np.log1p(30 * 0.5 ** (4 / 3)) / np.log1p(top))
+    assert trend[2] == 0
+
+
+def test_trending_shrinks_when_the_shop_sells_little():
+    sales = SalesHistory(
+        [(1, NOW - timedelta(days=3), 2), (2, NOW - timedelta(days=3), 1)], INDEX, 3
+    )
+    trend = sales.trending(NOW, 3.0)
+    assert trend[0] == pytest.approx(1 / TRENDING_FULL_VOLUME)  # 2 lượt, 3 ngày trước: còn 1
+    assert trend[1] == pytest.approx(np.log1p(0.5) / np.log1p(1) / TRENDING_FULL_VOLUME)
+    assert not SalesHistory([], INDEX, 3).trending(NOW, 3.0).any()
+
+
+def test_trending_product_comes_first_with_its_own_reason(vectors):
+    copurchase = build_copurchase(PAIRS, vectors.index, len(ITEMS))
+    sales = SalesHistory([(4, NOW - timedelta(hours=5), 25)], vectors.index, len(ITEMS))
+    model = Recommender(vectors, ITEMS, STATS, copurchase, BRANDS, sales=sales)
+    signals = UserSignals(1, purchased={7}, delivered_orders=1, now=NOW)
+    first = model.for_account(signals, limit=1)[0]
+    assert (first.product_id, first.reason) == (4, TRENDING_REASON)
+    assert model.trending(NOW) is model.trending(NOW)  # cùng thời điểm thì không tính lại
+    # Không biết thời điểm gợi ý, hoặc trọng số 0: túi xách không còn được đẩy lên.
+    assert model.for_account(replace(signals, now=None), limit=1)[0].product_id != 4
+    model.weights = Weights(trending=0)
+    assert model.for_account(signals, limit=1)[0].product_id != 4
 
 
 def test_touch_keeps_the_latest_time():

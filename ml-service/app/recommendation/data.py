@@ -148,6 +148,21 @@ def load_purchase_pairs(conn: Connection) -> list[tuple[int, int]]:
     return [(int(a), int(p)) for a, p in rows]
 
 
+def load_sales(conn: Connection) -> list[tuple[int, datetime, int]]:
+    """Lượt bán trên đơn khác CANCELLED: (sản phẩm, lúc đặt, số lượng), cho điểm "đang bán chạy"
+    (tính tại thời điểm gợi ý, chỉ dùng TRENDING_WINDOW_DAYS ngày trước đó)."""
+    rows = conn.execute(
+        text(
+            "SELECT v.product_id, o.created_at, oi.quantity "
+            "FROM orders o "
+            "JOIN order_item oi ON oi.order_id = o.id "
+            "JOIN product_variant v ON v.id = oi.variant_id "
+            "WHERE o.status <> 'CANCELLED'"
+        )
+    )
+    return [(int(p), at, int(q)) for p, at, q in rows]
+
+
 def catalog_signature(conn: Connection) -> tuple:
     """Dấu hiệu danh mục sản phẩm đã đổi (thêm, sửa, xóa sản phẩm hay biến thể)."""
     return tuple(

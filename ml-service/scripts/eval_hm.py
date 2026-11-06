@@ -30,7 +30,10 @@ Gợi ý, 2 cách chia:
    cửa hàng của dự án không gợi ý lại sản phẩm đã mua nên ở đây cũng không tính).
 Mỗi cách đánh giá tối đa MAX_CASES khách chọn ngẫu nhiên (seed cố định), kèm khoảng tin cậy 95%
 (bootstrap theo khách) cho tỷ lệ trúng và cho chênh lệch giữa hybrid với từng cách khác (bootstrap
-ghép cặp: cùng mẫu khách cho cả 2 cách).
+ghép cặp: cùng mẫu khách cho cả 2 cách). "Hybrid cũ" là bộ trọng số chọn trên dữ liệu mô phỏng,
+trước khi có "đang bán chạy". Trọng số và chu kỳ bán rã của "đang bán chạy" chọn trên tuần kiểm
+định, tuần ngay trước tuần kiểm tra của cách 2 (bảng "Chọn trọng số" trong báo cáo, model.Weights),
+nên cách 2 đo trên tuần mô hình chưa từng dùng để chọn.
 
 Phân nhóm: R, F, M tính đến ngày sau ngày cuối (F = số đơn, M = tổng giá), huấn luyện bằng `train`
 như trên cửa hàng; độ tuổi từng nhóm; độ ổn định (huấn luyện lại trên 80% khách, so nhóm của mọi
@@ -53,11 +56,13 @@ import statistics
 import sys
 import time
 import zipfile
+from array import array
 from collections import Counter, defaultdict
-from collections.abc import Callable, Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
+from operator import attrgetter
 from pathlib import Path
 
 import numpy as np
@@ -70,10 +75,12 @@ from app.recommendation.evaluate import (
     Dataset,
     K,
     Order,
+    PurchasePairs,
     build_model,
     split,
 )
 from app.recommendation.features import CatalogItem
+from app.recommendation.model import DEFAULT_WEIGHTS
 from app.segmentation.model import SegmentModel, train
 from app.segmentation.rfm import Rfm, recency_days
 
@@ -94,6 +101,9 @@ SEED = 2026
 PRICE_SCALE = 1_000_000
 HYBRID = "Hybrid (mặc định)"
 RECENT_POPULAR = f"Bán chạy {REC_HOLDOUT_DAYS} ngày trước mốc (không mô hình)"
+TUNE_TRENDING = (0.0, 0.5, 1.0, 2.0)
+TUNE_HALF_LIFE_DAYS = (3.0, 7.0)
+"""Lưới thử w_t và chu kỳ bán rã của "đang bán chạy" trên tuần kiểm định."""
 AGE_BANDS = ((0, 25, "Dưới 25"), (25, 35, "25–34"), (35, 45, "35–44"), (45, 55, "45–54"))
 OLDEST_BAND = "Từ 55"
 
@@ -185,7 +195,8 @@ class Shop:
 
     items: list[CatalogItem]
     orders: list[Order]
-    totals: dict[int, int]
+    totals: Sequence[int]
+    """Tổng giá của đơn, theo mã đơn (mã từ 1, ô 0 bỏ trống)."""
     accounts: dict[str, int]
     """customer_id gốc → mã tài khoản (số nguyên)."""
     lines: int = 0
@@ -197,10 +208,12 @@ def build_shop(
 ) -> Shop:
     """Đọc giao dịch của khách trong mẫu, gom thành đơn (khách, ngày, kênh) và sản phẩm."""
     accounts: dict[str, int] = {}
-    orders: dict[tuple[int, str, str], Order] = {}
-    totals: Counter = Counter()
-    prices: dict[int, list[float]] = defaultdict(list)
+    orders: dict[tuple[int, datetime, str], Order] = {}
+    # Mảng số thay cho dict/list số Python: toàn bộ dữ liệu có khoảng 30 triệu lượt mua.
+    totals = array("q", [0])
+    prices: dict[int, array] = defaultdict(lambda: array("d"))
     first_article: dict[int, Article] = {}
+    days: dict[str, datetime] = {}
     skipped: Counter = Counter()
     kept = 0
     for row in rows:
@@ -210,11 +223,15 @@ def build_shop(
         price = _number(row.get("price"))
         article_id = _number(row.get("article_id"))
         article = None if article_id is None else articles.get(int(article_id))
-        try:
-            day = datetime.strptime(row.get("t_dat") or "", "%Y-%m-%d").replace(tzinfo=UTC)
-        except ValueError:
-            skipped["Ngày không đọc được"] += 1
-            continue
+        t_dat = row.get("t_dat") or ""
+        day = days.get(t_dat)
+        if day is None:
+            try:
+                day = datetime.strptime(t_dat, "%Y-%m-%d").replace(tzinfo=UTC)
+            except ValueError:
+                skipped["Ngày không đọc được"] += 1
+                continue
+            days[t_dat] = day
         if article is None:
             skipped["Sản phẩm không có trong articles.csv"] += 1
             continue
@@ -222,11 +239,13 @@ def build_shop(
             skipped["Giá không dương"] += 1
             continue
         account = accounts.setdefault(customer, len(accounts) + 1)
-        key = (account, row["t_dat"], row.get("sales_channel_id") or "")
+        # Khóa dùng lại đối tượng ngày đã đọc, không giữ chuỗi ngày riêng của từng dòng.
+        key = (account, day, row.get("sales_channel_id") or "")
         order = orders.get(key)
         if order is None:
             order = Order(len(orders) + 1, account, day, "DELIVERED")
             orders[key] = order
+            totals.append(0)
         code = article.product_code
         order.products[code] = order.products.get(code, 0) + 1
         totals[order.id] += round(price * PRICE_SCALE)
@@ -244,8 +263,9 @@ def build_shop(
         )
         for code in sorted(prices)
     ]
-    ordered = sorted(orders.values(), key=lambda o: (o.created_at, o.id))
-    return Shop(items, ordered, dict(totals), accounts, kept, skipped)
+    # Sắp xếp ổn định giữ thứ tự tạo (mã đơn tăng dần) khi cùng ngày, không cần khóa phụ.
+    ordered = sorted(orders.values(), key=attrgetter("created_at"))
+    return Shop(items, ordered, totals, accounts, kept, skipped)
 
 
 def load_ages(rows: Iterable[dict[str, str]], accounts: dict[str, int]) -> dict[int, int]:
@@ -291,8 +311,7 @@ def split_by_time(orders: list[Order], cutoff: datetime) -> Dataset:
     sold: Counter = Counter()
     for order in before:
         sold.update(order.products)
-    pairs = sorted({(o.account_id, p) for o in before for p in o.products})
-    return Dataset(cases, [], pairs, sold)
+    return Dataset(cases, [], PurchasePairs(before), sold, before)
 
 
 def limit_cases(cases: list[Case], limit: int, seed: int = SEED) -> list[Case]:
@@ -311,6 +330,12 @@ def recent_popular(orders: list[Order], cutoff: datetime, days: int) -> list[int
         if since <= order.created_at < cutoff:
             sold.update(order.products)
     return [p for p, _ in sorted(sold.items(), key=lambda x: (-x[1], x[0]))]
+
+
+def by_time(cases: list[Case]) -> list[Case]:
+    """Xếp ca theo thời điểm đoán: điểm "đang bán chạy" chỉ tính lại khi thời điểm đổi (thứ tự
+    không đổi chỉ số, mọi cách gợi ý dùng cùng danh sách ca)."""
+    return sorted(cases, key=lambda c: c.signals.now.timestamp() if c.signals.now else 0.0)
 
 
 def case_scores(
@@ -369,7 +394,7 @@ def evaluate_recommendations(
     extra: dict[str, Callable[[Case], list[int]]] | None = None,
 ) -> str:
     """Bảng chỉ số, khoảng tin cậy và so sánh với hybrid trên 1 cách chia."""
-    cases = limit_cases(dataset.behaviour, max_cases)
+    cases = by_time(limit_cases(dataset.behaviour, max_cases))
     _progress(f"{title}: dựng mô hình, {len(cases)}/{len(dataset.behaviour)} ca")
     model = build_model(dataset, shop.items, {})
     methods: dict[str, Callable[[Case], list[int]]] = dict(extra or {})
@@ -423,10 +448,59 @@ def evaluate_recommendations(
     return "\n".join(lines)
 
 
+def tune_trending(shop: Shop, cutoff: datetime, max_cases: int) -> str:
+    """Thử w_t và chu kỳ bán rã của "đang bán chạy" trên tuần kiểm định: mô hình thấy dữ liệu
+    trước `cutoff`, đoán REC_HOLDOUT_DAYS ngày sau đó; không dùng gì của tuần kiểm tra (cách 2).
+    Các trọng số khác giữ như mặc định."""
+    end = cutoff + timedelta(days=REC_HOLDOUT_DAYS)
+    dataset = split_by_time([o for o in shop.orders if o.created_at < end], cutoff)
+    cases = by_time(limit_cases(dataset.behaviour, max_cases))
+    _progress(f"Chọn trọng số: dựng mô hình, {len(cases)}/{len(dataset.behaviour)} ca")
+    model = build_model(dataset, shop.items, {})
+    current = (DEFAULT_WEIGHTS.trending, DEFAULT_WEIGHTS.trending_half_life_days)
+    rows = []
+    for trending in TUNE_TRENDING:
+        for half_life in TUNE_HALF_LIFE_DAYS if trending else TUNE_HALF_LIFE_DAYS[:1]:
+            model.weights = replace(
+                DEFAULT_WEIGHTS, trending=trending, trending_half_life_days=half_life
+            )
+            hit, ndcg, _ = case_scores(
+                cases, lambda case: [s.product_id for s in model.for_account(case.signals, K)]
+            )
+            rows.append((trending, half_life, _mean(hit), _mean(ndcg)))
+            _progress(f"  w_t = {trending}, bán rã {half_life} ngày: {_percent(_mean(hit))}")
+    best = max(rows, key=lambda r: r[3])
+    week = f"{cutoff:%d/%m}–{end - timedelta(days=1):%d/%m/%Y}"
+    note = (
+        f"Mô hình thấy đến hết {cutoff - timedelta(days=1):%d/%m/%Y}, đoán {REC_HOLDOUT_DAYS} ngày "
+        f"sau; số khách cần đoán: {len(dataset.behaviour)}, đánh giá {len(cases)}. Các trọng số "
+        "khác giữ như mặc định; chọn bộ có NDCG@10 cao nhất, rồi mới đo trên tuần kiểm tra ở cách 2."
+    )
+    lines = [
+        f'### Chọn trọng số "đang bán chạy" (tuần kiểm định {week})',
+        "",
+        note,
+        "",
+        "| w_t | Chu kỳ bán rã (ngày) | Tỷ lệ trúng | NDCG@10 | Ghi chú |",
+        "|---:|---:|---:|---:|---|",
+    ]
+    for trending, half_life, hit, ndcg in rows:
+        notes = []
+        if (trending, half_life) == best[:2]:
+            notes.append("NDCG cao nhất")
+        if (trending, half_life) == current:
+            notes.append("đang dùng (model.Weights)")
+        lines.append(
+            f"| {_decimal(trending)} | {_decimal(half_life, 0) if trending else '—'} "
+            f"| {_percent(hit)} | {_decimal(ndcg, 3)} | {', '.join(notes)} |"
+        )
+    return "\n".join(lines)
+
+
 # ---- phân nhóm ----
 
 
-def rfm_at(orders: Iterable[Order], totals: dict[int, int], now: datetime) -> list[Rfm]:
+def rfm_at(orders: Iterable[Order], totals: Sequence[int], now: datetime) -> list[Rfm]:
     """R, F, M của mọi khách có đơn trước `now` (M theo thang giá nhân PRICE_SCALE)."""
     last: dict[int, datetime] = {}
     count: Counter = Counter()
@@ -659,6 +733,8 @@ def run(
             rounds,
             max_cases,
         ),
+        "",
+        tune_trending(shop, rec_cutoff - timedelta(days=REC_HOLDOUT_DAYS), max_cases),
         "",
         evaluate_recommendations(
             shop,

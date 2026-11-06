@@ -2,8 +2,9 @@
 
 - Vector sản phẩm (TF-IDF, mất khoảng nửa giây với 1.000 sản phẩm) dựng lại khi danh mục sản
   phẩm đổi: thêm, sửa, xóa sản phẩm hay biến thể, hoặc giá thấp nhất của sản phẩm đổi.
-- Tồn kho, số đã bán, điểm đánh giá và ma trận "hay mua cùng" (vài chục mili giây) dựng lại khi
-  có đơn hàng, đánh giá hay tồn kho đổi.
+- Tồn kho, số đã bán, lượt bán theo thời gian (cho điểm "đang bán chạy", tính tại lúc gợi ý nên
+  không cần dựng lại khi thời gian trôi), điểm đánh giá và ma trận "hay mua cùng" (vài chục mili
+  giây) dựng lại khi có đơn hàng, đánh giá hay tồn kho đổi.
 Kiểm tra dấu hiệu thay đổi tối đa mỗi CHECK_INTERVAL_SECONDS giây. Tiến trình lấy việc và các
 request API dùng chung 1 bộ đệm, nên việc dựng lại được khóa; mô hình đã dựng không bao giờ sửa,
 chỉ thay bằng bản mới.
@@ -19,6 +20,7 @@ from app.recommendation import data
 from app.recommendation.copurchase import build_copurchase
 from app.recommendation.features import CatalogItem, ItemVectors
 from app.recommendation.model import Recommender
+from app.recommendation.trending import SalesHistory
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +88,14 @@ class ModelCache:
         copurchase = build_copurchase(
             data.load_purchase_pairs(conn), self._vectors.index, len(self._items)
         )
+        sales = SalesHistory(data.load_sales(conn), self._vectors.index, len(self._items))
         self._model = Recommender(
-            self._vectors, self._items, stats, copurchase, data.load_brand_names(conn)
+            self._vectors,
+            self._items,
+            stats,
+            copurchase,
+            data.load_brand_names(conn),
+            sales=sales,
         )
         self._catalog_signature = catalog_signature
         self._activity_signature = activity_signature
