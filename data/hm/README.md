@@ -10,8 +10,9 @@ của chính nó, tính lại mỗi đêm.
 - Điều kiện dùng (luật cuộc thi, mục 7): 7A chỉ cho dùng phi thương mại, cho nghiên cứu học thuật
   và giáo dục; 7B không được truyền, sao chép, công bố hay chia sẻ lại dữ liệu cho người chưa đồng
   ý luật. Vì vậy repo **không** chứa tệp gốc hay tệp đã lọc (`data/hm/raw/`, `data/hm/mau/` nằm
-  trong `.gitignore`), chỉ có kết quả tổng hợp: `ket-qua.md` (mẫu 5% khách) và
-  `ket-qua-toan-bo.md` (toàn bộ khách).
+  trong `.gitignore`), chỉ có kết quả tổng hợp: `ket-qua.md` (mẫu 5% khách),
+  `ket-qua-toan-bo.md` (toàn bộ khách) và `ket-qua-giay-tui-phu-kien.md` (toàn bộ khách, chỉ giày,
+  túi, phụ kiện).
 - Nội dung: lịch sử mua thật của khách H&M (cửa hàng và trực tuyến) từ 20/09/2018 đến 22/09/2020;
   `articles.csv` có loại hàng, màu, mô tả của từng sản phẩm; `customers.csv` có tuổi khách. Mã khách
   đã được băm, giá đã được quy đổi về thang riêng (không phải tiền thật).
@@ -57,7 +58,9 @@ của chính nó, tính lại mỗi đêm.
    Script chỉ giữ nhóm hàng `Shoes`, `Bags`, `Accessories` (cột `product_group_name` của
    `articles.csv`), coi như H&M chỉ bán những loại hàng đó: đơn, khách, R/F/M và gợi ý chỉ tính
    trên phần này, trọng số gợi ý giữ nguyên. Kết quả ghi vào `ket-qua-giay-tui-phu-kien.md`, không
-   đè `ket-qua.md`; phần đầu tệp có tỷ lệ lượt mua được giữ và 10 loại hàng mua nhiều nhất.
+   đè `ket-qua.md`; phần đầu tệp có tỷ lệ lượt mua được giữ và 10 loại hàng mua nhiều nhất. Lần
+   chạy ngày 07/11/2026 (máy 4 nhân, 15 GB RAM) mất khoảng 15 phút: đọc tệp 2,5 phút, phần đánh
+   giá 12 phút.
 
 ## Giới hạn
 
@@ -65,8 +68,10 @@ của chính nó, tính lại mỗi đêm.
 - Không có mã hóa đơn: 1 khách, 1 ngày, 1 kênh bán được coi là 1 đơn.
 - Không có lượt xem, giỏ hàng, khảo sát: phần gợi ý cho khách mới (khởi động lạnh bằng khảo sát)
   vẫn chỉ đánh giá được trên dữ liệu mô phỏng. Cả bộ là 1 hãng nên không có khối thương hiệu.
-- Sản phẩm là quần áo của H&M, cửa hàng của dự án bán giày, túi, phụ kiện. Kết quả cho thấy thuật
-  toán chạy được trên hành vi mua thật; áp dụng cho cửa hàng thật thì hệ thống tự học lại trên dữ
-  liệu của cửa hàng đó.
+- Sản phẩm của H&M chủ yếu là quần áo, cửa hàng của dự án bán giày, túi, phụ kiện. Phần giày, túi,
+  phụ kiện của H&M (7,4% lượt mua) được đánh giá riêng ở `ket-qua-giay-tui-phu-kien.md`. Nhóm
+  Accessories của H&M có cả trang sức (khuyên tai, vòng cổ), website không bán; vớ H&M xếp vào
+  nhóm khác nên không có trong phần này. Kết quả cho thấy thuật toán chạy được trên hành vi mua
+  thật; áp dụng cho cửa hàng thật thì hệ thống tự học lại trên dữ liệu của cửa hàng đó.
 - Mô hình không dùng ảnh sản phẩm (cửa hàng chỉ có ảnh minh họa theo danh mục). Thêm vector ảnh vào
   phần gợi ý theo nội dung là hướng mở rộng khi có ảnh thật của từng sản phẩm.
