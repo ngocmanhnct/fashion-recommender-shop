@@ -59,7 +59,7 @@ của chính nó, tính lại mỗi đêm.
    `articles.csv`), coi như H&M chỉ bán những loại hàng đó: đơn, khách, R/F/M và gợi ý chỉ tính
    trên phần này, trọng số gợi ý giữ nguyên. Kết quả ghi vào `ket-qua-giay-tui-phu-kien.md`, không
    đè `ket-qua.md`; phần đầu tệp có tỷ lệ lượt mua được giữ và 10 loại hàng mua nhiều nhất. Lần
-   chạy ngày 07/11/2026 (máy 4 nhân, 15 GB RAM) mất khoảng 15 phút: đọc tệp 2,5 phút, phần đánh
+   chạy ngày 07/11/2026 (máy 4 nhân, 16 GB RAM) mất khoảng 15 phút: đọc tệp 2,5 phút, phần đánh
    giá 12 phút.
 
 ## Giới hạn
