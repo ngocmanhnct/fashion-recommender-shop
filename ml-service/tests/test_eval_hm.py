@@ -14,7 +14,12 @@ from app.recommendation.data import UserSignals
 from app.recommendation.evaluate import Case
 from scripts import eval_hm as ev
 
-TYPES = [(253, "Vest top"), (272, "Trousers"), (255, "T-shirt"), (306, "Bra")]
+TYPES = [
+    (253, "Vest top", "Garment Upper body"),
+    (272, "Sneakers", "Shoes"),
+    (255, "T-shirt", "Garment Upper body"),
+    (306, "Bag", "Accessories"),
+]
 WORDS = ["cotton", "jersey", "denim", "lace", "linen", "satin", "wool", "fleece"]
 END = datetime(2020, 9, 22, tzinfo=UTC)
 TRANSACTION_FIELDS = ["t_dat", "customer_id", "article_id", "price", "sales_channel_id"]
@@ -26,10 +31,10 @@ def customer_id(index: int) -> str:
 
 
 def articles_rows() -> list[dict[str, str]]:
-    """16 mẫu sản phẩm, mỗi mẫu 2 màu, 4 loại hàng."""
+    """16 mẫu sản phẩm, mỗi mẫu 2 màu, 4 loại hàng (nửa là giày, túi)."""
     rows = []
     for code in range(1, 17):
-        type_no, type_name = TYPES[code % 4]
+        type_no, type_name, group = TYPES[code % 4]
         for colour in range(2):
             rows.append(
                 {
@@ -38,6 +43,7 @@ def articles_rows() -> list[dict[str, str]]:
                     "prod_name": f"{WORDS[code % 8].title()} {type_name} {code}",
                     "product_type_no": str(type_no),
                     "product_type_name": type_name,
+                    "product_group_name": group,
                     "colour_group_name": ["Black", "White"][colour],
                     "detail_desc": f"Soft {WORDS[code % 8]} {type_name.lower()} with "
                     f"{WORDS[(code + 3) % 8]} trim",
@@ -107,13 +113,19 @@ def raw_dir(tmp_path):
     return raw
 
 
+SMALL_RUN = ["--sample", "1000", "--rounds", "50", "--stability-rounds", "2", "--max-cases", "25"]
+
+
 def test_report_end_to_end(raw_dir, tmp_path, monkeypatch):
     result = tmp_path / "ket-qua.md"
     monkeypatch.setattr(ev, "RAW_DIR", raw_dir)
-    monkeypatch.setattr(ev, "RESULT_FILE", result)
-    args = ["--sample", "1000", "--rounds", "50", "--stability-rounds", "2", "--max-cases", "25"]
-    assert ev.main(args) == 0
+    monkeypatch.setattr(ev, "RESULT_DIR", tmp_path)
+    assert ev.main(SMALL_RUN) == 0
     report = result.read_text(encoding="utf-8")
+    assert report.startswith("# Đánh giá trên dữ liệu mua hàng thật: H&M (Kaggle)\n")
+    assert "Chỉ giữ nhóm hàng" not in report
+    assert "Loại hàng nhiều lượt mua nhất" in report
+    assert "| T-shirt |" in report and "| Sneakers |" in report
     assert "Mẫu 100,0% khách" in report
     assert "60 khách" in report
     assert "Cách 1: giữ lại đơn cuối" in report
@@ -130,6 +142,44 @@ def test_report_end_to_end(raw_dir, tmp_path, monkeypatch):
     assert "Bỏ 1 dòng: Sản phẩm không có trong articles.csv." in report
     assert "Bỏ 1 dòng: Ngày không đọc được." in report
     assert "Bỏ 1 dòng: Giá không dương." in report
+
+
+def test_report_only_shoes_bags_accessories(raw_dir, tmp_path, monkeypatch):
+    monkeypatch.setattr(ev, "RAW_DIR", raw_dir)
+    monkeypatch.setattr(ev, "RESULT_DIR", tmp_path)
+    assert ev.main([*SMALL_RUN, "--products", "shoes-bags-accessories"]) == 0
+    # Ghi tệp riêng, không đè kết quả của mọi sản phẩm.
+    assert not (tmp_path / "ket-qua.md").exists()
+    report = (tmp_path / "ket-qua-giay-tui-phu-kien.md").read_text(encoding="utf-8")
+    assert report.startswith(
+        "# Đánh giá trên dữ liệu mua hàng thật: H&M (Kaggle), chỉ giày, túi, phụ kiện\n"
+    )
+    assert "Chỉ giữ nhóm hàng Accessories, Bags, Shoes của H&M (giày, túi, phụ kiện" in report
+    assert "| Sneakers |" in report and "| Bag |" in report
+    assert "T-shirt" not in report and "Vest top" not in report
+    assert "Cách 2: cắt theo thời gian" in report
+    assert "Kiểm tra trên tương lai" in report
+
+
+def test_build_shop_keeps_only_chosen_groups():
+    articles = ev.load_articles(articles_rows())
+    assert (articles[1000].group, articles[1000].type_name) == ("Shoes", "Sneakers")
+    rows = [
+        {
+            "t_dat": "2020-01-02",
+            "customer_id": customer_id(1),
+            "article_id": article_id,
+            "price": "0.02",
+            "sales_channel_id": "1",
+        }
+        for article_id in ("01000", "02000", "03000", "03001")
+    ]
+    shop = ev.build_shop(rows, articles, 1000, frozenset({"Shoes", "Accessories"}))
+    # Mẫu 2 (T-shirt) ngoài nhóm hàng; 2 màu của mẫu 3 (Bag) gộp thành 1 sản phẩm.
+    assert shop.outside == 1 and shop.lines == 3
+    assert [i.id for i in shop.items] == [1, 3]
+    assert shop.types == Counter({"Bag": 2, "Sneakers": 1})
+    assert ev.build_shop(rows, articles, 1000).outside == 0
 
 
 def test_build_shop_maps_orders_and_products():

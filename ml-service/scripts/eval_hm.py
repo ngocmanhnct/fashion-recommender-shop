@@ -22,6 +22,10 @@ không sửa gì trong mô hình.
 - Mẫu khách: customer_id đã là mã băm SHA-256, nên khách có int(8 ký tự đầu, 16) % 1000 nhỏ hơn
   SAMPLE_PER_MILLE là mẫu ngẫu nhiên, cố định: chạy lại, hay chạy trên tệp đã lọc trước bằng cùng
   quy tắc, đều ra đúng mẫu đó. Chỉ giữ sản phẩm có khách trong mẫu mua.
+- Phần sản phẩm: mặc định mọi sản phẩm. `--products shoes-bags-accessories` chỉ giữ nhóm hàng
+  (product_group_name) Shoes, Bags, Accessories, cùng loại với hàng của website (giày, túi, phụ
+  kiện): đơn, khách, R/F/M và gợi ý chỉ tính trên phần này, như thể H&M chỉ bán những loại hàng
+  đó; trọng số gợi ý giữ nguyên.
 
 Gợi ý, 2 cách chia:
 1. Giữ lại đơn cuối: dùng chung hàm `split` với evaluate.py (dữ liệu mô phỏng).
@@ -42,8 +46,10 @@ cuối, đo tỷ lệ khách từng nhóm mua lại và mức chi trong những 
 
 Chạy trong ml-service/ (không cần MySQL; đọc hết tệp 3,5 GB mất vài phút):
     uv run python -m scripts.eval_hm
+    uv run python -m scripts.eval_hm --products shoes-bags-accessories
 Đọc articles.csv, customers.csv, transactions_train.csv (hoặc tệp .zip của từng tệp) trong
-data/hm/raw, ghi kết quả vào data/hm/ket-qua.md.
+data/hm/raw, ghi kết quả vào data/hm/ket-qua.md (chỉ giày, túi, phụ kiện:
+data/hm/ket-qua-giay-tui-phu-kien.md).
 """
 
 from __future__ import annotations
@@ -86,7 +92,7 @@ from app.segmentation.rfm import Rfm, recency_days
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RAW_DIR = REPO_ROOT / "data" / "hm" / "raw"
-RESULT_FILE = REPO_ROOT / "data" / "hm" / "ket-qua.md"
+RESULT_DIR = REPO_ROOT / "data" / "hm"
 
 SAMPLE_PER_MILLE = 50
 """5% khách."""
@@ -106,6 +112,30 @@ TUNE_HALF_LIFE_DAYS = (3.0, 7.0)
 """Lưới thử w_t và chu kỳ bán rã của "đang bán chạy" trên tuần kiểm định."""
 AGE_BANDS = ((0, 25, "Dưới 25"), (25, 35, "25–34"), (35, 45, "35–44"), (45, 55, "45–54"))
 OLDEST_BAND = "Từ 55"
+TOP_TYPES = 10
+"""Số loại hàng nhiều lượt mua nhất ghi trong phần mô tả dữ liệu."""
+
+
+@dataclass(frozen=True)
+class Scope:
+    """Phần sản phẩm đưa vào đánh giá và tên tệp kết quả (trong data/hm)."""
+
+    groups: frozenset[str] | None
+    """Nhóm hàng (product_group_name) được giữ; None là mọi sản phẩm."""
+    label: str
+    result_name: str
+
+
+ALL_PRODUCTS = Scope(None, "mọi sản phẩm", "ket-qua.md")
+SCOPES = {
+    "all": ALL_PRODUCTS,
+    "shoes-bags-accessories": Scope(
+        frozenset({"Shoes", "Bags", "Accessories"}),
+        "giày, túi, phụ kiện",
+        "ket-qua-giay-tui-phu-kien.md",
+    ),
+}
+"""Giá trị của --products."""
 
 
 def _progress(message: str) -> None:
@@ -165,6 +195,9 @@ class Article:
     name: str
     type_no: int
     description: str
+    group: str = ""
+    """Nhóm hàng (product_group_name), vd Shoes, Accessories, Garment Upper body."""
+    type_name: str = ""
 
 
 def load_articles(rows: Iterable[dict[str, str]]) -> dict[int, Article]:
@@ -182,6 +215,8 @@ def load_articles(rows: Iterable[dict[str, str]]) -> dict[int, Article]:
             (row.get("prod_name") or "").strip(),
             type_no,
             (row.get("detail_desc") or "").strip(),
+            (row.get("product_group_name") or "").strip(),
+            (row.get("product_type_name") or "").strip(),
         )
     return result
 
@@ -201,12 +236,20 @@ class Shop:
     """customer_id gốc → mã tài khoản (số nguyên)."""
     lines: int = 0
     skipped: Counter = field(default_factory=Counter)
+    outside: int = 0
+    """Lượt mua của khách trong mẫu nhưng ngoài các nhóm hàng được giữ."""
+    types: Counter = field(default_factory=Counter)
+    """Số lượt mua theo loại hàng (product_type_name)."""
 
 
 def build_shop(
-    rows: Iterable[dict[str, str]], articles: dict[int, Article], per_mille: int
+    rows: Iterable[dict[str, str]],
+    articles: dict[int, Article],
+    per_mille: int,
+    groups: frozenset[str] | None = None,
 ) -> Shop:
-    """Đọc giao dịch của khách trong mẫu, gom thành đơn (khách, ngày, kênh) và sản phẩm."""
+    """Đọc giao dịch của khách trong mẫu, gom thành đơn (khách, ngày, kênh) và sản phẩm; có
+    `groups` thì chỉ giữ lượt mua sản phẩm thuộc các nhóm hàng đó."""
     accounts: dict[str, int] = {}
     orders: dict[tuple[int, datetime, str], Order] = {}
     # Mảng số thay cho dict/list số Python: toàn bộ dữ liệu có khoảng 30 triệu lượt mua.
@@ -215,7 +258,8 @@ def build_shop(
     first_article: dict[int, Article] = {}
     days: dict[str, datetime] = {}
     skipped: Counter = Counter()
-    kept = 0
+    types: Counter = Counter()
+    kept = outside = 0
     for row in rows:
         customer = row.get("customer_id") or ""
         if not in_sample(customer, per_mille):
@@ -235,6 +279,9 @@ def build_shop(
         if article is None:
             skipped["Sản phẩm không có trong articles.csv"] += 1
             continue
+        if groups is not None and article.group not in groups:
+            outside += 1
+            continue
         if price is None or price <= 0:
             skipped["Giá không dương"] += 1
             continue
@@ -251,6 +298,7 @@ def build_shop(
         totals[order.id] += round(price * PRICE_SCALE)
         prices[code].append(price)
         first_article.setdefault(code, article)
+        types[article.type_name or str(article.type_no)] += 1
         kept += 1
     items = [
         CatalogItem(
@@ -265,7 +313,7 @@ def build_shop(
     ]
     # Sắp xếp ổn định giữ thứ tự tạo (mã đơn tăng dần) khi cùng ngày, không cần khóa phụ.
     ordered = sorted(orders.values(), key=attrgetter("created_at"))
-    return Shop(items, ordered, totals, accounts, kept, skipped)
+    return Shop(items, ordered, totals, accounts, kept, skipped, outside, types)
 
 
 def load_ages(rows: Iterable[dict[str, str]], accounts: dict[str, int]) -> dict[int, int]:
@@ -673,8 +721,8 @@ def evaluate_segmentation(
 # ---- báo cáo ----
 
 
-def summary(shop: Shop, ages: dict[int, int], per_mille: int) -> str:
-    """Số liệu về mẫu dữ liệu."""
+def summary(shop: Shop, ages: dict[int, int], per_mille: int, scope: Scope = ALL_PRODUCTS) -> str:
+    """Số liệu về mẫu dữ liệu, phần sản phẩm được giữ và các loại hàng mua nhiều nhất."""
     per_customer = Counter(o.account_id for o in shop.orders)
     repeat = sum(1 for n in per_customer.values() if n >= 2)
     first = min(o.created_at for o in shop.orders)
@@ -693,9 +741,32 @@ def summary(shop: Shop, ages: dict[int, int], per_mille: int) -> str:
             f"{_percent(len(ages) / customers)} khách có tuổi."
         ),
     ]
+    if scope.groups is not None:
+        bought = shop.lines + shop.outside
+        lines += [
+            "",
+            (
+                f"Chỉ giữ nhóm hàng {', '.join(sorted(scope.groups))} của H&M ({scope.label}, "
+                f"cùng loại với hàng của website): {_decimal(shop.lines, 0)} trên "
+                f"{_decimal(bought, 0)} lượt mua của khách trong mẫu "
+                f"({_percent(shop.lines / max(bought, 1))}). Đơn, khách, R/F/M và gợi ý chỉ tính "
+                "trên phần này, như thể H&M chỉ bán những loại hàng đó; trọng số gợi ý giữ nguyên."
+            ),
+        ]
     if shop.skipped:
         lines.append("")
         lines += [f"- Bỏ {_decimal(n, 0)} dòng: {reason}." for reason, n in shop.skipped.items()]
+    lines += [
+        "",
+        f"Loại hàng nhiều lượt mua nhất (product_type_name, {TOP_TYPES} loại đầu):",
+        "",
+        "| Loại hàng | Lượt mua | Tỷ lệ |",
+        "|---|---:|---:|",
+    ]
+    lines += [
+        f"| {name} | {_decimal(count, 0)} | {_percent(count / max(shop.lines, 1))} |"
+        for name, count in shop.types.most_common(TOP_TYPES)
+    ]
     return "\n".join(lines)
 
 
@@ -706,10 +777,14 @@ def run(
     rounds: int,
     stability_rounds: int,
     max_cases: int,
+    scope: Scope = ALL_PRODUCTS,
 ) -> str:
     """Toàn bộ báo cáo dạng Markdown."""
     if not shop.orders:
         return "Không có giao dịch nào của khách trong mẫu."
+    title = "# Đánh giá trên dữ liệu mua hàng thật: H&M (Kaggle)"
+    if scope.groups is not None:
+        title += f", chỉ {scope.label}"
     started = time.perf_counter()
     end = max(o.created_at for o in shop.orders) + timedelta(days=1)
     rec_cutoff = end - timedelta(days=REC_HOLDOUT_DAYS)
@@ -720,9 +795,9 @@ def run(
         return [p for p in popular_before if p not in case.signals.purchased][:K]
 
     parts = [
-        "# Đánh giá trên dữ liệu mua hàng thật: H&M (Kaggle)",
+        title,
         "",
-        summary(shop, ages, per_mille),
+        summary(shop, ages, per_mille, scope),
         "",
         "## Gợi ý sản phẩm",
         "",
@@ -774,7 +849,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--max-cases", type=int, default=MAX_CASES, help="số khách tối đa mỗi cách chia"
     )
+    parser.add_argument(
+        "--products",
+        choices=sorted(SCOPES),
+        default="all",
+        help="phần sản phẩm: all (mọi sản phẩm, ghi ket-qua.md) hoặc shoes-bags-accessories "
+        "(chỉ nhóm hàng Shoes, Bags, Accessories như website, ghi ket-qua-giay-tui-phu-kien.md)",
+    )
     args = parser.parse_args(argv)
+    # Chọn bằng phép so sánh, không tra dict bằng chuỗi dòng lệnh: tên tệp kết quả và nhãn trong
+    # báo cáo luôn là hằng số của SCOPES (SonarQube theo dõi giá trị dòng lệnh, issue #142).
+    scope = next(value for name, value in SCOPES.items() if name == args.products)
     # Kiểm tra khoảng ngay khi đọc tham số: giá trị sai dừng ở đây (mã 2) thay vì lỗi sau khi đã
     # đọc tệp vài phút. int() tường minh để công cụ quét bảo mật (SonarQube) thấy giá trị đã là
     # số, không còn là chuỗi lấy từ dòng lệnh, trước khi đi vào báo cáo ghi ra tệp.
@@ -792,18 +877,19 @@ def main(argv: list[str] | None = None) -> int:
             articles = load_articles(rows)
         _progress(f"Đọc transactions_train.csv ({len(articles)} sản phẩm-màu)")
         with open_csv(RAW_DIR, "transactions_train") as rows:
-            shop = build_shop(rows, articles, sample)
+            shop = build_shop(rows, articles, sample, scope.groups)
         _progress(f"Đọc customers.csv ({len(shop.accounts)} khách trong mẫu)")
         with open_csv(RAW_DIR, "customers") as rows:
             ages = load_ages(rows, shop.accounts)
     except FileNotFoundError as error:
         print(error, file=sys.stderr)
         return 1
-    report = run(shop, ages, sample, rounds, stability_rounds, max_cases)
-    RESULT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    with RESULT_FILE.open("w", encoding="utf-8", newline="\n") as handle:
+    report = run(shop, ages, sample, rounds, stability_rounds, max_cases, scope)
+    result_file = RESULT_DIR / scope.result_name
+    result_file.parent.mkdir(parents=True, exist_ok=True)
+    with result_file.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(report + "\n")
-    _progress(f"Đã ghi {RESULT_FILE}")
+    _progress(f"Đã ghi {result_file}")
     return 0
 
 
