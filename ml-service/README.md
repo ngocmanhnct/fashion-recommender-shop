@@ -103,6 +103,8 @@ Kết quả mẫu 5% khách (06/11/2026): đoán 7 ngày cuối (16–22/09/2020
 
 Kết quả toàn bộ 1.362.281 khách (06/11/2026): đoán 7 ngày cuối, hybrid trúng 11,6% (11,0–12,3%), hơn bán chạy 7 ngày trước mốc (10,3%; chênh +1,4 điểm, khoảng tin cậy +0,8 đến +1,9), hay mua cùng (6,8%) và hybrid chưa có đang bán chạy (6,2%); giữ lại đơn cuối, 12,1% so với 7,5%. Phân nhóm chọn K = 4 (Silhouette 0,375); khách VIP lúc mốc 25/06/2020 mua lại trong 90 ngày sau 79,4%, khách đã lâu không mua 10,2%.
 
+Chỉ trên giày, túi, phụ kiện của H&M (07/11/2026, `--products shoes-bags-accessories`; 587.605 khách, 7,4% lượt mua, trọng số giữ nguyên): đoán 7 ngày cuối, hybrid trúng 13,5% (12,8–14,3%), ngang bán chạy 7 ngày trước mốc (12,9%; chênh +0,5 điểm, khoảng tin cậy −0,1 đến +1,2) và ngang riêng đang bán chạy (13,5%), hơn hẳn hay mua cùng (6,0%) và hybrid chưa có đang bán chạy (4,4%); giữ lại đơn cuối, 14,9% so với 13,7% của riêng đang bán chạy (chênh +1,2 điểm, khoảng tin cậy +0,6 đến +1,8). Phân nhóm vẫn chọn K = 4 (Silhouette 0,347; huấn luyện lại 5 lần, ARI 0,976); phân nhóm đến mốc 25/06/2020 (K = 3), khách VIP mua lại trong 90 ngày sau 33,3%, khách đã lâu không mua 10,5%.
+
 ```powershell
 uv run python -m scripts.eval_hm                 # mẫu 5% khách, khoảng nửa tiếng, RAM khoảng 1 GB
 uv run python -m scripts.eval_hm --sample 1000 --stability-rounds 5   # toàn bộ khách, khoảng 1 tiếng, RAM khoảng 8,5 GB (data/hm/README.md)
