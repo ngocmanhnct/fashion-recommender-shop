@@ -10,12 +10,14 @@ của chính nó, tính lại mỗi đêm.
 - Điều kiện dùng (luật cuộc thi, mục 7): 7A chỉ cho dùng phi thương mại, cho nghiên cứu học thuật
   và giáo dục; 7B không được truyền, sao chép, công bố hay chia sẻ lại dữ liệu cho người chưa đồng
   ý luật. Vì vậy repo **không** chứa tệp gốc hay tệp đã lọc (`data/hm/raw/`, `data/hm/mau/` nằm
-  trong `.gitignore`), chỉ có kết quả tổng hợp `ket-qua.md`.
+  trong `.gitignore`), chỉ có kết quả tổng hợp: `ket-qua.md` (mẫu 5% khách) và
+  `ket-qua-toan-bo.md` (toàn bộ khách).
 - Nội dung: lịch sử mua thật của khách H&M (cửa hàng và trực tuyến) từ 20/09/2018 đến 22/09/2020;
   `articles.csv` có loại hàng, màu, mô tả của từng sản phẩm; `customers.csv` có tuổi khách. Mã khách
   đã được băm, giá đã được quy đổi về thang riêng (không phải tiền thật).
 - Cỡ bộ đầy đủ: 31.788.324 dòng giao dịch, 1.371.980 khách, 105.542 sản phẩm-màu. Mẫu 5% khách dùng
-  để đánh giá: 68.570 khách trong `customers.csv`, 1.574.807 dòng giao dịch (5,0%).
+  để đánh giá: 68.570 khách trong `customers.csv`, 1.574.807 dòng giao dịch (5,0%). Toàn bộ khách:
+  1.362.281 khách có giao dịch, 9.174.457 đơn, 46.834 sản phẩm (gộp các màu của cùng mẫu).
 
 ## Chạy lại
 
@@ -33,6 +35,18 @@ của chính nó, tính lại mỗi đêm.
    máy 4 nhân đang chạy song song việc khác, RAM cao nhất khoảng 1 GB. Cách ánh xạ sang cửa hàng,
    cách lấy mẫu 5% khách, 2 cách chia, cách chọn trọng số đang bán chạy và các phép kiểm tra phân
    nhóm ghi ở đầu `ml-service/scripts/eval_hm.py`.
+
+4. Chạy trên toàn bộ khách:
+
+   ```powershell
+   uv run python -m scripts.eval_hm --sample 1000 --stability-rounds 5
+   ```
+
+   Lần chạy ngày 06/11/2026 (máy 4 nhân, 16 GB RAM) đọc tệp mất khoảng 4 phút, phần đánh giá
+   57 phút, RAM cao nhất khoảng 8,5 GB (lúc dựng mô hình cho cách giữ lại đơn cuối), nên trên máy
+   16 GB cần tắt bớt ứng dụng khác (Docker Desktop, trình duyệt). Script ghi đè `ket-qua.md`: đổi
+   tên tệp vừa ghi thành `ket-qua-toan-bo.md`, rồi lấy lại kết quả mẫu 5% bằng
+   `git checkout -- data/hm/ket-qua.md`.
 
 ## Giới hạn
 

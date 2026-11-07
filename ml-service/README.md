@@ -97,11 +97,13 @@ uv run python -m app.segmentation.evaluate --features   # so các bộ đặc tr
 
 ## Kiểm chứng trên dữ liệu mua hàng thật (H&M)
 
-`scripts/eval_hm.py` chạy nguyên mã gợi ý và phân nhóm ở trên với lịch sử mua thật của khách H&M (cuộc thi H&M Personalized Fashion Recommendations trên Kaggle): gợi ý theo 2 cách chia (giữ lại đơn cuối; cắt theo thời gian, đoán 7 ngày cuối) kèm khoảng tin cậy 95%, chọn trọng số đang bán chạy trên tuần kiểm định ngay trước tuần kiểm tra, phân nhóm kèm độ tuổi, độ ổn định và kiểm tra trên 90 ngày sau mốc. Luật cuộc thi cấm chia sẻ lại dữ liệu nên repo chỉ có kết quả tổng hợp (`data/hm/ket-qua.md`); cách tải dữ liệu và giới hạn ở `data/hm/README.md`.
+`scripts/eval_hm.py` chạy nguyên mã gợi ý và phân nhóm ở trên với lịch sử mua thật của khách H&M (cuộc thi H&M Personalized Fashion Recommendations trên Kaggle): gợi ý theo 2 cách chia (giữ lại đơn cuối; cắt theo thời gian, đoán 7 ngày cuối) kèm khoảng tin cậy 95%, chọn trọng số đang bán chạy trên tuần kiểm định ngay trước tuần kiểm tra, phân nhóm kèm độ tuổi, độ ổn định và kiểm tra trên 90 ngày sau mốc. Luật cuộc thi cấm chia sẻ lại dữ liệu nên repo chỉ có kết quả tổng hợp (`data/hm/ket-qua.md` cho mẫu 5% khách, `data/hm/ket-qua-toan-bo.md` cho toàn bộ khách); cách tải dữ liệu và giới hạn ở `data/hm/README.md`.
 
 Kết quả mẫu 5% khách (06/11/2026): đoán 7 ngày cuối (16–22/09/2020), hybrid trúng 10,5% (khoảng tin cậy 95%: 9,5–11,6%), ngang bán chạy 7 ngày trước mốc (9,6%, chênh lệch chưa phân biệt được) và hơn hẳn hybrid chưa có đang bán chạy (4,8%); giữ lại đơn cuối, 12,3% so với 7,2%. Trước khi có điểm đang bán chạy, hybrid thua cả cách chỉ gợi ý bán chạy 7 ngày (issue #143).
 
+Kết quả toàn bộ 1.362.281 khách (06/11/2026): đoán 7 ngày cuối, hybrid trúng 11,6% (11,0–12,3%), hơn bán chạy 7 ngày trước mốc (10,3%; chênh +1,4 điểm, khoảng tin cậy +0,8 đến +1,9), hay mua cùng (6,8%) và hybrid chưa có đang bán chạy (6,2%); giữ lại đơn cuối, 12,1% so với 7,5%. Phân nhóm chọn K = 4 (Silhouette 0,375); khách VIP lúc mốc 25/06/2020 mua lại trong 90 ngày sau 79,4%, khách đã lâu không mua 10,2%.
+
 ```powershell
 uv run python -m scripts.eval_hm                 # mẫu 5% khách, khoảng nửa tiếng, RAM khoảng 1 GB
-uv run python -m scripts.eval_hm --sample 1000   # toàn bộ khách (số phần nghìn), cần nhiều RAM hơn (data/hm/README.md)
+uv run python -m scripts.eval_hm --sample 1000 --stability-rounds 5   # toàn bộ khách, khoảng 1 tiếng, RAM khoảng 8,5 GB (data/hm/README.md)
 ```
