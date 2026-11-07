@@ -48,6 +48,17 @@ của chính nó, tính lại mỗi đêm.
    tên tệp vừa ghi thành `ket-qua-toan-bo.md`, rồi lấy lại kết quả mẫu 5% bằng
    `git checkout -- data/hm/ket-qua.md`.
 
+5. Chỉ giày, túi, phụ kiện (cùng loại hàng với website):
+
+   ```powershell
+   uv run python -m scripts.eval_hm --sample 1000 --products shoes-bags-accessories --stability-rounds 5
+   ```
+
+   Script chỉ giữ nhóm hàng `Shoes`, `Bags`, `Accessories` (cột `product_group_name` của
+   `articles.csv`), coi như H&M chỉ bán những loại hàng đó: đơn, khách, R/F/M và gợi ý chỉ tính
+   trên phần này, trọng số gợi ý giữ nguyên. Kết quả ghi vào `ket-qua-giay-tui-phu-kien.md`, không
+   đè `ket-qua.md`; phần đầu tệp có tỷ lệ lượt mua được giữ và 10 loại hàng mua nhiều nhất.
+
 ## Giới hạn
 
 - Giá đã được quy đổi nên M (tổng chi) chỉ so sánh tương đối giữa các khách.

@@ -106,4 +106,5 @@ Kết quả toàn bộ 1.362.281 khách (06/11/2026): đoán 7 ngày cuối, hyb
 ```powershell
 uv run python -m scripts.eval_hm                 # mẫu 5% khách, khoảng nửa tiếng, RAM khoảng 1 GB
 uv run python -m scripts.eval_hm --sample 1000 --stability-rounds 5   # toàn bộ khách, khoảng 1 tiếng, RAM khoảng 8,5 GB (data/hm/README.md)
+uv run python -m scripts.eval_hm --sample 1000 --products shoes-bags-accessories --stability-rounds 5   # chỉ giày, túi, phụ kiện như website, ghi data/hm/ket-qua-giay-tui-phu-kien.md
 ```
