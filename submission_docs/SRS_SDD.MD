@@ -2,8 +2,8 @@
 
 > Phục vụ TC2.1. Đề tài: Website bán hàng có tích hợp học máy trong gợi ý mua hàng và phân nhóm khách hàng. Sinh viên: Đoàn Ngọc Mạnh (23110124).
 
-- **Bản này đối chiếu với:** nhánh `main` tại commit `c415b14` (06/11/2026), lược đồ CSDL Flyway V1–V12.
-- **Nguồn:** Mục 1–4 (trừ 1.10 và 4.7) và Mục 6 chép nguyên văn từ `docs/dac-ta-yeu-cau.md` (bản đặc tả được cập nhật cùng từng PR). Ngày 06/11/2026 file đó được bổ sung tiêu chí chấp nhận của US-23 và BR-37 đến BR-42 (trước đó chỉ có trong báo cáo). Các sơ đồ ở Mục 5 được vẽ lại bằng Mermaid và PlantUML để đọc được ngay trên GitHub và sửa được bằng văn bản. Sơ đồ ERD sinh tự động từ CSDL sau khi chạy 12 migration.
+- **Bản này đối chiếu với:** nhánh `main` tại commit `230c757` (07/11/2026, lần merge gần nhất tính đến 12/11/2026), lược đồ CSDL Flyway V1–V12. Từ lần đối chiếu đầy đủ trên commit `c415b14` (06/11/2026) đến nay không đổi API, route của frontend hay migration; mã chỉ đổi ở ml-service (thêm "đang bán chạy" vào gợi ý, ghi ở US-13) và script đánh giá trên dữ liệu H&M.
+- **Nguồn:** Mục 1–4 (trừ 1.10 và 4.7) chép nguyên văn từ `docs/dac-ta-yeu-cau.md` (bản đặc tả được cập nhật cùng từng PR). Ngày 06/11/2026 file đó được bổ sung tiêu chí chấp nhận của US-23 và BR-37 đến BR-42 (trước đó chỉ có trong báo cáo). Các sơ đồ ở Mục 5 được vẽ lại bằng Mermaid và PlantUML để đọc được ngay trên GitHub và sửa được bằng văn bản. Sơ đồ ERD sinh tự động từ CSDL sau khi chạy 12 migration. Mục 6 viết lại ngày 12/11/2026 theo bộ metric K1–K8 của bản cam kết, thay bản nháp KPI cũ.
 - **Số mục trong phần chép:** khi phần chép nhắc "Mục 8", "Mục 10", "Mục 11" hay "Hình 6b", đó là số mục và số hình của `docs/dac-ta-yeu-cau.md`; sơ đồ tương ứng trong file này nằm ở Mục 5.
 - **Ký hiệu:** US = user story, AC = tiêu chí chấp nhận, BR = quy tắc nghiệp vụ, NFR = yêu cầu phi chức năng. **\[Giả định\]** đánh dấu chỗ chưa có căn cứ bên ngoài, sinh viên tự chọn.
 
@@ -13,10 +13,10 @@
 |---|---|---|
 | 100% use case có tiêu chí chấp nhận | Mục 1: US-01 đến US-26, mỗi US có danh sách "Tiêu chí chấp nhận"; Mục 1.10 nối từng US với API và test | 26/26 US có AC |
 | Quy tắc nghiệp vụ | Mục 2: BR-01 đến BR-49 | Đủ |
-| Từ điển dữ liệu | Mục 3: 32 bảng, khớp 32 bảng tạo bởi Flyway V1–V12 | Đã đối chiếu 06/11 |
+| Từ điển dữ liệu | Mục 3: 32 bảng, khớp 32 bảng tạo bởi Flyway V1–V12 | Đã đối chiếu 06/11; đến 12/11 không có migration mới |
 | ≥ 5 yêu cầu phi chức năng định lượng | Mục 4: NFR-01 đến NFR-06, kèm số đo ngày 04/11 | 6 NFR, đều có ngưỡng số |
 | ≥ 4 loại sơ đồ (Mermaid hoặc PlantUML) | Mục 5: use case, hoạt động, ERD, tuần tự (4 luồng), thành phần, triển khai, CI/CD | 7 loại |
-| Khớp mã nguồn | Mục 1.10 (US → API → test), Mục 5.3 (ERD sinh từ CSDL thật), Mục 7 | Đối chiếu 06/11 |
+| Khớp mã nguồn | Mục 1.10 (US → API → test), Mục 5.3 (ERD sinh từ CSDL thật), Mục 7 | Đối chiếu đầy đủ 06/11, kiểm lại phần thay đổi 12/11 |
 
 ## 1. Use case và tiêu chí chấp nhận
 ### Epic 1 — Duyệt & tìm sản phẩm (không cần tài khoản)
@@ -127,7 +127,8 @@
 
 - Chỉ hiển thị khi đã có đủ dữ liệu hành vi (xem ngưỡng ở BR-19); chưa đủ dữ liệu thì hiển thị sản phẩm phổ biến thay thế (tránh khu vực trống)  
 - Gợi ý tính sẵn, cập nhật vài giây sau hành động rõ ý và khoảng 30 giây sau lượt xem (xem BR-20); mở trang chủ không phải chờ tính. Trang chủ có thêm hàng "Vì bạn vừa xem / vừa thêm vào giỏ …" gồm sản phẩm liên quan của hành động gần nhất trong 24 giờ, đổi ngay theo từng hành động; trong lúc danh sách đang được tính lại, trang chủ báo "Đang cập nhật" và tự tải lại, sản phẩm mới so với lần khách thấy trước có nhãn "Mới"  
-- Tín hiệu hành vi đầu vào phân cấp trọng số theo **loại hành vi**: đã mua \> đã thêm giỏ hàng \> chỉ xem — dùng 3 nguồn dữ liệu đã có sẵn ở Mục 3, không đo thời gian xem (dwell time) vì cần cơ chế tracking phức tạp và dễ nhiễu. Trọng số cụ thể chốt khi cài đặt mô hình **\[Giả định\]**
+- Tín hiệu hành vi đầu vào phân cấp trọng số theo **loại hành vi**: đã mua (5) \> đã thêm giỏ hàng (3) \> yêu thích (2) \> chỉ xem (1), lấy từ các bảng đơn hàng, giỏ hàng, yêu thích và nhật ký xem ở Mục 3; không đo thời gian xem (dwell time) vì cần cơ chế tracking phức tạp và dễ nhiễu. Tương tác càng gần đây càng nặng: trọng số nhân thêm (1 + 3 · 0,5^(tuổi tính bằng ngày)). Các số này nằm ở `INTERACTION_WEIGHTS`, `RECENT_BOOST`, `RECENT_HALF_LIFE_DAYS` trong `ml-service/app/recommendation/model.py` **\[Giả định\]**
+- Điểm của mỗi sản phẩm = 0,7 · độ giống hồ sơ sở thích (lọc theo nội dung) + 0,2 · hay mua cùng + 0,1 · bán chạy mọi thời điểm + 1 · đang bán chạy + 0,15 · điểm hợp khảo sát; mỗi sản phẩm cùng danh mục đã được chọn trước đó trừ 0,05 để danh sách đa dạng (`model.Weights`). "Đang bán chạy" (`trending.py`, thêm 06/11/2026) cộng lượt bán 30 ngày trước lúc gợi ý, lượt bán càng cũ càng nhẹ (bán rã 7 ngày), và thu nhỏ khi sản phẩm bán chạy nhất chưa tới 20 lượt để cửa hàng ít đơn không bị lượt bán lẻ chi phối. Trọng số w_t = 1 và chu kỳ 7 ngày chọn trên tuần kiểm định của dữ liệu mua hàng thật H&M, các trọng số khác chọn trên dữ liệu mô phỏng; kết quả kiểm chứng ở `data/hm/` và Mục 6 (K1)
 
 **US-23: Khảo sát sở thích lần đầu cho người dùng mới** *(bổ sung 07/10/2026 theo yêu cầu của GVHD; cài đặt 22/10/2026, migration V5; hỏi kỹ hơn từ 04/11/2026, migration V11, V12)* Là khách mới chưa có lịch sử mua hay xem, tôi muốn trả lời vài câu hỏi ngắn về nhu cầu, để thấy ngay gợi ý hợp với mình thay vì chỉ thấy sản phẩm bán chạy. Tiêu chí chấp nhận:
 
@@ -1709,30 +1710,28 @@ rb ..> dep : thay thế khi cần quay lại
 @enduml
 ```
 
-## 6. KPI nghiệp vụ
+## 6. KPI nghiệp vụ và bộ metric
 
-Bản **nháp** — chốt chính thức cùng thầy Đạo ở mốc bắt buộc cuối Tuần 7\. Lý do phần lớn ngưỡng còn để trống: chưa có traffic/người dùng thật để biết mức nào khả thi — đặt một con số tùy tiện bây giờ sẽ không có căn cứ gì hơn một phỏng đoán.
+Bộ metric chính thức là bảng K1–K8 trong bản cam kết `COMMITMENT_STEP3` (bản cập nhật tháng 11/2026, chờ GVHD ký). Mục này chép lại để đối chiếu với use case; kết quả tính đến 12/11/2026.
 
-Mục này chốt chắc chắn 2 phần không đổi dù dữ liệu thế nào: **công thức đo** và **US nào KPI đó đang đánh giá**. Riêng SUS và Tỷ lệ hoàn thành tác vụ lấy thẳng từ rubric TC2.7 (điều kiện chấm điểm thật, không phải điểm neo tham khảo) nên là 2 con số chắc chắn nhất trong mục này.
+| Mã | Metric | Cách đo | Ngưỡng | Đo lường US | Kết quả |
+|---|---|---|---|---|---|
+| K1 | Độ chính xác gợi ý trên dữ liệu mua hàng thật | Tỷ lệ trúng trong 10 gợi ý đầu (hit@10) trên dữ liệu H&M: mô hình chỉ thấy dữ liệu đến 15/09/2020, đoán tuần 16–22/09/2020; so với gợi ý bán chạy 7 ngày gần nhất | Cao hơn gợi ý bán chạy 7 ngày; cận dưới khoảng tin cậy 95% của chênh lệch > 0 | US-13 | Đạt: 11,6% so với 10,3%, chênh +1,4 điểm (khoảng tin cậy 95%: +0,8 đến +1,9), 10.000 khách chọn ngẫu nhiên (`data/hm/ket-qua-toan-bo.md`) |
+| K2 | Ý nghĩa của phân nhóm trên dữ liệu mua hàng thật | Phân nhóm khách H&M đến 25/06/2020, đo tỷ lệ mua lại trong 90 ngày sau đó của từng nhóm | Nhóm VIP mua lại nhiều hơn nhóm đã lâu không mua ít nhất 2 lần | US-19 | Đạt: VIP 79,4%, đã lâu không mua 10,2% (gấp 7,8 lần), 1,29 triệu khách |
+| K3 | Độ trễ cập nhật gợi ý | Thời gian từ khi khách thêm giỏ, đặt hàng (hoặc xem sản phẩm) đến khi gợi ý trang chủ thay đổi | ≤ 60 giây (thêm giỏ, đặt hàng); ≤ 10 phút (lượt xem) | US-13, BR-20 | Đạt: P95 khoảng 7,4 giây và 34 giây (đo 04/11 trên máy thử) |
+| K4 | Độ phủ gợi ý cho người dùng mới | Số tài khoản mới thấy khu vực gợi ý ÷ số tài khoản mới | 100% | US-13, US-23, BR-19 | Đạt trong test tự động: tài khoản chưa có hành vi, chưa làm khảo sát vẫn thấy sản phẩm bán chạy |
+| K5 | Chất lượng phân cụm khách hàng | Hệ số Silhouette trên R, F, M | ≥ 0,3 | US-19 | Đạt: 0,375 trên dữ liệu H&M (K = 4); 0,384 trên dữ liệu mô phỏng (K = 4) |
+| K6 | Không bán vượt tồn kho | Số đơn làm tồn kho âm khi đặt hàng đồng thời cùng một mã hàng | 0 đơn | US-10, BR-08, BR-09 | Đạt: 0 đơn trong test tự động đặt hàng đồng thời |
+| K7 | Cấp mã đúng và kịp thời | Số khách vào nhóm mới được cấp đúng mẫu ưu đãi của nhóm trong 1 lượt tính lại ÷ số khách vào nhóm mới | 100% | US-24 | Đạt: 100% trong test tự động; trên máy thử, mã được cấp khoảng 23 giây sau khi đơn chuyển Đã giao |
+| K8 | Khả năng truy cập của giao diện | Điểm Accessibility của Lighthouse trên các trang chính | ≥ 90 mỗi trang | Toàn hệ thống | Đạt: 100 điểm ở cả 6 trang đo (04/11) |
 
-| KPI | Công thức | Đo lường US | Ngưỡng tham khảo |
-| :---- | :---- | :---- | :---- |
-| Tỷ lệ chuyển đổi (Conversion Rate) | (Số đơn hàng thành công ÷ Số phiên truy cập duy nhất) × 100% | US-01 → US-10 (toàn phễu mua hàng) | Chưa có cơ sở đặt số cụ thể trước khi có traffic thật — chốt ở Tuần 7 |
-| Tỷ lệ click gợi ý sản phẩm (Recommendation CTR) | (Số lượt click sản phẩm gợi ý ÷ Số lượt gợi ý hiển thị) × 100% | US-12, US-13 | Chốt ở Tuần 7, sau khi có dữ liệu gợi ý thật |
-| Tỷ lệ đơn hàng có sản phẩm từ gợi ý | (Số đơn có ≥1 sản phẩm từ khu vực gợi ý ÷ Tổng số đơn) × 100% | US-12, US-13 | Chốt ở Tuần 7 — đo giá trị kinh doanh thật của gợi ý, không chỉ lượt click |
-| Chất lượng phân cụm (Silhouette score) | Công thức chuẩn `sklearn.metrics.silhouette_score` | US-19 | ≥ 0,3 — ngưỡng "có cấu trúc cụm hợp lý" phổ biến trong tài liệu ML **\[Giả định\]** |
-| Tỷ lệ bỏ giỏ hàng (Cart Abandonment Rate) | 1 − (Số đơn hoàn tất ÷ Số giỏ hàng có ≥1 sản phẩm) | US-06 → US-10 | Chốt ở Tuần 7 — đo ma sát ở luồng checkout |
-| **Tỷ lệ hoàn thành tác vụ (Task Completion Rate)** | (Số người dùng hoàn thành đúng kịch bản tác vụ ÷ Tổng số người dùng tham gia thực nghiệm) × 100%, đo ở thực nghiệm Tuần 12-13 | Toàn luồng mua hàng chính | **Trực tiếp từ rubric TC2.7**: ≥ 60% / ≥ 80% / **≥ 90% (mục tiêu)** |
-| **Điểm SUS (System Usability Scale)** | Bảng hỏi chuẩn 10 câu, thang điểm 0-100, đo ở thực nghiệm Tuần 12-13 | Toàn hệ thống | **Trực tiếp từ rubric TC2.7**: ≥ 55 / ≥ 68 / **≥ 80 (mục tiêu)** |
-| Tỷ lệ khách quay lại (Repeat Purchase Rate) | (Số khách có ≥2 đơn hoàn tất ÷ Số khách có ≥1 đơn hoàn tất) × 100% | US-19 (gián tiếp) | Đối chiếu 57% khảo sát "có xu hướng quay lại mua cùng shop" (`khao-sat-va-phong-van-nguoi-dung.md` Mục A) làm kỳ vọng ban đầu — không phải ngưỡng đo thật |
+**Ghi chú về K1.** Trên riêng nhóm giày, túi, phụ kiện của H&M (cùng loại hàng với website, 7,4% lượt mua), mô hình kết hợp trúng 13,5%, chưa phân biệt được với gợi ý bán chạy 7 ngày (12,9%; khoảng tin cậy 95% của chênh lệch từ −0,1 đến +1,2 điểm); chi tiết trong `data/hm/ket-qua-giay-tui-phu-kien.md`. Bản nháp trước đo độ chính xác trên dữ liệu mô phỏng; con số 49,3% ở bản đó bị thổi phồng do rò rỉ nhãn (sửa 03/11), và dữ liệu mô phỏng không phải hành vi thật, nên K1, K2 chuyển sang dữ liệu H&M.
 
----
-
-**Tổng cộng: 8 KPI nghiệp vụ định lượng (bản nháp)** — bao phủ cả 2 mảng ML chính (gợi ý, phân nhóm) lẫn sức khỏe thương mại điện tử tổng thể, và 2 chỉ số TC2.7 yêu cầu trực tiếp (SUS, tỷ lệ hoàn thành tác vụ). Phần còn lại chờ số liệu vận hành thật để chốt chính thức ở Tuần 7\.
+**Các chỉ số của bản nháp cũ chưa có số liệu.** Hệ thống đã ghi lượt hiển thị và lượt bấm gợi ý; trang tổng quan quản trị tính tỷ lệ bấm gợi ý (CTR) theo vị trí, theo nguồn và doanh thu từ sản phẩm được gợi ý, và có thử nghiệm A/B. Vì không tổ chức thực nghiệm người dùng (quyết định ngày 06/11/2026), CTR, chênh lệch A/B, tỷ lệ chuyển đổi, tỷ lệ bỏ giỏ, tỷ lệ khách quay lại, điểm SUS và tỷ lệ hoàn thành tác vụ (TC2.7) không có số liệu thật; luận văn ghi đây là hạn chế và hướng phát triển.
 
 ## 7. Đối chiếu với mã nguồn
 
-Đối chiếu ngày 06/11/2026 trên commit `c415b14`.
+Đối chiếu đầy đủ ngày 06/11/2026 trên commit `c415b14`. Ngày 12/11/2026 kiểm lại trên commit `230c757`: `git diff c415b14..230c757` không đổi `@…Mapping` nào của controller, route trong `frontend/src/App.jsx` hay tệp migration, nên các dòng dưới vẫn đúng; phần mã đổi (điểm "đang bán chạy" của gợi ý) được ghi ở US-13.
 
 | Phần | Cách đối chiếu | Kết quả |
 |---|---|---|
