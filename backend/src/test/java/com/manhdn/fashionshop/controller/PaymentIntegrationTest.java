@@ -344,11 +344,10 @@ class PaymentIntegrationTest {
     return new TreeMap<>(params)
         .entrySet().stream()
             .filter(e -> !e.getKey().equals("vnp_SecureHash"))
-            .map(
-                e ->
-                    URLEncoder.encode(e.getKey(), StandardCharsets.US_ASCII)
-                        + "="
-                        + URLEncoder.encode(e.getValue(), StandardCharsets.US_ASCII))
+            .map(e ->
+                URLEncoder.encode(e.getKey(), StandardCharsets.US_ASCII)
+                    + "="
+                    + URLEncoder.encode(e.getValue(), StandardCharsets.US_ASCII))
             .collect(Collectors.joining("&"));
   }
 
@@ -374,12 +373,10 @@ class PaymentIntegrationTest {
   private static String query(Map<String, String> params) {
     return "?"
         + params.entrySet().stream()
-            .map(
-                e ->
-                    e.getKey()
-                        + "="
-                        + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8)
-                            .replace("+", "%20"))
+            .map(e ->
+                e.getKey()
+                    + "="
+                    + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8).replace("+", "%20"))
             .collect(Collectors.joining("&"));
   }
 
@@ -419,18 +416,16 @@ class PaymentIntegrationTest {
     long orderId = OrderFixtures.insertOrder(jdbcTemplate, accountId, "PENDING");
     OrderStatus[] seen = new OrderStatus[2];
     new TransactionTemplate(transactionManager)
-        .executeWithoutResult(
-            tx -> {
-              orderRepository.findAccountIdById(orderId);
-              CompletableFuture.runAsync(
-                      () ->
-                          jdbcTemplate.update(
-                              "UPDATE orders SET status = 'CANCELLED' WHERE id = ?", orderId))
-                  .join();
-              seen[0] = orderRepository.findById(orderId).orElseThrow().getStatus();
-              entityManager.clear();
-              seen[1] = orderRepository.findForUpdateById(orderId).orElseThrow().getStatus();
-            });
+        .executeWithoutResult(tx -> {
+          orderRepository.findAccountIdById(orderId);
+          CompletableFuture.runAsync(() ->
+                  jdbcTemplate.update(
+                      "UPDATE orders SET status = 'CANCELLED' WHERE id = ?", orderId))
+              .join();
+          seen[0] = orderRepository.findById(orderId).orElseThrow().getStatus();
+          entityManager.clear();
+          seen[1] = orderRepository.findForUpdateById(orderId).orElseThrow().getStatus();
+        });
     assertThat(seen[0]).isEqualTo(OrderStatus.PENDING);
     assertThat(seen[1]).isEqualTo(OrderStatus.CANCELLED);
   }

@@ -78,28 +78,26 @@ public class AddressService {
    * @throws ConflictException nếu sổ đã đủ {@link #MAX_ADDRESSES} địa chỉ
    */
   public AddressResponse create(long accountId, AddressRequest request) {
-    return transactionRetry.execute(
-        () -> {
-          Account account = lockAccount(accountId);
-          long count = addressRepository.countByAccountId(accountId);
-          if (count >= MAX_ADDRESSES) {
-            throw new ConflictException(
-                "Sổ địa chỉ tối đa %d địa chỉ, hãy xóa bớt trước khi thêm"
-                    .formatted(MAX_ADDRESSES));
-          }
-          Address address =
-              new Address(
-                  account,
-                  clean(request.recipientName()),
-                  request.phone(),
-                  clean(request.addressDetail()),
-                  LocalDateTime.now(clock));
-          addressRepository.save(address);
-          if (count == 0 || request.isDefault()) {
-            makeDefault(accountId, address);
-          }
-          return AddressResponse.from(address);
-        });
+    return transactionRetry.execute(() -> {
+      Account account = lockAccount(accountId);
+      long count = addressRepository.countByAccountId(accountId);
+      if (count >= MAX_ADDRESSES) {
+        throw new ConflictException(
+            "Sổ địa chỉ tối đa %d địa chỉ, hãy xóa bớt trước khi thêm".formatted(MAX_ADDRESSES));
+      }
+      Address address =
+          new Address(
+              account,
+              clean(request.recipientName()),
+              request.phone(),
+              clean(request.addressDetail()),
+              LocalDateTime.now(clock));
+      addressRepository.save(address);
+      if (count == 0 || request.isDefault()) {
+        makeDefault(accountId, address);
+      }
+      return AddressResponse.from(address);
+    });
   }
 
   /**
@@ -112,17 +110,16 @@ public class AddressService {
    * @throws NoSuchElementException nếu địa chỉ không có hoặc không thuộc tài khoản này
    */
   public AddressResponse update(long accountId, long addressId, AddressRequest request) {
-    return transactionRetry.execute(
-        () -> {
-          lockAccount(accountId);
-          Address address = findOwn(accountId, addressId);
-          address.update(
-              clean(request.recipientName()), request.phone(), clean(request.addressDetail()));
-          if (request.isDefault()) {
-            makeDefault(accountId, address);
-          }
-          return AddressResponse.from(address);
-        });
+    return transactionRetry.execute(() -> {
+      lockAccount(accountId);
+      Address address = findOwn(accountId, addressId);
+      address.update(
+          clean(request.recipientName()), request.phone(), clean(request.addressDetail()));
+      if (request.isDefault()) {
+        makeDefault(accountId, address);
+      }
+      return AddressResponse.from(address);
+    });
   }
 
   /**
@@ -133,20 +130,19 @@ public class AddressService {
    * @throws NoSuchElementException nếu địa chỉ không có hoặc không thuộc tài khoản này
    */
   public void delete(long accountId, long addressId) {
-    transactionRetry.execute(
-        () -> {
-          lockAccount(accountId);
-          Address address = findOwn(accountId, addressId);
-          orderRepository.detachAddress(address.getId());
-          addressRepository.delete(address);
-          addressRepository.flush();
-          if (address.isDefault()) {
-            addressRepository.findByAccountIdOrderByIsDefaultDescIdDesc(accountId).stream()
-                .findFirst()
-                .ifPresent(next -> next.setDefault(true));
-          }
-          return null;
-        });
+    transactionRetry.execute(() -> {
+      lockAccount(accountId);
+      Address address = findOwn(accountId, addressId);
+      orderRepository.detachAddress(address.getId());
+      addressRepository.delete(address);
+      addressRepository.flush();
+      if (address.isDefault()) {
+        addressRepository.findByAccountIdOrderByIsDefaultDescIdDesc(accountId).stream()
+            .findFirst()
+            .ifPresent(next -> next.setDefault(true));
+      }
+      return null;
+    });
   }
 
   /** Đặt địa chỉ làm mặc định và bỏ mặc định của mọi địa chỉ khác trong sổ. */

@@ -154,10 +154,9 @@ public class RecommendationService {
     String source = hasEnoughBehaviour(accountId) ? SOURCE_BEHAVIOR : SOURCE_SURVEY;
     List<RelatedProductResponse> products =
         shown.stream()
-            .map(
-                row ->
-                    new RelatedProductResponse(
-                        cards.get(row.getProduct().getId()), row.getReason(), source))
+            .map(row ->
+                new RelatedProductResponse(
+                    cards.get(row.getProduct().getId()), row.getReason(), source))
             .toList();
     // ml-service và backend cùng ghi giờ địa phương; quy về múi giờ của clock để phép trừ đúng cả
     // khi đổi giờ mùa hè.
@@ -222,12 +221,11 @@ public class RecommendationService {
             forSale().and(inStock()).and(idNotIn(excludedIds)),
             q -> q.sortBy(ProductCatalogService.POPULAR_ORDER).limit(HOME_LIMIT).all())
         .stream()
-        .map(
-            p ->
-                new RelatedProductResponse(
-                    ProductCardResponse.from(p),
-                    ProductCatalogService.BEST_SELLER,
-                    RecommendationSource.POPULAR))
+        .map(p ->
+            new RelatedProductResponse(
+                ProductCardResponse.from(p),
+                ProductCatalogService.BEST_SELLER,
+                RecommendationSource.POPULAR))
         .toList();
   }
 }

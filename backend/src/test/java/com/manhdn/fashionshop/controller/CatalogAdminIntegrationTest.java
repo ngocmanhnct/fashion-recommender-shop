@@ -487,9 +487,9 @@ class CatalogAdminIntegrationTest {
       String variationName2,
       String... variantJsons) {
     return """
-        {"name":"%s","categoryId":%d,"brandId":%s,"variationName1":%s,"variationName2":%s,
-         "variants":[%s]}
-        """
+    {"name":"%s","categoryId":%d,"brandId":%s,"variationName1":%s,"variationName2":%s,
+     "variants":[%s]}
+    """
         .formatted(
             name,
             categoryId,

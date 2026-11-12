@@ -163,34 +163,30 @@ public class ReviewService {
     String comment =
         request.comment() == null ? null : TextNormalizer.nfc(request.comment().strip());
     String saved = comment == null || comment.isEmpty() ? null : comment;
-    return transactionRetry.execute(
-        () -> {
-          Account account =
-              accountRepository
-                  .findWithLockById(accountId)
-                  .orElseThrow(() -> new NoSuchElementException("Không tìm thấy tài khoản"));
-          Product product = activeProduct(productId);
-          List<OrderItem> delivered = reviewRepository.findDeliveredItems(accountId, productId);
-          if (delivered.isEmpty()) {
-            throw new ConflictException(
-                "Chỉ đánh giá được sản phẩm thuộc đơn hàng đã giao cho bạn");
-          }
-          OrderItem latest = delivered.get(0);
-          LocalDateTime now = LocalDateTime.now(clock);
-          Review review =
-              reviewRepository
-                  .findByAccountIdAndProductId(accountId, productId)
-                  .map(
-                      existing -> {
-                        existing.edit(latest, request.rating(), saved, now);
-                        return existing;
-                      })
-                  .orElseGet(
-                      () ->
-                          reviewRepository.save(
-                              new Review(account, product, latest, request.rating(), saved, now)));
-          return ReviewResponse.from(review);
-        });
+    return transactionRetry.execute(() -> {
+      Account account =
+          accountRepository
+              .findWithLockById(accountId)
+              .orElseThrow(() -> new NoSuchElementException("Không tìm thấy tài khoản"));
+      Product product = activeProduct(productId);
+      List<OrderItem> delivered = reviewRepository.findDeliveredItems(accountId, productId);
+      if (delivered.isEmpty()) {
+        throw new ConflictException("Chỉ đánh giá được sản phẩm thuộc đơn hàng đã giao cho bạn");
+      }
+      OrderItem latest = delivered.get(0);
+      LocalDateTime now = LocalDateTime.now(clock);
+      Review review =
+          reviewRepository
+              .findByAccountIdAndProductId(accountId, productId)
+              .map(existing -> {
+                existing.edit(latest, request.rating(), saved, now);
+                return existing;
+              })
+              .orElseGet(() ->
+                  reviewRepository.save(
+                      new Review(account, product, latest, request.rating(), saved, now)));
+      return ReviewResponse.from(review);
+    });
   }
 
   private Product activeProduct(long productId) {

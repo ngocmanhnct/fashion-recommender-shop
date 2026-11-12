@@ -94,16 +94,15 @@ public class VnPayClient {
       return false;
     }
     Map<String, String> signed = new TreeMap<>();
-    params.forEach(
-        (key, value) -> {
-          if (key.startsWith("vnp_")
-              && !key.equals(SECURE_HASH)
-              && !key.equals("vnp_SecureHashType")
-              && value != null
-              && !value.isEmpty()) {
-            signed.put(key, value);
-          }
-        });
+    params.forEach((key, value) -> {
+      if (key.startsWith("vnp_")
+          && !key.equals(SECURE_HASH)
+          && !key.equals("vnp_SecureHashType")
+          && value != null
+          && !value.isEmpty()) {
+        signed.put(key, value);
+      }
+    });
     return constantTimeEquals(hmac(encode(signed)), received.toLowerCase());
   }
 

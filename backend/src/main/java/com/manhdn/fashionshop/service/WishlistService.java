@@ -70,10 +70,9 @@ public class WishlistService {
   @Transactional(readOnly = true)
   public List<WishlistItemResponse> list(long accountId) {
     return wishlistItemRepository.findListOf(accountId).stream()
-        .map(
-            item ->
-                new WishlistItemResponse(
-                    ProductCardResponse.from(item.getProduct()), item.getCreatedAt()))
+        .map(item ->
+            new WishlistItemResponse(
+                ProductCardResponse.from(item.getProduct()), item.getCreatedAt()))
         .toList();
   }
 
@@ -98,27 +97,23 @@ public class WishlistService {
    * @throws ConflictException nếu danh sách đã đủ {@link #MAX_ITEMS} sản phẩm
    */
   public List<Long> add(long accountId, long productId) {
-    return transactionRetry.execute(
-        () -> {
-          Account account = lockAccount(accountId);
-          Product product =
-              productRepository
-                  .findById(productId)
-                  .filter(p -> !p.isDeleted())
-                  .orElseThrow(() -> new NoSuchElementException("Không tìm thấy sản phẩm"));
-          if (wishlistItemRepository.findByAccountIdAndProductId(accountId, productId).isEmpty()) {
-            if (wishlistItemRepository.countByAccountId(accountId) >= MAX_ITEMS) {
-              throw new ConflictException(
-                  "Danh sách yêu thích đã đủ "
-                      + MAX_ITEMS
-                      + " sản phẩm, hãy bỏ bớt trước khi thêm");
-            }
-            wishlistItemRepository.save(
-                new WishlistItem(account, product, LocalDateTime.now(clock)));
-            requestRecompute(accountId);
-          }
-          return wishlistItemRepository.findProductIdsOf(accountId);
-        });
+    return transactionRetry.execute(() -> {
+      Account account = lockAccount(accountId);
+      Product product =
+          productRepository
+              .findById(productId)
+              .filter(p -> !p.isDeleted())
+              .orElseThrow(() -> new NoSuchElementException("Không tìm thấy sản phẩm"));
+      if (wishlistItemRepository.findByAccountIdAndProductId(accountId, productId).isEmpty()) {
+        if (wishlistItemRepository.countByAccountId(accountId) >= MAX_ITEMS) {
+          throw new ConflictException(
+              "Danh sách yêu thích đã đủ " + MAX_ITEMS + " sản phẩm, hãy bỏ bớt trước khi thêm");
+        }
+        wishlistItemRepository.save(new WishlistItem(account, product, LocalDateTime.now(clock)));
+        requestRecompute(accountId);
+      }
+      return wishlistItemRepository.findProductIdsOf(accountId);
+    });
   }
 
   /**
@@ -130,18 +125,17 @@ public class WishlistService {
    * @throws NoSuchElementException nếu tài khoản không còn tồn tại
    */
   public List<Long> remove(long accountId, long productId) {
-    return transactionRetry.execute(
-        () -> {
-          lockAccount(accountId);
-          Optional<WishlistItem> item =
-              wishlistItemRepository.findByAccountIdAndProductId(accountId, productId);
-          if (item.isPresent()) {
-            wishlistItemRepository.delete(item.get());
-            wishlistItemRepository.flush();
-            requestRecompute(accountId);
-          }
-          return wishlistItemRepository.findProductIdsOf(accountId);
-        });
+    return transactionRetry.execute(() -> {
+      lockAccount(accountId);
+      Optional<WishlistItem> item =
+          wishlistItemRepository.findByAccountIdAndProductId(accountId, productId);
+      if (item.isPresent()) {
+        wishlistItemRepository.delete(item.get());
+        wishlistItemRepository.flush();
+        requestRecompute(accountId);
+      }
+      return wishlistItemRepository.findProductIdsOf(accountId);
+    });
   }
 
   private Account lockAccount(long accountId) {

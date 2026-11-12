@@ -105,9 +105,8 @@ public class SegmentProfileService {
     long totalQuantity = profileRepository.totalQuantity(segmentId);
     List<CategoryShare> categories =
         profileRepository.topCategories(segmentId, TOP_CATEGORIES).stream()
-            .map(
-                c ->
-                    new CategoryShare(c.name(), c.quantity(), percent(c.quantity(), totalQuantity)))
+            .map(c ->
+                new CategoryShare(c.name(), c.quantity(), percent(c.quantity(), totalQuantity)))
             .toList();
 
     return new SegmentProfileResponse(
@@ -183,11 +182,10 @@ public class SegmentProfileService {
 
   private static List<Bucket> buckets(List<String> keys, Map<String, Long> counts, long total) {
     return keys.stream()
-        .map(
-            key -> {
-              long count = counts.getOrDefault(key, 0L);
-              return new Bucket(key, count, percent(count, total));
-            })
+        .map(key -> {
+          long count = counts.getOrDefault(key, 0L);
+          return new Bucket(key, count, percent(count, total));
+        })
         .toList();
   }
 

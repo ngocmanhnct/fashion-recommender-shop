@@ -45,63 +45,62 @@ public class SecurityConfig {
     http.csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
         .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(
-            auth ->
-                auth.requestMatchers(
-                        HttpMethod.POST,
-                        "/api/auth/register",
-                        "/api/auth/login",
-                        "/api/auth/forgot-password",
-                        "/api/auth/reset-password")
-                    .permitAll()
-                    .requestMatchers(
-                        HttpMethod.GET,
-                        "/api/categories",
-                        "/api/brands",
-                        "/api/products",
-                        "/api/products/*",
-                        "/api/products/*/related")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/products/*/views")
-                    .hasRole("CUSTOMER")
-                    .requestMatchers("/api/products/*/reviews/me")
-                    .hasRole("CUSTOMER")
-                    .requestMatchers(HttpMethod.GET, "/api/products/*/reviews")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/cart/preview")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/api/survey")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/survey/brands", "/api/survey/evaluate")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.POST, "/api/recommendations/events")
-                    .permitAll()
-                    .requestMatchers(
-                        HttpMethod.GET, "/api/payments/vnpay/return", "/api/payments/vnpay/ipn")
-                    .permitAll()
-                    .requestMatchers(
-                        "/api/cart",
-                        "/api/cart/**",
-                        "/api/addresses",
-                        "/api/addresses/**",
-                        "/api/orders",
-                        "/api/orders/**",
-                        "/api/survey/me",
-                        "/api/survey/me/**",
-                        "/api/recommendations/me",
-                        "/api/wishlist",
-                        "/api/wishlist/**",
-                        "/api/vouchers/me",
-                        "/api/reviews/pending")
-                    .hasRole("CUSTOMER")
-                    .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.OPTIONS, "/**")
-                    .permitAll()
-                    .requestMatchers("/api/admin/**")
-                    .hasRole("ADMIN")
-                    .anyRequest()
-                    .authenticated())
+        .authorizeHttpRequests(auth ->
+            auth.requestMatchers(
+                    HttpMethod.POST,
+                    "/api/auth/register",
+                    "/api/auth/login",
+                    "/api/auth/forgot-password",
+                    "/api/auth/reset-password")
+                .permitAll()
+                .requestMatchers(
+                    HttpMethod.GET,
+                    "/api/categories",
+                    "/api/brands",
+                    "/api/products",
+                    "/api/products/*",
+                    "/api/products/*/related")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/products/*/views")
+                .hasRole("CUSTOMER")
+                .requestMatchers("/api/products/*/reviews/me")
+                .hasRole("CUSTOMER")
+                .requestMatchers(HttpMethod.GET, "/api/products/*/reviews")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/cart/preview")
+                .permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/survey")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/survey/brands", "/api/survey/evaluate")
+                .permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/recommendations/events")
+                .permitAll()
+                .requestMatchers(
+                    HttpMethod.GET, "/api/payments/vnpay/return", "/api/payments/vnpay/ipn")
+                .permitAll()
+                .requestMatchers(
+                    "/api/cart",
+                    "/api/cart/**",
+                    "/api/addresses",
+                    "/api/addresses/**",
+                    "/api/orders",
+                    "/api/orders/**",
+                    "/api/survey/me",
+                    "/api/survey/me/**",
+                    "/api/recommendations/me",
+                    "/api/wishlist",
+                    "/api/wishlist/**",
+                    "/api/vouchers/me",
+                    "/api/reviews/pending")
+                .hasRole("CUSTOMER")
+                .requestMatchers("/actuator/health", "/actuator/health/**", "/error")
+                .permitAll()
+                .requestMatchers(HttpMethod.OPTIONS, "/**")
+                .permitAll()
+                .requestMatchers("/api/admin/**")
+                .hasRole("ADMIN")
+                .anyRequest()
+                .authenticated())
         .oauth2ResourceServer(
             rs -> rs.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
     return http.build();

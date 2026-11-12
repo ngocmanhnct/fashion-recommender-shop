@@ -248,19 +248,16 @@ public class SurveyService {
    * @return khảo sát của tài khoản
    */
   public MySurveyResponse skipMine(long accountId) {
-    return transactionRetry.execute(
-        () -> {
-          lockAccount(accountId);
-          SurveyResult result =
-              resultRepository
-                  .findById(accountId)
-                  .orElseGet(
-                      () ->
-                          resultRepository.save(
-                              new SurveyResult(
-                                  accountId, SurveyStatus.SKIPPED, LocalDateTime.now(clock))));
-          return toMine(result);
-        });
+    return transactionRetry.execute(() -> {
+      lockAccount(accountId);
+      SurveyResult result =
+          resultRepository
+              .findById(accountId)
+              .orElseGet(() ->
+                  resultRepository.save(
+                      new SurveyResult(accountId, SurveyStatus.SKIPPED, LocalDateTime.now(clock))));
+      return toMine(result);
+    });
   }
 
   private MySurveyResponse save(long accountId, List<SurveyAnswer> answers) {

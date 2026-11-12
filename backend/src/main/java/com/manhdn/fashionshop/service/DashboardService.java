@@ -172,18 +172,17 @@ public class DashboardService {
   private AbTestSummary runningAbTest() {
     return experimentRepository
         .findFirstByEndedAtIsNullOrderByIdDesc()
-        .map(
-            experiment -> {
-              AbTestResultResponse result = abTestService.result(experiment.getId());
-              return new AbTestSummary(
-                  experiment.getId(),
-                  experiment.getName(),
-                  experiment.getStartedAt(),
-                  result.treatment().users(),
-                  result.treatment().clickRate(),
-                  result.control().users(),
-                  result.control().clickRate());
-            })
+        .map(experiment -> {
+          AbTestResultResponse result = abTestService.result(experiment.getId());
+          return new AbTestSummary(
+              experiment.getId(),
+              experiment.getName(),
+              experiment.getStartedAt(),
+              result.treatment().users(),
+              result.treatment().clickRate(),
+              result.control().users(),
+              result.control().clickRate());
+        })
         .orElse(null);
   }
 
