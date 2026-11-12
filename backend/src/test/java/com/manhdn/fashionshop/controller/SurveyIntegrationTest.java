@@ -500,12 +500,11 @@ class SurveyIntegrationTest {
     return categoryRepository
         .findByName(name)
         .map(c -> c.getId())
-        .orElseGet(
-            () -> {
-              long id = categoryService.create(name).id();
-              categoryIds.add(id);
-              return id;
-            });
+        .orElseGet(() -> {
+          long id = categoryService.create(name).id();
+          categoryIds.add(id);
+          return id;
+        });
   }
 
   private long brand() {

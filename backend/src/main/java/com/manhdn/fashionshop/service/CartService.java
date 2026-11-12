@@ -89,11 +89,10 @@ public class CartService {
    * @throws NoSuchElementException nếu tài khoản không còn tồn tại
    */
   public CartResponse getCart(long accountId) {
-    return transactionRetry.execute(
-        () -> {
-          lockAccount(accountId);
-          return currentCart(accountId, new ArrayList<>());
-        });
+    return transactionRetry.execute(() -> {
+      lockAccount(accountId);
+      return currentCart(accountId, new ArrayList<>());
+    });
   }
 
   /**
@@ -134,20 +133,18 @@ public class CartService {
    * @throws NoSuchElementException nếu tài khoản không còn tồn tại
    */
   public CartResponse removeItem(long accountId, long variantId) {
-    return transactionRetry.execute(
-        () -> {
-          lockAccount(accountId);
-          List<CartItem> items = cartItemRepository.findCartOf(accountId);
-          items.stream()
-              .filter(item -> item.getVariant().getId() == variantId)
-              .findFirst()
-              .ifPresent(
-                  item -> {
-                    cartItemRepository.delete(item);
-                    requestRecompute(accountId);
-                  });
-          return currentCart(accountId, new ArrayList<>());
-        });
+    return transactionRetry.execute(() -> {
+      lockAccount(accountId);
+      List<CartItem> items = cartItemRepository.findCartOf(accountId);
+      items.stream()
+          .filter(item -> item.getVariant().getId() == variantId)
+          .findFirst()
+          .ifPresent(item -> {
+            cartItemRepository.delete(item);
+            requestRecompute(accountId);
+          });
+      return currentCart(accountId, new ArrayList<>());
+    });
   }
 
   /**

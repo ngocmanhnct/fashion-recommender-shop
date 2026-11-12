@@ -135,9 +135,8 @@ public class AbAssignmentRepository {
               rs.getLong("users_bought_clicked");
         });
     Map<AbVariant, VariantStats> result = new EnumMap<>(AbVariant.class);
-    values.forEach(
-        (variant, v) ->
-            result.put(variant, new VariantStats(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])));
+    values.forEach((variant, v) ->
+        result.put(variant, new VariantStats(v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7])));
     return result;
   }
 

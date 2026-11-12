@@ -132,11 +132,10 @@ class CatalogSeedServiceTest {
     }
     // Chữ tách dấu (NFD) hay kèm dấu kết hợp (U+0300–U+036F) không tìm được bằng từ khóa
     assertThat(texts)
-        .filteredOn(
-            text ->
-                text != null
-                    && (!Normalizer.isNormalized(text, Normalizer.Form.NFC)
-                        || COMBINING_MARK.matcher(text).find()))
+        .filteredOn(text ->
+            text != null
+                && (!Normalizer.isNormalized(text, Normalizer.Form.NFC)
+                    || COMBINING_MARK.matcher(text).find()))
         .isEmpty();
   }
 

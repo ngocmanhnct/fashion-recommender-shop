@@ -168,26 +168,24 @@ public class CustomerAdminService {
     List<SegmentOverviewResponse.SegmentStats> segments =
         customerSegmentRepository.findAll().stream()
             .sorted(Comparator.comparingInt(CustomerAdminService::displayOrder))
-            .map(
-                segment ->
-                    segmentStats(
-                        segment,
-                        stats.get(segment.getId()),
-                        segmented,
-                        revenue.getOrDefault(segment.getId(), 0L),
-                        totalRevenue))
+            .map(segment ->
+                segmentStats(
+                    segment,
+                    stats.get(segment.getId()),
+                    segmented,
+                    revenue.getOrDefault(segment.getId(), 0L),
+                    totalRevenue))
             .toList();
     SegmentOverviewResponse.ModelInfo model =
         segmentModelRepository
             .findFirstByOrderByIdDesc()
-            .map(
-                m ->
-                    new SegmentOverviewResponse.ModelInfo(
-                        m.getClusterCount(),
-                        m.getElbowClusterCount(),
-                        m.getCustomerCount(),
-                        m.getSilhouette(),
-                        m.getTrainedAt()))
+            .map(m ->
+                new SegmentOverviewResponse.ModelInfo(
+                    m.getClusterCount(),
+                    m.getElbowClusterCount(),
+                    m.getCustomerCount(),
+                    m.getSilhouette(),
+                    m.getTrainedAt()))
             .orElse(null);
     long customers = accountRepository.countByRole(Role.CUSTOMER);
     return new SegmentOverviewResponse(

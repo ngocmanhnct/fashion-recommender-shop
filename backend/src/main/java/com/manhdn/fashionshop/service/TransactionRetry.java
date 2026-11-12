@@ -71,11 +71,10 @@ public class TransactionRetry {
    * @throws IllegalStateException nếu đang có giao dịch chạy
    */
   public void run(Runnable action) {
-    execute(
-        () -> {
-          action.run();
-          return null;
-        });
+    execute(() -> {
+      action.run();
+      return null;
+    });
   }
 
   /** Trong chuỗi nguyên nhân có SQLException mã 1213 (khóa chéo) hoặc 1205 (chờ khóa quá lâu). */

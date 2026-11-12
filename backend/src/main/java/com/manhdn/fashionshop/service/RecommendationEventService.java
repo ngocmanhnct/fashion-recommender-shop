@@ -118,11 +118,10 @@ public class RecommendationEventService {
       total[column] += c.getTotal();
     }
     List<Row> rows = new ArrayList<>();
-    groups.forEach(
-        (key, value) -> {
-          String[] parts = key.split("\u0000", -1);
-          rows.add(Row.of(parts[0], parts[1], value[0], value[1]));
-        });
+    groups.forEach((key, value) -> {
+      String[] parts = key.split("\u0000", -1);
+      rows.add(Row.of(parts[0], parts[1], value[0], value[1]));
+    });
     return new RecommendationCtrResponse(start, end, Row.of(null, null, total[0], total[1]), rows);
   }
 }

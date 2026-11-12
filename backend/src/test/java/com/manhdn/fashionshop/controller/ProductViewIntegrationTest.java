@@ -216,22 +216,17 @@ class ProductViewIntegrationTest {
   @Test
   void requestNeedsAReadWriteTransaction() {
     long account = account();
-    assertThatThrownBy(
-            () ->
-                recomputeRequestService.request(
-                    account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY))
+    assertThatThrownBy(() ->
+            recomputeRequestService.request(
+                account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY))
         .isInstanceOf(IllegalStateException.class);
 
     TransactionTemplate readOnly = new TransactionTemplate(transactionManager);
     readOnly.setReadOnly(true);
-    assertThatThrownBy(
-            () ->
-                readOnly.executeWithoutResult(
-                    status ->
-                        recomputeRequestService.request(
-                            account,
-                            RecomputeTask.RECOMMENDATION,
-                            RecomputeRequestService.VIEW_DELAY)))
+    assertThatThrownBy(() ->
+            readOnly.executeWithoutResult(status ->
+                recomputeRequestService.request(
+                    account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY)))
         .isInstanceOf(IllegalStateException.class);
     assertThat(requestCount(account)).isZero();
   }
@@ -241,17 +236,14 @@ class ProductViewIntegrationTest {
     long account = account();
 
     new TransactionTemplate(transactionManager)
-        .executeWithoutResult(
-            status -> {
-              recomputeRequestService.request(
-                  account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY);
-              recomputeRequestService.request(
-                  account,
-                  RecomputeTask.RECOMMENDATION,
-                  RecomputeRequestService.STRONG_ACTION_DELAY);
-              recomputeRequestService.request(
-                  account, RecomputeTask.SEGMENT_ASSIGN, RecomputeRequestService.VIEW_DELAY);
-            });
+        .executeWithoutResult(status -> {
+          recomputeRequestService.request(
+              account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY);
+          recomputeRequestService.request(
+              account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.STRONG_ACTION_DELAY);
+          recomputeRequestService.request(
+              account, RecomputeTask.SEGMENT_ASSIGN, RecomputeRequestService.VIEW_DELAY);
+        });
 
     assertThat(requestCount(account)).isEqualTo(2);
     assertThat(version(account)).isEqualTo(1);
@@ -273,17 +265,15 @@ class ProductViewIntegrationTest {
     TransactionTemplate inner = new TransactionTemplate(transactionManager);
     inner.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
 
-    outer.executeWithoutResult(
-        status -> {
+    outer.executeWithoutResult(status -> {
+      recomputeRequestService.request(
+          account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY);
+      // Giao dịch mới lồng bên trong có tập yêu cầu riêng và commit độc lập
+      inner.executeWithoutResult(innerStatus ->
           recomputeRequestService.request(
-              account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY);
-          // Giao dịch mới lồng bên trong có tập yêu cầu riêng và commit độc lập
-          inner.executeWithoutResult(
-              innerStatus ->
-                  recomputeRequestService.request(
-                      other, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY));
-          status.setRollbackOnly();
-        });
+              other, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY));
+      status.setRollbackOnly();
+    });
 
     assertThat(requestCount(account)).isZero();
     assertThat(requestCount(other)).isEqualTo(1);
@@ -297,19 +287,16 @@ class ProductViewIntegrationTest {
     AtomicInteger attempts = new AtomicInteger();
 
     String result =
-        transactionRetry.execute(
-            () -> {
-              if (attempts.incrementAndGet() == 1) {
-                recomputeRequestService.request(
-                    account,
-                    RecomputeTask.RECOMMENDATION,
-                    RecomputeRequestService.STRONG_ACTION_DELAY);
-                throw deadlock();
-              }
-              recomputeRequestService.request(
-                  account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY);
-              return "xong";
-            });
+        transactionRetry.execute(() -> {
+          if (attempts.incrementAndGet() == 1) {
+            recomputeRequestService.request(
+                account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.STRONG_ACTION_DELAY);
+            throw deadlock();
+          }
+          recomputeRequestService.request(
+              account, RecomputeTask.RECOMMENDATION, RecomputeRequestService.VIEW_DELAY);
+          return "xong";
+        });
 
     assertThat(result).isEqualTo("xong");
     assertThat(attempts).hasValue(2);
@@ -323,13 +310,12 @@ class ProductViewIntegrationTest {
     AtomicInteger attempts = new AtomicInteger();
 
     String result =
-        transactionRetry.execute(
-            () -> {
-              if (attempts.incrementAndGet() == 1) {
-                throw lockWaitTimeout();
-              }
-              return "xong";
-            });
+        transactionRetry.execute(() -> {
+          if (attempts.incrementAndGet() == 1) {
+            throw lockWaitTimeout();
+          }
+          return "xong";
+        });
 
     assertThat(result).isEqualTo("xong");
     assertThat(attempts).hasValue(2);
@@ -338,24 +324,20 @@ class ProductViewIntegrationTest {
   @Test
   void transactionRetryGivesUpAfterThreeAttemptsAndNeverRetriesOtherErrors() {
     AtomicInteger deadlocks = new AtomicInteger();
-    assertThatThrownBy(
-            () ->
-                transactionRetry.run(
-                    () -> {
-                      deadlocks.incrementAndGet();
-                      throw deadlock();
-                    }))
+    assertThatThrownBy(() ->
+            transactionRetry.run(() -> {
+              deadlocks.incrementAndGet();
+              throw deadlock();
+            }))
         .isInstanceOf(CannotAcquireLockException.class);
     assertThat(deadlocks).hasValue(3);
 
     AtomicInteger failures = new AtomicInteger();
-    assertThatThrownBy(
-            () ->
-                transactionRetry.run(
-                    () -> {
-                      failures.incrementAndGet();
-                      throw new IllegalArgumentException("Lỗi nghiệp vụ");
-                    }))
+    assertThatThrownBy(() ->
+            transactionRetry.run(() -> {
+              failures.incrementAndGet();
+              throw new IllegalArgumentException("Lỗi nghiệp vụ");
+            }))
         .isInstanceOf(IllegalArgumentException.class);
     assertThat(failures).hasValue(1);
   }

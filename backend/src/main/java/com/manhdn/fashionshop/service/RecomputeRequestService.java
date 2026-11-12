@@ -117,14 +117,13 @@ public class RecomputeRequestService {
 
     @Override
     public void beforeCommit(boolean readOnly) {
-      delays.forEach(
-          (key, delay) ->
-              jdbcTemplate.update(
-                  UPSERT_SQL,
-                  new MapSqlParameterSource()
-                      .addValue("accountId", key.accountId())
-                      .addValue("taskType", key.task().name())
-                      .addValue("delayMicros", delay.toNanos() / 1_000)));
+      delays.forEach((key, delay) ->
+          jdbcTemplate.update(
+              UPSERT_SQL,
+              new MapSqlParameterSource()
+                  .addValue("accountId", key.accountId())
+                  .addValue("taskType", key.task().name())
+                  .addValue("delayMicros", delay.toNanos() / 1_000)));
     }
   }
 }
