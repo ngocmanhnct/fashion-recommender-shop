@@ -1,5 +1,5 @@
 # Bước 5 Tuần 4 — image cho ml-service (FastAPI).
-FROM python:3.13-slim
+FROM python:3.15-slim
 WORKDIR /app
 
 # Cài uv qua pip (cùng công cụ quản lý gói đang dùng trên máy dev, xem README).
