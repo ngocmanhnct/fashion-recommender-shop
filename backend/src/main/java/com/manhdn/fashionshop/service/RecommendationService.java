@@ -1,7 +1,6 @@
 package com.manhdn.fashionshop.service;
 
 import static com.manhdn.fashionshop.repository.ProductSpecifications.forSale;
-import static com.manhdn.fashionshop.repository.ProductSpecifications.idNotIn;
 import static com.manhdn.fashionshop.repository.ProductSpecifications.inStock;
 
 import com.manhdn.fashionshop.dto.ProductCardResponse;
@@ -9,7 +8,6 @@ import com.manhdn.fashionshop.dto.RecentActivityResponse;
 import com.manhdn.fashionshop.dto.RecommendationSource;
 import com.manhdn.fashionshop.dto.RecommendationsResponse;
 import com.manhdn.fashionshop.dto.RelatedProductResponse;
-import com.manhdn.fashionshop.entity.AbVariant;
 import com.manhdn.fashionshop.entity.Recommendation;
 import com.manhdn.fashionshop.repository.CartItemRepository;
 import com.manhdn.fashionshop.repository.ProductRepository;
@@ -43,10 +41,6 @@ import org.springframework.transaction.annotation.Transactional;
  * giỏ": sản phẩm liên quan của lần xem hoặc thêm giỏ gần nhất trong {@link #RECENT_WINDOW_HOURS}
  * giờ, tính lúc mở trang như khối sản phẩm liên quan (US-12). Sản phẩm đã có ở hàng này không lặp
  * lại ở danh sách chính.
- *
- * <p>Khi có thử nghiệm A/B đang chạy (US-13), khách thuộc nhóm CONTROL thấy sản phẩm bán chạy (trừ
- * sản phẩm đã mua hoặc đang trong giỏ, giống danh sách học máy) thay cho cả 2 phần trên; nhóm
- * TREATMENT thấy như bình thường.
  */
 @Service
 @Transactional(readOnly = true)
@@ -72,7 +66,6 @@ public class RecommendationService {
   private final ProductViewLogRepository viewLogRepository;
   private final CartItemRepository cartItemRepository;
   private final ProductCatalogService catalogService;
-  private final AbTestService abTestService;
   private final Clock clock;
 
   /** Nhận các phụ thuộc qua constructor. */
@@ -82,13 +75,11 @@ public class RecommendationService {
       ProductViewLogRepository viewLogRepository,
       CartItemRepository cartItemRepository,
       ProductCatalogService catalogService,
-      AbTestService abTestService,
       Clock clock) {
     this.recommendationRepository = recommendationRepository;
     this.productRepository = productRepository;
     this.cartItemRepository = cartItemRepository;
     this.catalogService = catalogService;
-    this.abTestService = abTestService;
     this.viewLogRepository = viewLogRepository;
     this.clock = clock;
   }
@@ -104,38 +95,21 @@ public class RecommendationService {
    * sản phẩm nào còn bán), thời điểm tính danh sách và cờ {@code updating} cho biết ml-service còn
    * đang tính lại (frontend tải lại sau vài giây để khách thấy danh sách mới).
    *
-   * <p>Có thử nghiệm A/B đang chạy thì khách có danh sách riêng được chia nhóm ở lần gọi đầu (vì
-   * vậy phương thức này có ghi); nhóm CONTROL nhận sản phẩm bán chạy trừ sản phẩm đã mua hoặc đang
-   * trong giỏ. Khách của cả 2 nhóm đều không có hàng hành động gần nhất, để 2 nhóm thấy cùng một
-   * giao diện và chỉ khác cách chọn sản phẩm trong khối chính. {@code abVariant} cho biết nhóm của
-   * khách, null khi không tham gia thử nghiệm.
-   *
    * @param accountId mã tài khoản khách hàng
    * @return nguồn, danh sách sản phẩm kèm lý do, hàng hành động gần nhất và trạng thái cập nhật
    */
-  @Transactional
   public RecommendationsResponse forAccount(long accountId) {
-    List<Recommendation> rows = recommendationRepository.findForAccount(accountId);
-    Map<Long, ProductCardResponse> cards =
-        AvailableProducts.byId(
-            productRepository, rows.stream().map(r -> r.getProduct().getId()).toList());
-    Optional<AbVariant> variant = abTestService.variantFor(accountId, !cards.isEmpty());
-    String abVariant = variant.map(AbVariant::name).orElse(null);
-    if (variant.isPresent() && variant.get() == AbVariant.CONTROL) {
-      Set<Long> owned =
-          recommendationRepository.findOwnedProductIds(accountId).stream()
-              .map(Number::longValue)
-              .collect(Collectors.toSet());
-      return new RecommendationsResponse(
-          SOURCE_POPULAR, bestSellers(owned), null, null, false, abVariant);
-    }
-
-    RecentActivityResponse recent = variant.isPresent() ? null : recentActivity(accountId);
+    RecentActivityResponse recent = recentActivity(accountId);
     Set<Long> inRecent =
         recent == null
             ? Set.of()
             : recent.products().stream().map(p -> p.product().id()).collect(Collectors.toSet());
     boolean updating = recommendationRepository.countPendingRecompute(accountId) > 0;
+
+    List<Recommendation> rows = recommendationRepository.findForAccount(accountId);
+    Map<Long, ProductCardResponse> cards =
+        AvailableProducts.byId(
+            productRepository, rows.stream().map(r -> r.getProduct().getId()).toList());
     List<Recommendation> shown = new ArrayList<>();
     for (Recommendation row : rows) {
       Long productId = row.getProduct().getId();
@@ -148,8 +122,7 @@ public class RecommendationService {
     if (shown.isEmpty()) {
       List<RelatedProductResponse> popular =
           bestSellers().stream().filter(p -> !inRecent.contains(p.product().id())).toList();
-      return new RecommendationsResponse(
-          SOURCE_POPULAR, popular, recent, null, updating, abVariant);
+      return new RecommendationsResponse(SOURCE_POPULAR, popular, recent, null, updating);
     }
     String source = hasEnoughBehaviour(accountId) ? SOURCE_BEHAVIOR : SOURCE_SURVEY;
     List<RelatedProductResponse> products =
@@ -163,7 +136,7 @@ public class RecommendationService {
     ZonedDateTime generatedAt = shown.get(0).getGeneratedAt().atZone(clock.getZone());
     long secondsAgo =
         Math.max(0, Duration.between(generatedAt, ZonedDateTime.now(clock)).toSeconds());
-    return new RecommendationsResponse(source, products, recent, secondsAgo, updating, abVariant);
+    return new RecommendationsResponse(source, products, recent, secondsAgo, updating);
   }
 
   /**
@@ -210,15 +183,11 @@ public class RecommendationService {
         >= ProductViewService.VIEW_THRESHOLD;
   }
 
+  /** Sản phẩm bán chạy đang bán, còn hàng. */
   private List<RelatedProductResponse> bestSellers() {
-    return bestSellers(Set.of());
-  }
-
-  /** Sản phẩm bán chạy đang bán, còn hàng, trừ các mã cho trước. */
-  private List<RelatedProductResponse> bestSellers(Set<Long> excludedIds) {
     return productRepository
         .findBy(
-            forSale().and(inStock()).and(idNotIn(excludedIds)),
+            forSale().and(inStock()),
             q -> q.sortBy(ProductCatalogService.POPULAR_ORDER).limit(HOME_LIMIT).all())
         .stream()
         .map(p ->

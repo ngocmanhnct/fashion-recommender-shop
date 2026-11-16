@@ -45,15 +45,6 @@ const DATA = {
     byPlacement: [row('HOME', null, 120, 12), row('PRODUCT_DETAIL', null, 80, 4)],
     bySource: [row(null, 'BEHAVIOR', 150, 14), row(null, 'POPULAR', 50, 2)],
   },
-  abTest: {
-    id: 3,
-    name: 'Gợi ý so với bán chạy',
-    startedAt: '2026-10-30T08:00:00',
-    treatmentUsers: 40,
-    treatmentClickRate: 45,
-    controlUsers: 38,
-    controlClickRate: 21.05,
-  },
 };
 
 const EMPTY = {
@@ -72,7 +63,6 @@ const EMPTY = {
   ordersByStatus: DATA.ordersByStatus.map((s) => ({ ...s, count: 0 })),
   topProducts: [],
   recommendations: { total: row(null, null, 0, 0), byPlacement: [], bySource: [] },
-  abTest: null,
 };
 
 function renderPage() {
@@ -140,7 +130,7 @@ describe('DashboardPage', () => {
     expect(within(table).getAllByRole('row')).toHaveLength(4);
   });
 
-  it('hiện hiệu quả gợi ý theo vị trí, nguồn và thử nghiệm A/B đang chạy', async () => {
+  it('hiện hiệu quả gợi ý theo vị trí và nguồn', async () => {
     renderPage();
     await screen.findByText('Hiệu quả gợi ý');
     expect(screen.getByText('25% tiền hàng đã giao')).toBeInTheDocument();
@@ -151,10 +141,6 @@ describe('DashboardPage', () => {
     ).toHaveTextContent('1201210%');
     const bySource = screen.getByRole('table', { name: 'Theo nguồn' });
     expect(within(bySource).getByText('Bán chạy')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Thử nghiệm A\/B đang chạy: Gợi ý so với bán chạy/)
-    ).toBeInTheDocument();
-    expect(screen.getByText(/Nhóm bán chạy: 38 khách, 21,05% khách bấm gợi ý/)).toBeInTheDocument();
   });
 
   it('chọn nhanh 7 ngày, chọn ngày tự do và báo lỗi khi ngày bắt đầu sau ngày kết thúc', async () => {
@@ -200,7 +186,6 @@ describe('DashboardPage', () => {
     expect(screen.getAllByText('Chưa có đơn đã giao trong khoảng này.')).toHaveLength(2);
     expect(screen.getByText('Chưa có lượt hiện gợi ý nào trong khoảng này.')).toBeInTheDocument();
     expect(screen.getByText('Chưa có tiền hàng đã giao')).toBeInTheDocument();
-    expect(screen.getByText(/Không có thử nghiệm A\/B nào đang chạy/)).toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Doanh thu theo ngày' })).toBeNull();
   });
 

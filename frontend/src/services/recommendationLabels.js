@@ -1,6 +1,4 @@
-// Nhãn hiển thị của trang "Hiệu quả gợi ý" (US-13): vị trí, nguồn gợi ý và kết luận thử nghiệm A/B.
-
-const P_VALUE = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 4 });
+// Nhãn hiển thị của trang "Hiệu quả gợi ý" (US-13) và bảng điều khiển: vị trí và nguồn gợi ý.
 
 export const PLACEMENT_LABELS = {
   HOME: 'Trang chủ: Gợi ý cho bạn',
@@ -17,18 +15,3 @@ export const SOURCE_LABELS = {
   RULE: 'Theo quy tắc (dự phòng)',
   POPULAR: 'Bán chạy',
 };
-
-/** Câu kết luận của một phép so sánh (BR-46). */
-export function describeVerdict(comparison, minUsers) {
-  const p = comparison.pValue == null ? null : P_VALUE.format(comparison.pValue);
-  switch (comparison.verdict) {
-    case 'TREATMENT_BETTER':
-      return `Nhóm gợi ý cao hơn rõ rệt (p = ${p} < 0,05).`;
-    case 'CONTROL_BETTER':
-      return `Nhóm bán chạy cao hơn rõ rệt (p = ${p} < 0,05).`;
-    case 'NO_DIFFERENCE':
-      return `Chưa thấy khác biệt có ý nghĩa (p = ${p} ≥ 0,05).`;
-    default:
-      return `Chưa đủ khách để kết luận: mỗi nhóm cần ít nhất ${minUsers} khách.`;
-  }
-}
