@@ -1,7 +1,6 @@
 package com.manhdn.fashionshop.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -15,7 +14,6 @@ import java.util.List;
  * @param ordersByStatus số đơn đặt trong khoảng theo trạng thái, đủ 5 trạng thái
  * @param topProducts sản phẩm bán chạy nhất theo số lượng ở đơn Đã giao
  * @param recommendations lượt hiện, lượt bấm và tỷ lệ bấm gợi ý
- * @param abTest thử nghiệm A/B đang chạy; null khi không có
  */
 public record DashboardResponse(
     LocalDate from,
@@ -24,8 +22,7 @@ public record DashboardResponse(
     List<Day> days,
     List<StatusCount> ordersByStatus,
     List<TopProduct> topProducts,
-    Recommendations recommendations,
-    AbTestSummary abTest) {
+    Recommendations recommendations) {
 
   /**
    * Các số tổng của khoảng.
@@ -91,24 +88,4 @@ public record DashboardResponse(
       RecommendationCtrResponse.Row total,
       List<RecommendationCtrResponse.Row> byPlacement,
       List<RecommendationCtrResponse.Row> bySource) {}
-
-  /**
-   * Tóm tắt thử nghiệm A/B đang chạy (chi tiết ở trang Hiệu quả gợi ý).
-   *
-   * @param id mã thử nghiệm
-   * @param name tên thử nghiệm
-   * @param startedAt lúc bắt đầu
-   * @param treatmentUsers số khách nhóm gợi ý học máy
-   * @param treatmentClickRate tỷ lệ khách nhóm đó bấm gợi ý ít nhất 1 lần (%)
-   * @param controlUsers số khách nhóm bán chạy
-   * @param controlClickRate tỷ lệ khách nhóm đó bấm gợi ý ít nhất 1 lần (%)
-   */
-  public record AbTestSummary(
-      long id,
-      String name,
-      LocalDateTime startedAt,
-      long treatmentUsers,
-      Double treatmentClickRate,
-      long controlUsers,
-      Double controlClickRate) {}
 }

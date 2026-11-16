@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import * as abTestApi from '../../src/services/abTestApi';
 import * as addressApi from '../../src/services/addressApi';
 import { brandAdminApi, categoryAdminApi } from '../../src/services/adminCatalogApi';
 import * as authApi from '../../src/services/authApi';
@@ -12,6 +11,7 @@ import * as orderAdminApi from '../../src/services/orderAdminApi';
 import * as orderApi from '../../src/services/orderApi';
 import * as productAdminApi from '../../src/services/productAdminApi';
 import * as productApi from '../../src/services/productApi';
+import * as recommendationAdminApi from '../../src/services/recommendationAdminApi';
 import * as recommendationApi from '../../src/services/recommendationApi';
 import * as reviewApi from '../../src/services/reviewApi';
 import * as surveyApi from '../../src/services/surveyApi';
@@ -54,15 +54,6 @@ const CALLS = [
     '/api/auth/reset-password',
     { token: 'abc', newPassword: 'moi12345a' },
   ],
-  [() => abTestApi.listAbTests(), 'get', '/api/admin/ab-tests'],
-  [
-    () => abTestApi.startAbTest({ name: 'A', treatmentPercent: 50 }),
-    'post',
-    '/api/admin/ab-tests',
-    { name: 'A', treatmentPercent: 50 },
-  ],
-  [() => abTestApi.stopAbTest(4), 'post', '/api/admin/ab-tests/4/stop'],
-  [() => abTestApi.getAbTestResult(4), 'get', '/api/admin/ab-tests/4'],
   [() => addressApi.listAddresses(), 'get', '/api/addresses'],
   [() => addressApi.createAddress({ a: 1 }), 'post', '/api/addresses', { a: 1 }],
   [() => addressApi.updateAddress(2, { a: 1 }), 'put', '/api/addresses/2', { a: 1 }],
@@ -187,7 +178,7 @@ const QUERIES = [
   [() => customerAdminApi.getCampaigns('VIP'), '/api/admin/campaigns', { segment: 'VIP' }],
   [() => orderApi.getCheckoutPreview(), '/api/orders/preview', {}],
   [
-    () => abTestApi.getRecommendationCtr({ from: '2026-10-01', to: '2026-10-30' }),
+    () => recommendationAdminApi.getRecommendationCtr({ from: '2026-10-01', to: '2026-10-30' }),
     '/api/admin/recommendations/ctr',
     { from: '2026-10-01', to: '2026-10-30' },
   ],

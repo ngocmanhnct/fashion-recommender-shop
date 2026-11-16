@@ -6,7 +6,7 @@ import { useApiData } from '../../hooks/useApiData';
 import { getDashboard } from '../../services/dashboardApi';
 import { getErrorMessage } from '../../services/errorMessage';
 import { formatNumber, formatPrice } from '../../services/format';
-import { formatDateTime, ORDER_STATUS_LABELS } from '../../services/orderLabels';
+import { ORDER_STATUS_LABELS } from '../../services/orderLabels';
 import { PLACEMENT_LABELS, SOURCE_LABELS } from '../../services/recommendationLabels';
 
 const PRESETS = [7, 30, 90];
@@ -192,11 +192,7 @@ function DashboardContent({ result }) {
           <TopProducts products={result.topProducts} />
         </section>
       </div>
-      <RecommendationSection
-        recommendations={result.recommendations}
-        summary={summary}
-        abTest={result.abTest}
-      />
+      <RecommendationSection recommendations={result.recommendations} summary={summary} />
     </>
   );
 }
@@ -347,7 +343,7 @@ function TopProducts({ products }) {
   );
 }
 
-function RecommendationSection({ recommendations, summary, abTest }) {
+function RecommendationSection({ recommendations, summary }) {
   const { total } = recommendations;
   return (
     <section className="checkout-section dash-recommendations">
@@ -391,7 +387,6 @@ function RecommendationSection({ recommendations, summary, abTest }) {
           />
         </div>
       )}
-      <AbTestCard abTest={abTest} />
     </section>
   );
 }
@@ -420,36 +415,6 @@ function CtrTable({ title, column, rows, labelOf }) {
           ))}
         </tbody>
       </table>
-    </div>
-  );
-}
-
-function AbTestCard({ abTest }) {
-  if (!abTest) {
-    return (
-      <p className="dash-ab muted">
-        Không có thử nghiệm A/B nào đang chạy.{' '}
-        <Link to="/admin/recommendations">Bắt đầu thử nghiệm</Link>
-      </p>
-    );
-  }
-  return (
-    <div className="dash-ab">
-      <p>
-        <strong>Thử nghiệm A/B đang chạy: {abTest.name}</strong>{' '}
-        <span className="muted small">từ {formatDateTime(abTest.startedAt)}</span>
-      </p>
-      <ul>
-        <li>
-          Nhóm gợi ý học máy: {formatNumber(abTest.treatmentUsers)} khách,{' '}
-          {percent(abTest.treatmentClickRate)} khách bấm gợi ý
-        </li>
-        <li>
-          Nhóm bán chạy: {formatNumber(abTest.controlUsers)} khách,{' '}
-          {percent(abTest.controlClickRate)} khách bấm gợi ý
-        </li>
-      </ul>
-      <Link to="/admin/recommendations">Xem kết quả và kiểm định</Link>
     </div>
   );
 }

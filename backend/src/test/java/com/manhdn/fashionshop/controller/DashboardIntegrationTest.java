@@ -53,8 +53,6 @@ class DashboardIntegrationTest {
 
   @BeforeEach
   void setUp() {
-    // CSDL test dùng chung giữa các lần chạy: dừng thử nghiệm còn sót (nếu có) trong giao dịch này.
-    jdbcTemplate.update("UPDATE ab_experiment SET ended_at = NOW() WHERE ended_at IS NULL");
     category = categoryService.create("Danh mục tổng quan " + UUID.randomUUID()).id();
   }
 
@@ -125,17 +123,11 @@ class DashboardIntegrationTest {
         .andExpect(jsonPath("$.recommendations.byPlacement[1].placement").value("PRODUCT_DETAIL"))
         .andExpect(jsonPath("$.recommendations.byPlacement[1].clicked").value(0))
         .andExpect(jsonPath("$.recommendations.bySource[0].source").value("BEHAVIOR"))
-        .andExpect(jsonPath("$.recommendations.bySource[1].source").value("RELATED"))
-        .andExpect(jsonPath("$.abTest").doesNotExist());
+        .andExpect(jsonPath("$.recommendations.bySource[1].source").value("RELATED"));
   }
 
   @Test
-  void emptyRangeHasZerosAndRunningAbTestIsSummarised() throws Exception {
-    jdbcTemplate.update(
-        "INSERT INTO ab_experiment (name, treatment_percent, started_at) VALUES (?, 50, ?)",
-        "Thử nghiệm tổng quan",
-        LocalDateTime.now());
-
+  void emptyRangeHasZeros() throws Exception {
     admin(get(DASHBOARD).param("from", "2031-07-01").param("to", "2031-07-01"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.summary.revenue").value(0))
@@ -144,9 +136,7 @@ class DashboardIntegrationTest {
         .andExpect(jsonPath("$.days.length()").value(1))
         .andExpect(jsonPath("$.topProducts.length()").value(0))
         .andExpect(jsonPath("$.recommendations.total.ctr").doesNotExist())
-        .andExpect(jsonPath("$.recommendations.byPlacement.length()").value(0))
-        .andExpect(jsonPath("$.abTest.name").value("Thử nghiệm tổng quan"))
-        .andExpect(jsonPath("$.abTest.treatmentUsers").value(0));
+        .andExpect(jsonPath("$.recommendations.byPlacement.length()").value(0));
   }
 
   @Test

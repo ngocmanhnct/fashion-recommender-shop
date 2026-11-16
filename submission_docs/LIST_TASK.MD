@@ -51,7 +51,7 @@
 | 23 | "Thường được mua cùng" ở giỏ hàng | | 9 | Mạnh | Xong (PR #74) |
 | 24 | Mã giảm giá; tặng mã theo nhóm; tự tặng mã khi vào nhóm | US-21, 22, 24, 26 | 9 | Mạnh | Xong (PR #82, #83, #84, #110) |
 | 25 | Hồ sơ nhóm khách hàng, danh sách cần chăm sóc | US-25 | 9 | Mạnh | Xong (PR #79) |
-| 26 | Thử nghiệm A/B gợi ý | US-13 | 9 | Mạnh | Xong (PR #85, #87, #110); chưa có số liệu thật |
+| 26 | Thử nghiệm A/B gợi ý | US-13 | 9 | Mạnh | Đã làm (PR #85, #87, #110), bỏ ngày 16/11/2026 vì chưa có khách thật; để ở hướng phát triển |
 | 27 | Bảng điều khiển quản trị | US-26 | 9 | Mạnh | Xong (PR #88) |
 | 28 | Hồ sơ cá nhân, quên mật khẩu qua email | US-04, US-05 | 9 | Mạnh | Xong (PR #91) |
 | 29 | Làm mới giao diện; ảnh sản phẩm thật theo danh mục | | 9-10 | Mạnh | Xong: giao diện (PR #77); ảnh minh họa CC0/public domain cho 42/42 danh mục (PR #129, #131, #135) |

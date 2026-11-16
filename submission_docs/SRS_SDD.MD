@@ -12,8 +12,8 @@
 | Yêu cầu | Vị trí trong file này | Tình trạng |
 |---|---|---|
 | 100% use case có tiêu chí chấp nhận | Mục 1: US-01 đến US-26, mỗi US có danh sách "Tiêu chí chấp nhận"; Mục 1.10 nối từng US với API và test | 26/26 US có AC |
-| Quy tắc nghiệp vụ | Mục 2: BR-01 đến BR-49 | Đủ |
-| Từ điển dữ liệu | Mục 3: 32 bảng, khớp 32 bảng tạo bởi Flyway V1–V12 | Đã đối chiếu 06/11; đến 12/11 không có migration mới |
+| Quy tắc nghiệp vụ | Mục 2: BR-01 đến BR-49 (BR-46 đã bỏ ngày 16/11) | Đủ |
+| Từ điển dữ liệu | Mục 3: 30 bảng, khớp 30 bảng sau Flyway V1–V13 | Đã đối chiếu 06/11; 16/11 thêm V13 xóa 2 bảng thử nghiệm A/B |
 | ≥ 5 yêu cầu phi chức năng định lượng | Mục 4: NFR-01 đến NFR-06, kèm số đo ngày 04/11 | 6 NFR, đều có ngưỡng số |
 | ≥ 4 loại sơ đồ (Mermaid hoặc PlantUML) | Mục 5: use case, hoạt động, ERD, tuần tự (4 luồng), thành phần, triển khai, CI/CD | 7 loại |
 | Khớp mã nguồn | Mục 1.10 (US → API → test), Mục 5.3 (ERD sinh từ CSDL thật), Mục 7 | Đối chiếu đầy đủ 06/11, kiểm lại phần thay đổi 12/11 |
@@ -218,14 +218,10 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Mỗi nhóm có tối đa 1 chương trình đang chạy; admin dừng được, khách đã nhận vẫn dùng được đến hạn riêng
 - Kết quả của chương trình hiện cùng bảng kết quả các lần tặng mã, số khách được tặng tăng dần theo thời gian
 
-**US-13 (mở rộng): Thử nghiệm A/B gợi ý học máy so với sản phẩm bán chạy** *(bổ sung 31/10/2026)* Là admin, tôi muốn chia khách thành 2 nhóm ngẫu nhiên, một nhóm thấy gợi ý học máy và một nhóm thấy sản phẩm bán chạy ở cùng chỗ trên trang chủ, rồi so sánh tỷ lệ bấm và tỷ lệ mua của 2 nhóm, để có bằng chứng bằng số rằng gợi ý học máy hiệu quả hơn cách đơn giản nhất. Tiêu chí chấp nhận:
+**US-13 (mở rộng): Xem hiệu quả gợi ý** *(bổ sung 31/10/2026; bỏ phần thử nghiệm A/B ngày 16/11/2026)* Là admin, tôi muốn xem khách bấm vào gợi ý nhiều hay ít ở từng vị trí, để biết khối gợi ý nào được dùng. Tiêu chí chấp nhận:
 
-- Admin bắt đầu thử nghiệm ở trang "Hiệu quả gợi ý" với tên và tỷ lệ khách vào nhóm gợi ý (10-90%, mặc định 50%); mỗi lúc chỉ chạy 1 thử nghiệm, admin dừng được bất cứ lúc nào
-- Khi thử nghiệm chạy, khách đã có danh sách gợi ý riêng được chia nhóm ở lần đầu mở trang chủ, cố định trong suốt thử nghiệm (BR-46): nhóm A (gợi ý học máy) thấy danh sách học máy, nhóm B (bán chạy) thấy sản phẩm bán chạy trong cùng khối "Gợi ý cho bạn", trừ sản phẩm đã mua hoặc đang trong giỏ như danh sách học máy. Hai nhóm thấy cùng một giao diện: không có hàng "Vì bạn vừa xem", cùng dòng mô tả, không lý do gợi ý, giờ cập nhật hay nhãn "Mới" *(sửa 04/11/2026)*; khách không được báo mình thuộc nhóm nào
-- Khách chưa có danh sách gợi ý riêng không tham gia (cả 2 nhóm đều sẽ thấy sản phẩm bán chạy, không có gì để so); sản phẩm liên quan ở trang chi tiết, giỏ hàng và kết quả khảo sát không đổi
-- Kết quả theo từng nhóm: số khách, lượt hiện, lượt bấm, tỷ lệ bấm, tỷ lệ khách bấm ít nhất 1 lần, tỷ lệ khách đặt hàng, tỷ lệ khách mua sản phẩm đã bấm từ gợi ý, số đơn, doanh thu và doanh thu trên mỗi khách; chỉ tính hành động từ lúc khách được chia nhóm đến lúc dừng
-- Mỗi tỷ lệ theo khách có chênh lệch A − B, giá trị p và kết luận (BR-46); xem lại được kết quả của các thử nghiệm đã dừng
-- Cùng trang có bảng tỷ lệ bấm theo vị trí và nguồn gợi ý trong 7, 30 hoặc 90 ngày gần nhất
+- Trang "Hiệu quả gợi ý" (`/admin/recommendations`) có bảng lượt hiện, lượt bấm và tỷ lệ bấm theo vị trí và nguồn gợi ý trong 7, 30 hoặc 90 ngày gần nhất, kèm dòng tổng
+- Thử nghiệm A/B chia khách thành 2 nhóm (bổ sung 31/10/2026) đã bỏ ngày 16/11/2026: website chưa có khách thật, mỗi nhóm cần hàng trăm đến hàng nghìn khách mới kết luận được, nên thử nghiệm A/B chuyển sang hướng phát triển
 
 **US-26: Xem trang tổng quan (bảng điều khiển của Quản trị viên)** *(bổ sung 31/10/2026)* Là admin, tôi muốn mở trang quản trị là thấy ngay tình hình cửa hàng trong một khoảng ngày: doanh thu, đơn hàng, sản phẩm bán chạy và hiệu quả gợi ý, để biết cửa hàng đang thế nào mà không phải mở từng trang. Tiêu chí chấp nhận:
 
@@ -233,7 +229,7 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Ngày tính theo giờ Việt Nam. Số tổng: doanh thu, số đơn đã giao, giá trị đơn trung bình, số đơn đặt (mọi trạng thái), số khách hàng mới (BR-45)
 - Biểu đồ cột doanh thu theo ngày (ngày không có đơn là 0), rê chuột hoặc Tab vào cột để xem số, có dạng bảng
 - Số đơn theo 5 trạng thái kèm tỷ lệ; 10 sản phẩm bán nhiều nhất trong đơn đã giao (số lượng, tiền hàng), bấm tên để mở trang sửa sản phẩm
-- Hiệu quả gợi ý: lượt hiện, lượt bấm, tỷ lệ bấm theo vị trí và theo nguồn, doanh thu từ gợi ý và tỷ lệ của nó trên tiền hàng (BR-45), tóm tắt thử nghiệm A/B đang chạy (US-13) với liên kết sang trang "Hiệu quả gợi ý"
+- Hiệu quả gợi ý: lượt hiện, lượt bấm, tỷ lệ bấm theo vị trí và theo nguồn, doanh thu từ gợi ý và tỷ lệ của nó trên tiền hàng (BR-45), kèm liên kết sang trang "Hiệu quả gợi ý"
 
 **US-04, US-05 (mở rộng): Hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu** *(bổ sung 31/10/2026)* Là người dùng đã có tài khoản, tôi muốn sửa thông tin cá nhân, đổi mật khẩu và lấy lại mật khẩu khi quên, để tự quản lý tài khoản mà không cần nhờ quản trị viên. Tiêu chí chấp nhận:
 
@@ -245,7 +241,7 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 
 ---
 
-**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, tiêu chí chấp nhận ở Epic 6), US-24 (tặng mã theo nhóm khách hàng: tặng ngay và tự tặng cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (trang tổng quan của Quản trị viên); thử nghiệm A/B gợi ý là phần mở rộng của US-13, hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu là phần mở rộng của US-04, US-05. Số US và BR khớp luận văn (Phụ lục A) và bản cam kết.**
+**Tổng cộng: 22 user story gốc, 100% có acceptance criteria. Bổ sung sau: US-23 (khảo sát lần đầu, tiêu chí chấp nhận ở Epic 6), US-24 (tặng mã theo nhóm khách hàng: tặng ngay và tự tặng cho khách mới vào nhóm), US-25 (hồ sơ nhóm khách hàng), US-26 (trang tổng quan của Quản trị viên); trang hiệu quả gợi ý là phần mở rộng của US-13, hồ sơ cá nhân, đổi mật khẩu và quên mật khẩu là phần mở rộng của US-04, US-05. Số US và BR khớp luận văn (Phụ lục A) và bản cam kết.**
 
 ### 1.10 Truy vết use case → API → test (đối chiếu mã nguồn ngày 06/11/2026)
 
@@ -265,7 +261,7 @@ API lấy từ các lớp trong `backend/src/main/java/com/manhdn/fashionshop/co
 | US-10 | Thanh toán, xác nhận đơn | `GET /api/orders/preview`, `POST /api/orders`, `POST /api/orders/{id}/payment-url`, `GET /api/payments/vnpay/return`, `/ipn` | `/checkout`, `/payment/vnpay-return` | TC-28 – TC-31, TC-34 |
 | US-11 | Lịch sử đơn hàng | `GET /api/orders`, `GET /api/orders/{id}` | `/orders`, `/orders/:id` | TC-37 |
 | US-12 | Sản phẩm liên quan | `GET /api/products/{id}/related` | `/products/:id` | TC-38, TC-39 |
-| US-13 | Gợi ý trang chủ; thử nghiệm A/B (mở rộng) | `GET /api/recommendations/me`, `POST /api/recommendations/events`, `/api/admin/ab-tests` (GET, POST, `/{id}`, `/{id}/stop`), `GET /api/admin/recommendations/ctr` | `/`, `/admin/recommendations` | TC-40 – TC-43, TC-50, TC-51 |
+| US-13 | Gợi ý trang chủ; trang hiệu quả gợi ý (mở rộng) | `GET /api/recommendations/me`, `POST /api/recommendations/events`, `GET /api/admin/recommendations/ctr` | `/`, `/admin/recommendations` | TC-40 – TC-43, TC-50 |
 | US-14 | Yêu thích | `/api/wishlist` (GET, `/ids`, PUT, DELETE) | `/wishlist` | TC-66 |
 | US-15 | Đánh giá sản phẩm | `/api/products/{productId}/reviews` (GET, `/me`), `GET /api/reviews/pending` | `/products/:id`, `/orders/:id` | TC-67 |
 | US-16 | Quản lý sản phẩm | `/api/admin/products` (+ `/variants`), `/api/admin/categories`, `/api/admin/brands` | `/admin/products` | TC-61 – TC-63 |
@@ -412,8 +408,8 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
 
 
-- **BR-45 — Số liệu bảng điều khiển** *(bổ sung 31/10/2026, US-26)*: một đơn thuộc ngày nó được đặt (`orders.created_at`, đổi sang giờ Việt Nam), vì chưa lưu lúc giao. Doanh thu = tổng `total_amount` (đã gồm phí vận chuyển, đã trừ giảm giá) của đơn DELIVERED; giá trị đơn trung bình = doanh thu / số đơn DELIVERED; số đơn đặt tính mọi trạng thái; khách hàng mới = tài khoản CUSTOMER tạo trong khoảng. Sản phẩm bán chạy xếp theo tổng số lượng trong đơn DELIVERED, bằng nhau thì theo tiền hàng. Doanh thu từ gợi ý = tổng `line_total` của các dòng đơn DELIVERED mà cùng khách đã bấm sản phẩm đó trong một khối gợi ý (RECOMMENDATION_CLICKED, mọi vị trí) trong 7 ngày trước lúc đặt; tỷ lệ của nó tính trên tổng `subtotal_amount` (tiền hàng chưa trừ giảm giá) của đơn DELIVERED. Đây là số quy cho gợi ý, không phải bằng chứng gợi ý làm tăng doanh thu (khách có thể vẫn mua dù không có gợi ý); bằng chứng nhân quả là thử nghiệm A/B (BR-46).
-- **BR-46 — Thử nghiệm A/B gợi ý** *(bổ sung 31/10/2026, US-13)*: nhóm của khách chọn bằng băm, không bằng số ngẫu nhiên: lấy 4 byte đầu của SHA-256(`ab:{mã thử nghiệm}:{mã tài khoản}`) chia lấy dư 100, nhỏ hơn tỷ lệ nhóm gợi ý thì vào nhóm A (TREATMENT), còn lại nhóm B (CONTROL). Cách này ngẫu nhiên giữa các khách nhưng cố định với từng khách, và đổi giữa các lần thử nghiệm; nhóm được ghi vào `ab_assignment` kèm lúc chia ở lần đầu khách đủ điều kiện mở trang chủ. Chỉ số so sánh tính theo khách (mỗi khách là 1 quan sát độc lập): tỷ lệ khách bấm gợi ý trang chủ ít nhất 1 lần, tỷ lệ khách đặt ít nhất 1 đơn chưa hủy, tỷ lệ khách đặt đơn có sản phẩm đã bấm từ gợi ý trang chủ trước lúc đặt. Hai tỷ lệ x₁/n₁ (A) và x₂/n₂ (B) được so bằng kiểm định z hai tỷ lệ, hai phía: p̂ = (x₁ + x₂)/(n₁ + n₂), z = (x₁/n₁ − x₂/n₂) / √(p̂(1 − p̂)(1/n₁ + 1/n₂)), giá trị p = 2(1 − Φ(|z|)). Kết luận: nhóm nào dưới 30 khách thì "chưa đủ khách để kết luận"; p < 0,05 thì nhóm có tỷ lệ cao hơn "cao hơn rõ rệt"; còn lại "chưa thấy khác biệt có ý nghĩa". Tỷ lệ bấm theo lượt hiện chỉ để tham khảo, không kiểm định (các lượt hiện của cùng một khách không độc lập).
+- **BR-45 — Số liệu bảng điều khiển** *(bổ sung 31/10/2026, US-26)*: một đơn thuộc ngày nó được đặt (`orders.created_at`, đổi sang giờ Việt Nam), vì chưa lưu lúc giao. Doanh thu = tổng `total_amount` (đã gồm phí vận chuyển, đã trừ giảm giá) của đơn DELIVERED; giá trị đơn trung bình = doanh thu / số đơn DELIVERED; số đơn đặt tính mọi trạng thái; khách hàng mới = tài khoản CUSTOMER tạo trong khoảng. Sản phẩm bán chạy xếp theo tổng số lượng trong đơn DELIVERED, bằng nhau thì theo tiền hàng. Doanh thu từ gợi ý = tổng `line_total` của các dòng đơn DELIVERED mà cùng khách đã bấm sản phẩm đó trong một khối gợi ý (RECOMMENDATION_CLICKED, mọi vị trí) trong 7 ngày trước lúc đặt; tỷ lệ của nó tính trên tổng `subtotal_amount` (tiền hàng chưa trừ giảm giá) của đơn DELIVERED. Đây là số quy cho gợi ý, không phải bằng chứng gợi ý làm tăng doanh thu (khách có thể vẫn mua dù không có gợi ý); muốn có bằng chứng nhân quả cần thử nghiệm A/B trên khách thật, là hướng phát triển.
+- **BR-46** *(bỏ ngày 16/11/2026)*: quy tắc chia nhóm và kiểm định của thử nghiệm A/B gợi ý, bỏ cùng chức năng. Số BR-46 để trống, BR-47 đến BR-49 giữ nguyên số.
 
 - **BR-47 — Liên kết đặt lại mật khẩu** *(bổ sung 31/10/2026, US-05)*: mã trong liên kết là 32 byte ngẫu nhiên (`SecureRandom`, mã hóa base64url); CSDL chỉ lưu SHA-256 của mã (`password_reset_token.token_hash`), nên người đọc được CSDL cũng không dựng lại được liên kết. Liên kết hết hạn sau 30 phút và chỉ dùng được 1 lần; đặt mật khẩu mới xong thì mọi liên kết khác của tài khoản cũng mất hiệu lực, đổi mật khẩu ở trang hồ sơ cũng vậy. Chống gửi thư liên tục: cùng 1 tài khoản không gửi thư mới trong 60 giây sau thư trước, tối đa 5 thư mỗi giờ; vượt giới hạn hoặc email không có tài khoản thì vẫn trả cùng một câu trả lời (202) và không gửi gì. Thư gửi sau khi giao dịch ghi xong, ở luồng nền, để thời gian phản hồi không lộ email có tài khoản hay không. **\[Giả định\]** JWT đã cấp không bị thu hồi khi đổi hoặc đặt lại mật khẩu (JWT không lưu trạng thái, hết hạn sau 24 giờ, NFR-03); thu hồi cần danh sách chặn hoặc phiên bản token, là hướng mở rộng.
 - **BR-48 — Hồ sơ cá nhân** *(bổ sung 31/10/2026, US-04)*: Người mua (và Quản trị viên, với tài khoản của chính mình) sửa được họ tên (bắt buộc), giới tính, ngày sinh (phải trước ngày hiện tại); email là định danh đăng nhập nên không sửa được (BR-01). Đổi mật khẩu phải nhập đúng mật khẩu hiện tại, nhập sai được tính như một lần đăng nhập sai (NFR-03); mật khẩu mới theo BR-02 và phải khác mật khẩu hiện tại.
@@ -841,23 +837,9 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 
 Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (các đơn chưa hủy có `voucher_id` của chiến dịch): số khách mua, số đơn, doanh thu (`total_amount`), tiền đã giảm (`discount_amount`).
 
-### 3.18 Thử nghiệm A/B gợi ý — `ab_experiment`, `ab_assignment`
+### 3.18 (đã bỏ) Thử nghiệm A/B gợi ý
 
-*Nguồn: US-13, BR-46. Migration V9 (31/10/2026).*
-
-| Bảng | Cột | Kiểu | Ràng buộc | Ghi chú |
-| :---- | :---- | :---- | :---- | :---- |
-| ab\_experiment | id | BIGINT UNSIGNED | PK |  |
-| ab\_experiment | name | VARCHAR(100) | NOT NULL | Tên do admin đặt |
-| ab\_experiment | treatment\_percent | INT | NOT NULL, CHECK 10-90 | Phần trăm khách vào nhóm gợi ý học máy |
-| ab\_experiment | started\_at | DATETIME | NOT NULL, INDEX |  |
-| ab\_experiment | ended\_at | DATETIME | NULLABLE | NULL \= đang chạy; tối đa 1 thử nghiệm đang chạy (kiểm tra ở backend) |
-| ab\_assignment | experiment\_id | BIGINT UNSIGNED | PK (cùng account\_id), FK → ab\_experiment.id |  |
-| ab\_assignment | account\_id | BIGINT UNSIGNED | PK, FK → account.id, INDEX |  |
-| ab\_assignment | variant | ENUM('TREATMENT','CONTROL') | NOT NULL | Nhóm A (gợi ý học máy) hoặc B (bán chạy), BR-46 |
-| ab\_assignment | assigned\_at | DATETIME | NOT NULL | Lúc chia nhóm; kết quả chỉ tính hành động từ lúc này |
-
-Kết quả thử nghiệm không lưu sẵn mà tính khi xem từ `product_event_log` (lượt hiện, lượt bấm ở vị trí HOME và HOME\_RECENT) và `orders` (đơn chưa hủy, kèm `order_item` để biết khách mua sản phẩm đã bấm).
+*Migration V9 (31/10/2026) tạo 2 bảng `ab_experiment`, `ab_assignment`; migration V13 (16/11/2026) xóa 2 bảng này khi bỏ chức năng thử nghiệm A/B. Số mục giữ nguyên để không đổi số Mục 3.19.*
 
 ### 3.19 Đặt lại mật khẩu — `password_reset_token`
 
@@ -874,7 +856,7 @@ Kết quả thử nghiệm không lưu sẵn mà tính khi xem từ `product_eve
 
 ---
 
-**Tổng cộng: 32 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10, 3 bảng chiến dịch ở Mục 3.17, 2 bảng thử nghiệm A/B ở Mục 3.18 và `password_reset_token` ở Mục 3.19), bao phủ toàn bộ Mục 1-2.
+**Tổng cộng: 30 bảng dữ liệu** (21 bảng ban đầu, 4 bảng khảo sát ở Mục 3.16, `segment_model` ở Mục 3.10, 3 bảng chiến dịch ở Mục 3.17 và `password_reset_token` ở Mục 3.19), bao phủ toàn bộ Mục 1-2.
 
 ## 4. Yêu cầu phi chức năng
 
@@ -984,7 +966,7 @@ rectangle "Website bán hàng có tích hợp học máy" {
   usecase "US-24 Tự tặng mã khi vào nhóm" as U24
   usecase "US-25 Xem hồ sơ nhóm khách hàng" as U25
   usecase "US-24 Tặng mã theo nhóm" as U26
-  usecase "US-13 Thử nghiệm A/B gợi ý" as U27
+  usecase "US-13 Xem hiệu quả gợi ý" as U27
   usecase "US-26 Bảng điều khiển" as U28
 }
 K --> U1
@@ -1060,23 +1042,10 @@ flowchart TD
 
 ### 5.3 ERD (Mermaid, sinh tự động từ CSDL)
 
-Sinh ngày 06/11/2026 bằng cách chạy 12 file migration `backend/src/main/resources/db/migration/V1` đến `V12` trên MySQL 8.4 trống, rồi đọc `information_schema` (cột, khóa chính, khóa ngoại, khóa duy nhất). Kết quả: 32 bảng, 43 khóa ngoại, khớp số bảng ở Mục 3. Ký hiệu quan hệ: `||` bắt buộc, `|o` có thể NULL, `o{` nhiều, `o|` tối đa 1 (khóa ngoại cũng là khóa duy nhất). Bảng `orders` là thực thể "order" trong đặc tả (đổi tên vì `ORDER` là từ khóa của MySQL).
+Sinh ngày 06/11/2026 bằng cách chạy các file migration `backend/src/main/resources/db/migration/V1` đến `V12` trên MySQL 8.4 trống, rồi đọc `information_schema` (cột, khóa chính, khóa ngoại, khóa duy nhất). Ngày 16/11/2026 migration V13 xóa 2 bảng thử nghiệm A/B (`ab_experiment`, `ab_assignment`) nên sơ đồ bỏ 2 bảng này và 2 khóa ngoại của chúng. Kết quả: 30 bảng, 41 khóa ngoại, khớp số bảng ở Mục 3. Ký hiệu quan hệ: `||` bắt buộc, `|o` có thể NULL, `o{` nhiều, `o|` tối đa 1 (khóa ngoại cũng là khóa duy nhất). Bảng `orders` là thực thể "order" trong đặc tả (đổi tên vì `ORDER` là từ khóa của MySQL).
 
 ```mermaid
 erDiagram
-    ab_assignment {
-        bigint experiment_id PK,FK
-        bigint account_id PK,FK
-        enum variant
-        datetime assigned_at
-    }
-    ab_experiment {
-        bigint id PK
-        varchar name
-        int treatment_percent
-        datetime started_at
-        datetime ended_at
-    }
     account {
         bigint id PK
         varchar email UK
@@ -1366,8 +1335,6 @@ erDiagram
         bigint product_id FK
         datetime created_at
     }
-    ab_experiment ||--o{ ab_assignment : "experiment_id"
-    account ||--o{ ab_assignment : "account_id"
     customer_segment ||--o{ account_segment : "segment_id"
     account ||--o| account_segment : "account_id"
     account ||--o{ address : "account_id"
@@ -1727,18 +1694,18 @@ Bộ metric chính thức là bảng K1–K8 trong bản cam kết `COMMITMENT_S
 
 **Ghi chú về K1.** Trên riêng nhóm giày, túi, phụ kiện của H&M (cùng loại hàng với website, 7,4% lượt mua), mô hình kết hợp trúng 13,5%, chưa phân biệt được với gợi ý bán chạy 7 ngày (12,9%; khoảng tin cậy 95% của chênh lệch từ −0,1 đến +1,2 điểm); chi tiết trong `data/hm/ket-qua-giay-tui-phu-kien.md`. Bản nháp trước đo độ chính xác trên dữ liệu mô phỏng; con số 49,3% ở bản đó bị thổi phồng do rò rỉ nhãn (sửa 03/11), và dữ liệu mô phỏng không phải hành vi thật, nên K1, K2 chuyển sang dữ liệu H&M.
 
-**Các chỉ số của bản nháp cũ chưa có số liệu.** Hệ thống đã ghi lượt hiển thị và lượt bấm gợi ý; trang tổng quan quản trị tính tỷ lệ bấm gợi ý (CTR) theo vị trí, theo nguồn và doanh thu từ sản phẩm được gợi ý, và có thử nghiệm A/B. Vì không tổ chức thực nghiệm người dùng (quyết định ngày 06/11/2026), CTR, chênh lệch A/B, tỷ lệ chuyển đổi, tỷ lệ bỏ giỏ, tỷ lệ khách quay lại, điểm SUS và tỷ lệ hoàn thành tác vụ (TC2.7) không có số liệu thật; luận văn ghi đây là hạn chế và hướng phát triển.
+**Các chỉ số của bản nháp cũ chưa có số liệu.** Hệ thống đã ghi lượt hiển thị và lượt bấm gợi ý; trang tổng quan quản trị tính tỷ lệ bấm gợi ý (CTR) theo vị trí, theo nguồn và doanh thu từ sản phẩm được gợi ý. Chức năng thử nghiệm A/B đã bỏ ngày 16/11/2026 vì website chưa có khách thật. Vì không tổ chức thực nghiệm người dùng (quyết định ngày 06/11/2026), CTR, chênh lệch A/B, tỷ lệ chuyển đổi, tỷ lệ bỏ giỏ, tỷ lệ khách quay lại, điểm SUS và tỷ lệ hoàn thành tác vụ (TC2.7) không có số liệu thật; luận văn ghi đây là hạn chế và hướng phát triển.
 
 ## 7. Đối chiếu với mã nguồn
 
-Đối chiếu đầy đủ ngày 06/11/2026 trên commit `c415b14`. Ngày 12/11/2026 kiểm lại trên commit `230c757`: `git diff c415b14..230c757` không đổi `@…Mapping` nào của controller, route trong `frontend/src/App.jsx` hay tệp migration, nên các dòng dưới vẫn đúng; phần mã đổi (điểm "đang bán chạy" của gợi ý) được ghi ở US-13.
+Đối chiếu đầy đủ ngày 06/11/2026 trên commit `c415b14`. Ngày 12/11/2026 kiểm lại trên commit `230c757`: `git diff c415b14..230c757` không đổi `@…Mapping` nào của controller, route trong `frontend/src/App.jsx` hay tệp migration, nên các dòng dưới vẫn đúng; phần mã đổi (điểm "đang bán chạy" của gợi ý) được ghi ở US-13. Ngày 16/11/2026 bỏ thử nghiệm A/B: xóa 4 API `/api/admin/ab-tests`, BR-46 và 2 bảng (migration V13); Mục 1.10, 2, 3 và 5.3 đã sửa theo.
 
 | Phần | Cách đối chiếu | Kết quả |
 |---|---|---|
 | Use case | Mỗi API ở Mục 1.10 được tìm thấy trong `@GetMapping`/`@PostMapping`/`@PutMapping`/`@DeleteMapping` của lớp controller; mỗi trang có route trong `frontend/src/App.jsx` | 26/26 US có API và trang |
-| Quy tắc nghiệp vụ | Tìm số BR trong ca kiểm thử của `TEST_PLAN_AND_CASES.MD` Mục 6 | 39/49 BR có ca kiểm thử ghi rõ số; BR-03, BR-21, BR-25 đến BR-28, BR-31, BR-32, BR-39, BR-40 chưa có ca nào ghi số BR |
-| Từ điển dữ liệu | Chạy V1–V12 trên MySQL 8.4 trống, đếm bảng trong `information_schema` (không tính `flyway_schema_history`) | 32 bảng, khớp 32 bảng ở Mục 3 |
-| ERD | Sinh tự động từ `information_schema` (Mục 5.3), không vẽ tay | 32 bảng, 43 khóa ngoại |
+| Quy tắc nghiệp vụ | Tìm số BR trong ca kiểm thử của `TEST_PLAN_AND_CASES.MD` Mục 6 | 38/48 BR (không tính BR-46 đã bỏ) có ca kiểm thử ghi rõ số; BR-03, BR-21, BR-25 đến BR-28, BR-31, BR-32, BR-39, BR-40 chưa có ca nào ghi số BR |
+| Từ điển dữ liệu | Chạy V1–V12 trên MySQL 8.4 trống, đếm bảng trong `information_schema` (không tính `flyway_schema_history`) | 32 bảng (06/11); V13 (16/11) xóa 2 bảng thử nghiệm A/B nên còn 30, khớp 30 bảng ở Mục 3 |
+| ERD | Sinh tự động từ `information_schema` (Mục 5.3), không vẽ tay | 30 bảng, 41 khóa ngoại (đã bỏ 2 bảng thử nghiệm A/B) |
 | Sơ đồ tuần tự | Mỗi luồng ghi tên lớp và phương thức thật | 4 luồng |
 | Thành phần, triển khai, CI/CD | Theo `docker-compose.yml`, `deploy/staging/docker-compose.yml`, `.github/workflows/ci.yml`, `rollback.yml` | Khớp |
 
@@ -1748,6 +1715,6 @@ Bộ metric chính thức là bảng K1–K8 trong bản cam kết `COMMITMENT_S
 - Thuộc tính `rank` của `recommendation` và `product_event_log` lưu ở cột `rank_position`, vì `RANK` là từ khóa của MySQL 8.
 - Lớp Java đặt tên `MlServiceClient`, `VnPayClient` (quy tắc Checkstyle); tài liệu gọi là MLServiceClient, VNPayClient.
 
-**Cách kiểm tra lại:** chạy `docker compose up -d --build` ở gốc repo, rồi `docker compose exec mysql mysql -uroot -p fashionshop -e "SHOW TABLES"` (32 bảng cùng `flyway_schema_history`).
+**Cách kiểm tra lại:** chạy `docker compose up -d --build` ở gốc repo, rồi `docker compose exec mysql mysql -uroot -p fashionshop -e "SHOW TABLES"` (30 bảng cùng `flyway_schema_history`).
 
-**Đánh số US và BR:** từ 06/11/2026 số US và BR trong file này, `docs/dac-ta-yeu-cau.md`, mã nguồn và tài liệu kiểm thử khớp luận văn (Phụ lục A) và bản cam kết: US-01 đến US-26, BR-01 đến BR-49; thử nghiệm A/B là phần mở rộng của US-13, hồ sơ cá nhân và quên mật khẩu là phần mở rộng của US-04, US-05. Riêng chú thích trong các tệp migration V7 đến V10 vẫn ghi số cũ (US-26 đến US-29, BR-43 đến BR-48 theo cách đánh trước đó), vì Flyway kiểm tra checksum nên không được sửa tệp migration đã chạy.
+**Đánh số US và BR:** từ 06/11/2026 số US và BR trong file này, `docs/dac-ta-yeu-cau.md`, mã nguồn và tài liệu kiểm thử khớp luận văn (Phụ lục A) và bản cam kết: US-01 đến US-26, BR-01 đến BR-49 (BR-46 đã bỏ ngày 16/11/2026 cùng thử nghiệm A/B, các số khác giữ nguyên); trang hiệu quả gợi ý là phần mở rộng của US-13, hồ sơ cá nhân và quên mật khẩu là phần mở rộng của US-04, US-05. Riêng chú thích trong các tệp migration V7 đến V10 vẫn ghi số cũ (US-26 đến US-29, BR-43 đến BR-48 theo cách đánh trước đó), vì Flyway kiểm tra checksum nên không được sửa tệp migration đã chạy.

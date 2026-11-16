@@ -70,7 +70,7 @@ export const ADMIN_SECTIONS = [
       {
         to: '/admin/recommendations',
         label: 'Hiệu quả gợi ý',
-        hint: 'Thử nghiệm A/B, tỷ lệ bấm',
+        hint: 'Tỷ lệ bấm theo vị trí, nguồn',
         icon: 'chart',
       },
     ],

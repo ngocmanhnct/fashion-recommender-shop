@@ -20,12 +20,12 @@
 - `frontend` (React);
 - `ml-service` (FastAPI: gợi ý, phân nhóm, hàng đợi tính lại).
 
-Phạm vi nghiệp vụ là 26 user story trong đặc tả: 22 story gốc và US-23 đến US-26 bổ sung sau (thử nghiệm A/B, hồ sơ cá nhân và quên mật khẩu là phần mở rộng của US-13, US-04, US-05). Cùng với đó là các business rule BR-01 đến BR-49.
+Phạm vi nghiệp vụ là 26 user story trong đặc tả: 22 story gốc và US-23 đến US-26 bổ sung sau (trang hiệu quả gợi ý, hồ sơ cá nhân và quên mật khẩu là phần mở rộng của US-13, US-04, US-05). Cùng với đó là các business rule BR-01 đến BR-49 (BR-46 đã bỏ cùng thử nghiệm A/B ngày 16/11/2026).
 
 **Ngoài phạm vi:**
 - Cổng VNPay thật: chỉ dùng sandbox.
 - Thiết bị di động thật và trình duyệt ngoài Chromium.
-- Đợt thực nghiệm với người dùng thật (SUS, A/B): chưa thực hiện, xem Mục 9.
+- Đợt thực nghiệm với người dùng thật (SUS) và thử nghiệm A/B trên khách thật: chưa thực hiện, xem Mục 9.
 
 **Mục tiêu:**
 1. Mỗi tiêu chí chấp nhận (AC) quan trọng của các user story có ít nhất 1 test tự động. Bảng truy vết ở Mục 6 có đủ ca dương (+), ca âm (−) và ca biên (B).
@@ -35,14 +35,14 @@ Phạm vi nghiệp vụ là 26 user story trong đặc tả: 22 story gốc và 
 
 ## 2. Chiến lược: 4 tầng tự động và kiểm thử phi chức năng
 
-Số liệu tính trên commit `c415b14`, ngày 06/11/2026.
+Số liệu tính trên commit `c415b14`, ngày 06/11/2026. Ngày 16/11/2026 bỏ thử nghiệm A/B nên đã trừ các test của nó: 3 lớp backend (`AbTestIntegrationTest`, `AbTestServiceTest`, `TwoProportionTestTest`, 8 phương thức) và 10 test Vitest.
 
 | Tầng | Công cụ | Vị trí mã test | Kiểm tra gì | Số test |
 |---|---|---|---|---|
-| **Unit** | JUnit 5, Mockito | `backend/src/test/.../service`, `security`, `entity`, `dto`, `repository`, `client` | Quy tắc thuần, không cần CSDL, ví dụ: <br>• khóa đăng nhập 5 lần / 15 phút; <br>• JWT; <br>• so khớp biến thể không dấu; <br>• kiểm định z của A/B | 12 lớp |
+| **Unit** | JUnit 5, Mockito | `backend/src/test/.../service`, `security`, `entity`, `dto`, `repository`, `client` | Quy tắc thuần, không cần CSDL, ví dụ: <br>• khóa đăng nhập 5 lần / 15 phút; <br>• JWT; <br>• so khớp biến thể không dấu; <br>• gợi ý ưu đãi theo nhóm khách | 10 lớp |
 | | pytest | `ml-service/tests/test_recommendation_model.py`, `test_segmentation_model.py`, `test_segmentation_features.py`, `test_gender.py`, `test_build_tiki_catalog.py`, `test_simulation.py` | • Vector sản phẩm, điểm gợi ý, ưu tiên tương tác gần đây <br>• K-Means, chọn K, đặt tên nhóm <br>• Dựng danh mục mẫu, dữ liệu mô phỏng | 84 |
-| | Vitest + React Testing Library + jsdom | `frontend/tests/` (components, hooks, context, services, pages) | Từng trang và component với API giả: <br>• hiển thị, thông báo lỗi <br>• chuyển trang theo quyền <br>• giỏ hàng của khách vãng lai, lưu token | 409 (53 file) |
-| **Integration** | Spring Boot Test + MySQL 8.4 thật (CSDL riêng `fashionshop_test`) | `backend/src/test/.../controller/*IntegrationTest.java` | Đi trọn controller, service, repository và CSDL, kể cả: <br>• khóa dòng (`SELECT … FOR UPDATE`) <br>• giao dịch và thử lại khi deadlock <br>• Flyway migration | 19 lớp |
+| | Vitest + React Testing Library + jsdom | `frontend/tests/` (components, hooks, context, services, pages) | Từng trang và component với API giả: <br>• hiển thị, thông báo lỗi <br>• chuyển trang theo quyền <br>• giỏ hàng của khách vãng lai, lưu token | 399 (53 file) |
+| **Integration** | Spring Boot Test + MySQL 8.4 thật (CSDL riêng `fashionshop_test`) | `backend/src/test/.../controller/*IntegrationTest.java` | Đi trọn controller, service, repository và CSDL, kể cả: <br>• khóa dòng (`SELECT … FOR UPDATE`) <br>• giao dịch và thử lại khi deadlock <br>• Flyway migration | 18 lớp |
 | | pytest + MySQL thật (CSDL `fashionshop_mltest`, dựng lại từ các file migration của backend) | `ml-service/tests/test_recommendation_db.py`, `test_segmentation_db.py`, `test_recompute_worker.py`, `test_recompute_queue.py` | Tiến trình lấy việc từ `recompute_request`: <br>• ghi gợi ý và nhóm trong cùng giao dịch <br>• thử lại khi lỗi <br>• khóa 1 tiến trình mỗi CSDL <br>• việc hằng đêm | 45 |
 | **API** | MockMvc gọi REST API có JWT thật | cùng các lớp `*IntegrationTest` ở trên | • Mã trạng thái HTTP <br>• định dạng lỗi ProblemDetail <br>• phân quyền: không token trả 401, sai vai trò trả 403 <br>• kiểm tra dữ liệu đầu vào trả 400, xung đột trả 409 | (tính trong Integration) |
 | | Postman | `docs/postman/fashion-shop.postman_collection.json` | Chạy tay khi phát triển, các API chia theo nhóm (công khai, khách hàng, admin, nội bộ ml-service) | thủ công |
@@ -50,9 +50,9 @@ Số liệu tính trên commit `c415b14`, ngày 06/11/2026.
 | **E2E** | Playwright (Chromium thật) trên cả cụm Docker Compose 4 container | `frontend/e2e/*.spec.js` | 4 luồng chính qua giao diện thật: <br>• đăng ký, đăng nhập <br>• gộp giỏ khi đăng nhập <br>• đặt đơn COD <br>• admin chuyển trạng thái đơn | 6 |
 
 **Tổng số test:**
-- Backend: 200 phương thức test (3 phương thức dạng tham số), tổng 220 lần chạy.
+- Backend: 192 phương thức test (3 phương thức dạng tham số), tổng 212 lần chạy.
 - ml-service: 159 test.
-- Frontend: 409 test Vitest và 6 test E2E.
+- Frontend: 399 test Vitest và 6 test E2E.
 
 **Kiểm thử phi chức năng:**
 
@@ -210,7 +210,7 @@ Phân tích nguyên nhân các lỗi do AI sinh ra nằm ở `AI_LOG.MD` Mục 2
 | TC-48 | US-23 | Kiểu tiết kiệm nới ngân sách 30% và xếp theo giá; kiểu thương hiệu đưa thương hiệu đã chọn lên đầu; trong ngân sách đứng trước | + / B | I, U | `SurveyIntegrationTest.saverPathKeepsMenCategoriesStretchesBudgetAndSortsByPrice`, `.brandPathOffersBrandsOfChosenCategoriesAndPutsChosenBrandFirst`; `test_recommendation_model.py::test_survey_keeps_to_the_budget_then_fills_from_outside` |
 | TC-49 | US-23, BR-38 | Nhánh tìm quà chỉ xem kết quả, không lưu; lưu khảo sát thì ghi sở thích và yêu cầu tính lại; bỏ qua thì không hỏi lại | + / − | I | `SurveyIntegrationTest.giftPathIsEvaluatedButNeverSaved`, `.savingStoresPreferencesRequestsRecomputeAndRedoReplacesThem`, `.skippingIsRememberedSoTheSurveyDoesNotShowAgain`, `.ownSurveyNeedsCustomerToken` |
 | TC-50 | US-13 (CTR) | Ghi lượt hiện, lượt bấm theo vị trí và nguồn; khách vãng lai ghi không tài khoản; admin bị bỏ qua; dữ liệu sai bị từ chối | + / − | I, F | `RecommendationEventIntegrationTest.*` (6 ca); `components/RecommendationGrid.test.jsx` |
-| TC-51 | US-13, BR-46 | A/B: chia nhóm theo băm cố định; nhóm đối chứng thấy bán chạy (bỏ đã mua, đang trong giỏ); kết quả đếm theo nhóm; dưới 30 khách mỗi nhóm thì chưa kết luận | + / − / B | I, U | `AbTestIntegrationTest.*` (4 ca); `AbTestServiceTest.verdictsFollowSampleSizeAndSignificance`; `TwoProportionTestTest.*` |
+| TC-51 | (đã bỏ) | Thử nghiệm A/B gợi ý đã bỏ cùng chức năng ngày 16/11/2026; số TC-51 để trống, các ca khác giữ nguyên số | | | |
 
 ### 6.6 Phân nhóm khách hàng và ưu đãi (US-18, US-19, US-21, US-22, US-24, US-25)
 
@@ -314,9 +314,8 @@ Có 57 issue lỗi, đã đóng 57, không còn lỗi đang mở. Lỗi Critical
 
 ## 9. Hạn chế và việc còn lại
 
-- **Chưa thực nghiệm với người dùng thật:** chưa đo SUS, A/B chưa có số liệu thật.
-  - Thử nghiệm A/B đã làm xong và có test (TC-51).
-  - Muốn có kết luận cần khoảng 900 khách mỗi nhóm.
+- **Chưa thực nghiệm với người dùng thật:** chưa đo SUS.
+  - Chức năng thử nghiệm A/B đã bỏ ngày 16/11/2026: website chưa có khách thật, muốn có kết luận cần khoảng 900 khách mỗi nhóm, nên thử nghiệm A/B để ở hướng phát triển.
 - **Số liệu học máy ở Mục 8.3 là dữ liệu mô phỏng:** chỉ cho biết mô hình chạy đúng hướng.
 - **E2E chỉ chạy Chromium bản desktop với 6 ca.** Các luồng VNPay, khảo sát, mã giảm giá, quản trị sản phẩm chỉ có test integration và Vitest, chưa có E2E.
 - **Postman collection chưa chạy tự động** (chưa dùng newman). Tầng API được phủ bằng MockMvc trong các lớp `*IntegrationTest`.

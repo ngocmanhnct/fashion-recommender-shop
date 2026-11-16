@@ -1,8 +1,6 @@
 package com.manhdn.fashionshop.service;
 
-import com.manhdn.fashionshop.dto.AbTestResultResponse;
 import com.manhdn.fashionshop.dto.DashboardResponse;
-import com.manhdn.fashionshop.dto.DashboardResponse.AbTestSummary;
 import com.manhdn.fashionshop.dto.DashboardResponse.Day;
 import com.manhdn.fashionshop.dto.DashboardResponse.Recommendations;
 import com.manhdn.fashionshop.dto.DashboardResponse.StatusCount;
@@ -12,7 +10,6 @@ import com.manhdn.fashionshop.dto.RecommendationCtrResponse.Row;
 import com.manhdn.fashionshop.entity.OrderStatus;
 import com.manhdn.fashionshop.entity.ProductEventType;
 import com.manhdn.fashionshop.exception.InvalidRequestException;
-import com.manhdn.fashionshop.repository.AbExperimentRepository;
 import com.manhdn.fashionshop.repository.DashboardRepository;
 import com.manhdn.fashionshop.repository.DashboardRepository.DayRow;
 import com.manhdn.fashionshop.repository.ProductEventLogRepository;
@@ -58,21 +55,15 @@ public class DashboardService {
 
   private final DashboardRepository dashboardRepository;
   private final ProductEventLogRepository eventLogRepository;
-  private final AbExperimentRepository experimentRepository;
-  private final AbTestService abTestService;
   private final Clock clock;
 
   /** Nhận các phụ thuộc qua constructor. */
   public DashboardService(
       DashboardRepository dashboardRepository,
       ProductEventLogRepository eventLogRepository,
-      AbExperimentRepository experimentRepository,
-      AbTestService abTestService,
       Clock clock) {
     this.dashboardRepository = dashboardRepository;
     this.eventLogRepository = eventLogRepository;
-    this.experimentRepository = experimentRepository;
-    this.abTestService = abTestService;
     this.clock = clock;
   }
 
@@ -86,7 +77,7 @@ public class DashboardService {
    *
    * @param from ngày đầu, null = {@code to} lùi {@value #DEFAULT_DAYS} - 1 ngày
    * @param to ngày cuối, null = hôm nay
-   * @return số tổng, từng ngày, đơn theo trạng thái, bán chạy, hiệu quả gợi ý và thử nghiệm A/B
+   * @return số tổng, từng ngày, đơn theo trạng thái, bán chạy và hiệu quả gợi ý
    * @throws InvalidRequestException nếu ngày đầu sau ngày cuối hoặc khoảng dài hơn {@value
    *     #MAX_DAYS} ngày
    */
@@ -142,7 +133,7 @@ public class DashboardService {
             .toList();
 
     return new DashboardResponse(
-        start, end, summary, days, byStatus, top, recommendations(startAt, endAt), runningAbTest());
+        start, end, summary, days, byStatus, top, recommendations(startAt, endAt));
   }
 
   /** Lượt hiện, lượt bấm gợi ý trong khoảng: tổng, theo vị trí và theo nguồn. */
@@ -166,24 +157,6 @@ public class DashboardService {
         bySource.entrySet().stream()
             .map(e -> Row.of(null, e.getKey(), e.getValue()[0], e.getValue()[1]))
             .toList());
-  }
-
-  /** Tóm tắt thử nghiệm A/B đang chạy, null khi không có. */
-  private AbTestSummary runningAbTest() {
-    return experimentRepository
-        .findFirstByEndedAtIsNullOrderByIdDesc()
-        .map(experiment -> {
-          AbTestResultResponse result = abTestService.result(experiment.getId());
-          return new AbTestSummary(
-              experiment.getId(),
-              experiment.getName(),
-              experiment.getStartedAt(),
-              result.treatment().users(),
-              result.treatment().clickRate(),
-              result.control().users(),
-              result.control().clickRate());
-        })
-        .orElse(null);
   }
 
   /** Đầu ngày {@code date} theo giờ Việt Nam, đổi sang giờ lưu trong CSDL (giờ JVM). */
