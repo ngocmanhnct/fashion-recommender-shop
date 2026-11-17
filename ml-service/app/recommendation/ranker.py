@@ -47,8 +47,12 @@ CASES_PER_WEEK = 10_000
 """Tối đa số khách mỗi tuần học (chọn ngẫu nhiên, seed cố định), giữ bộ nhớ vừa phải."""
 NEGATIVE_RATE = 0.3
 """Giữ chừng này phần ứng viên khách không mua khi học (giữ mọi ứng viên khách đã mua)."""
-MIN_POSITIVES = 100
-"""Số lượt mua trúng ứng viên tối thiểu trong các tuần học để học mô hình."""
+MIN_POSITIVES = 5_000
+"""Số lượt mua trúng ứng viên tối thiểu trong các tuần học để dùng mô hình. Đo trên H&M (17/11/2026,
+`eval_hm --data-size`: chia mẫu 5% khách thành các phần như cửa hàng nhỏ, 3 tuần kiểm định): khoảng
+370 và 1.060 lượt thì mô hình học kém công thức hybrid, 2.300 lượt thì ngang, 6.100 lượt thì hơn
+rõ; ngưỡng đặt giữa mức ngang và mức hơn rõ. Dữ liệu mô phỏng (300 khách, dưới 250 lượt) dùng
+công thức."""
 
 POOL_TREND = 100
 POOL_AGE = 50
@@ -364,11 +368,13 @@ def week_examples(
     return WeekExamples(np.vstack(features), np.concatenate(labels), count, positives)
 
 
-def fit(weeks: Sequence[WeekExamples], seed: int = 0) -> Ranker | None:
-    """Học mô hình từ dữ liệu các tuần; None nếu chưa đủ MIN_POSITIVES lượt mua trúng ứng viên
-    hoặc dữ liệu học chỉ có 1 loại nhãn."""
+def fit(
+    weeks: Sequence[WeekExamples], seed: int = 0, min_positives: int | None = None
+) -> Ranker | None:
+    """Học mô hình từ dữ liệu các tuần; None nếu chưa đủ `min_positives` (mặc định MIN_POSITIVES)
+    lượt mua trúng ứng viên hoặc dữ liệu học chỉ có 1 loại nhãn."""
     positives = sum(w.positives for w in weeks)
-    if positives < MIN_POSITIVES:
+    if positives < (MIN_POSITIVES if min_positives is None else min_positives):
         return None
     features = np.vstack([w.features for w in weeks])
     labels = np.concatenate([w.labels for w in weeks])

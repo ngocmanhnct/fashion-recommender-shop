@@ -40,6 +40,11 @@ tuần kiểm tra (7 ngày cuối của dữ liệu). Mỗi tuần đánh giá t
 giữa mô hình xếp hạng với từng cách khác (bootstrap ghép cặp: cùng mẫu khách cho cả 2 cách).
 "Công thức hybrid" là cách website dùng khi chưa đủ dữ liệu học (model.Weights).
 
+Cần bao nhiêu dữ liệu (`--data-size`, căn cứ của ranker.MIN_POSITIVES): chia mẫu thành các phần
+rời nhau theo mã khách băm, cỡ PART_SIZES phần nghìn khách H&M; mỗi phần như 1 cửa hàng riêng (chỉ
+thấy đơn của khách trong phần), học mô hình xếp hạng bỏ ngưỡng rồi so với công thức ở
+VALIDATION_WEEKS tuần kiểm định (không dùng tuần kiểm tra). Ghi data/hm/ket-qua-luong-du-lieu.md.
+
 Phân nhóm: R, F, M tính đến ngày sau ngày cuối (F = số đơn, M = tổng giá), huấn luyện bằng `train`
 như trên cửa hàng; độ tuổi từng nhóm; độ ổn định (huấn luyện lại trên 80% khách, so nhóm của mọi
 khách bằng ARI); kiểm tra trên tương lai: phân nhóm bằng dữ liệu trước SEGMENT_HOLDOUT_DAYS ngày
@@ -48,6 +53,7 @@ cuối, đo tỷ lệ khách từng nhóm mua lại và mức chi trong những 
 Chạy trong ml-service/ (không cần MySQL; đọc hết tệp 3,5 GB mất vài phút):
     uv run python -m scripts.eval_hm
     uv run python -m scripts.eval_hm --products shoes-bags-accessories
+    uv run python -m scripts.eval_hm --data-size
 Đọc articles.csv, customers.csv, transactions_train.csv (hoặc tệp .zip của từng tệp) trong
 data/hm/raw, ghi kết quả vào data/hm/ket-qua.md (chỉ giày, túi, phụ kiện:
 data/hm/ket-qua-giay-tui-phu-kien.md).
@@ -116,6 +122,11 @@ SINGLE_SOURCES = {
 """Từng nguồn gợi ý riêng lẻ của công thức hybrid."""
 AGE_BANDS = ((0, 25, "Dưới 25"), (25, 35, "25–34"), (35, 45, "35–44"), (45, 55, "45–54"))
 OLDEST_BAND = "Từ 55"
+PART_SIZES = (2, 5, 10, 25)
+"""--data-size: cỡ mỗi phần khách (phần nghìn khách H&M), mỗi phần như 1 cửa hàng riêng."""
+VALIDATION_WEEKS = 3
+"""--data-size: số tuần kiểm định ngay trước tuần kiểm tra."""
+DATA_SIZE_RESULT = "ket-qua-luong-du-lieu.md"
 TOP_TYPES = 10
 """Số loại hàng nhiều lượt mua nhất ghi trong phần mô tả dữ liệu."""
 
@@ -175,10 +186,15 @@ def open_csv(folder: Path, stem: str) -> Iterator[csv.DictReader]:
     raise FileNotFoundError(f"Không thấy {stem}.csv (hoặc tệp .zip của nó) trong {folder}")
 
 
+def customer_bucket(customer_id: str) -> int:
+    """Số 0–999 của khách: 8 ký tự đầu của mã khách (mã băm hex) chia 1000 lấy dư."""
+    return int(customer_id[:8], 16) % 1000
+
+
 def in_sample(customer_id: str, per_mille: int) -> bool:
-    """Khách thuộc mẫu: 8 ký tự đầu của mã khách (mã băm hex) chia 1000 dư nhỏ hơn `per_mille`."""
+    """Khách thuộc mẫu: `customer_bucket` nhỏ hơn `per_mille`."""
     try:
-        return int(customer_id[:8], 16) % 1000 < per_mille
+        return customer_bucket(customer_id) < per_mille
     except ValueError:
         return False
 
@@ -518,7 +534,7 @@ def _training_note(learned: ranker.Ranker | None, cutoff: datetime) -> str:
     first = cutoff - timedelta(days=ranker.LABEL_DAYS * ranker.TRAINING_WEEKS)
     if learned is None:
         return (
-            f"Mô hình xếp hạng: chưa đủ dữ liệu để học (cần ít nhất {ranker.MIN_POSITIVES} lượt "
+            f"Mô hình xếp hạng: chưa đủ dữ liệu để học (cần ít nhất {_decimal(ranker.MIN_POSITIVES, 0)} lượt "
             f"mua trúng ứng viên trong {ranker.TRAINING_WEEKS} tuần trước mốc), chỉ có công thức."
         )
     info = learned.summary
@@ -611,6 +627,130 @@ def evaluate_recommendations(
         *evaluate_week(shop, model, learned, cases, test_cutoff, rounds, True),
     ]
     return lines
+
+
+# ---- cần bao nhiêu dữ liệu (--data-size) ----
+
+
+@dataclass
+class PartWeek:
+    """1 phần khách ở 1 tuần kiểm định: lượt mua trúng ứng viên lúc học và trúng (0/1) của từng
+    khách với mô hình xếp hạng và với công thức."""
+
+    positives: int
+    ranker_hits: np.ndarray
+    formula_hits: np.ndarray
+
+
+def evaluate_part(
+    shop: Shop,
+    ages: dict[int, int],
+    vectors: ItemVectors,
+    accounts: set[int],
+    cutoffs: list[datetime],
+    validation: set[datetime],
+) -> list[PartWeek]:
+    """1 phần khách như 1 cửa hàng riêng: chỉ thấy đơn của khách trong phần, học mô hình xếp hạng
+    như website nhưng bỏ ngưỡng MIN_POSITIVES, so với công thức ở từng tuần kiểm định."""
+    orders = [o for o in shop.orders if o.account_id in accounts]
+    part_ages = {account: age for account, age in ages.items() if account in accounts}
+    weeks: dict[datetime, ranker.WeekExamples] = {}
+    results = []
+    for cutoff, model, cases, week in ranker.training_weeks(
+        vectors, shop.items, orders, part_ages, cutoffs, MAX_CASES, SEED
+    ):
+        weeks[cutoff] = week
+        if cutoff not in validation:
+            continue
+        used = [weeks[c] for c in ranker.weekly_cutoffs(cutoff) if c in weeks]
+        learned = ranker.fit(used, min_positives=1)
+        if learned is None or not cases:
+            continue
+        cases = by_time(cases)
+        ranked, formula = (
+            case_scores(
+                cases, lambda case, m=m, current=model: _ids(current, case, DEFAULT_WEIGHTS, m)
+            )[0]
+            for m in (learned, None)
+        )
+        results.append(PartWeek(sum(w.positives for w in used), ranked, formula))
+    return results
+
+
+def _size_row(size: int, customers: list[int], results: list[PartWeek], rounds: int) -> str:
+    """1 dòng bảng: gộp mọi phần, mọi tuần kiểm định của 1 cỡ phần."""
+    label = f"{_decimal(size / 10)}% ({_decimal(statistics.mean(customers), 0)} khách)"
+    if not results:
+        return f"| {label} | 0 | — | — | — | — | — | — | chưa học được |"
+    ranked = np.concatenate([r.ranker_hits for r in results])
+    formula = np.concatenate([r.formula_hits for r in results])
+    diff = ranked - formula
+    low, high = bootstrap_ci(diff, rounds)
+    verdict = "tốt hơn" if low > 0 else "kém hơn" if high < 0 else "chưa phân biệt được"
+    worse = sum(_mean(r.ranker_hits) < _mean(r.formula_hits) for r in results)
+    return (
+        f"| {label} | {len(results)} ({worse} lần kém hơn) "
+        f"| {_decimal(statistics.mean(r.positives for r in results), 0)} "
+        f"| {_decimal(len(diff), 0)} | {_percent(_mean(ranked))} | {_percent(_mean(formula))} "
+        f"| {_signed(_mean(diff))} | {_signed(low)} – {_signed(high)} | {verdict} |"
+    )
+
+
+def evaluate_data_size(shop: Shop, ages: dict[int, int], per_mille: int, rounds: int) -> str:
+    """Cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (căn cứ của MIN_POSITIVES): chia
+    mẫu thành các phần rời nhau theo `customer_bucket`, gộp kết quả theo cỡ phần."""
+    if not shop.orders:
+        return "Không có giao dịch nào của khách trong mẫu."
+    started = time.perf_counter()
+    end = max(o.created_at for o in shop.orders) + timedelta(days=1)
+    test_cutoff = end - timedelta(days=REC_HOLDOUT_DAYS)
+    cutoffs = ranker.weekly_cutoffs(test_cutoff, ranker.TRAINING_WEEKS + VALIDATION_WEEKS)
+    validation = set(cutoffs[-VALIDATION_WEEKS:])
+    vectors = ItemVectors(shop.items)
+    buckets: dict[int, set[int]] = defaultdict(set)
+    for customer, account in shop.accounts.items():
+        buckets[customer_bucket(customer)].add(account)
+    first = min(validation)
+    lines = [
+        "# Cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (H&M)",
+        "",
+        (
+            f"Mẫu {_decimal(per_mille / 10)}% khách ({_decimal(len(shop.accounts), 0)} khách) "
+            "chia thành các phần rời nhau theo mã khách băm. Mỗi phần như 1 cửa hàng riêng: chỉ "
+            f"thấy đơn của khách trong phần, mô hình xếp hạng học trên {ranker.TRAINING_WEEKS} tuần "
+            "trước mốc như website (bỏ ngưỡng số lượt mua trúng) rồi so với công thức hybrid trên "
+            f"chính khách của phần, ở {VALIDATION_WEEKS} tuần kiểm định từ {first:%d/%m} đến "
+            f"{test_cutoff - timedelta(days=1):%d/%m/%Y} (không dùng tuần kiểm tra). Trúng = ít "
+            f"nhất 1 trong {K} sản phẩm gợi ý được mua trong 7 ngày sau mốc."
+        ),
+        "",
+        (
+            "| Mỗi phần | Lần học | Lượt mua trúng ứng viên khi học (TB) | Khách đánh giá "
+            "| Mô hình xếp hạng | Công thức hybrid | Chênh lệch (điểm %) | Khoảng tin cậy 95% "
+            "| Kết luận |"
+        ),
+        "|---|---:|---:|---:|---:|---:|---:|---|---|",
+    ]
+    for size in (s for s in PART_SIZES if s <= per_mille):
+        customers, results = [], []
+        for start in range(0, per_mille - size + 1, size):
+            accounts = set().union(*(buckets[b] for b in range(start, start + size)))
+            customers.append(len(accounts))
+            results += evaluate_part(shop, ages, vectors, accounts, cutoffs, validation)
+        _progress(f"Phần {_decimal(size / 10)}%: {len(results)} lần học")
+        lines.append(_size_row(size, customers, results, rounds))
+    lines += [
+        "",
+        (
+            "Lượt mua trúng ứng viên: số lần khách mua 1 sản phẩm mới nằm trong danh sách ứng viên, "
+            f"cộng trên {ranker.TRAINING_WEEKS} tuần học. Website chỉ dùng mô hình xếp hạng khi có "
+            f"ít nhất {_decimal(ranker.MIN_POSITIVES, 0)} lượt (`ranker.MIN_POSITIVES`), ít hơn thì "
+            "dùng công thức hybrid."
+        ),
+        "",
+        f"Thời gian chạy (sau khi đọc tệp): {_decimal(time.perf_counter() - started, 0)} giây.",
+    ]
+    return "\n".join(lines)
 
 
 # ---- phân nhóm ----
@@ -909,6 +1049,12 @@ def main(argv: list[str] | None = None) -> int:
         help="phần sản phẩm: all (mọi sản phẩm, ghi ket-qua.md) hoặc shoes-bags-accessories "
         "(chỉ nhóm hàng Shoes, Bags, Accessories như website, ghi ket-qua-giay-tui-phu-kien.md)",
     )
+    parser.add_argument(
+        "--data-size",
+        action="store_true",
+        help="chỉ đo cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (chia mẫu thành phần "
+        f"nhỏ, chỉ tuần kiểm định), ghi {DATA_SIZE_RESULT}",
+    )
     args = parser.parse_args(argv)
     # Chọn bằng phép so sánh, không tra dict bằng chuỗi dòng lệnh: tên tệp kết quả và nhãn trong
     # báo cáo luôn là hằng số của SCOPES (SonarQube theo dõi giá trị dòng lệnh, issue #142).
@@ -924,6 +1070,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--sample phải từ 1 đến 1000 (phần nghìn khách)")
     if min(rounds, stability_rounds, max_cases) < 1:
         parser.error("--rounds, --stability-rounds và --max-cases phải từ 1 trở lên")
+    if args.data_size and scope is not ALL_PRODUCTS:
+        parser.error("--data-size chỉ dùng với mọi sản phẩm")
     try:
         _progress("Đọc articles.csv")
         with open_csv(RAW_DIR, "articles") as rows:
@@ -940,8 +1088,11 @@ def main(argv: list[str] | None = None) -> int:
     # 1 luồng cho numpy, scikit-learn: hàng chục nghìn phép tính nhỏ mỗi tuần, nhiều luồng chỉ tốn
     # công đồng bộ (chậm gấp đôi, xem Dockerfile của ml-service).
     with threadpool_limits(limits=1):
-        report = run(shop, ages, sample, rounds, stability_rounds, max_cases, scope)
-    result_file = RESULT_DIR / scope.result_name
+        if args.data_size:
+            report = evaluate_data_size(shop, ages, sample, rounds)
+        else:
+            report = run(shop, ages, sample, rounds, stability_rounds, max_cases, scope)
+    result_file = RESULT_DIR / (DATA_SIZE_RESULT if args.data_size else scope.result_name)
     result_file.parent.mkdir(parents=True, exist_ok=True)
     with result_file.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(report + "\n")

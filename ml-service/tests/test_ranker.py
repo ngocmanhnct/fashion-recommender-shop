@@ -170,10 +170,16 @@ def world():
     return make_world()
 
 
+WORLD_MIN_POSITIVES = 100
+"""Cửa hàng giả nhỏ hơn nhiều so với ngưỡng thật (ranker.MIN_POSITIVES): hạ ngưỡng khi học."""
+
+
 @pytest.fixture(scope="module")
 def learned(world):
     vectors, orders, ages = world
-    result = ranker.train(vectors, ITEMS, orders, ages, END)
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(ranker, "MIN_POSITIVES", WORLD_MIN_POSITIVES)
+        result = ranker.train(vectors, ITEMS, orders, ages, END)
     assert result is not None
     return result
 
@@ -335,6 +341,9 @@ def test_case_rows_needs_interactions_and_sales(world, model):
 def test_fit_needs_enough_positives_and_both_labels(monkeypatch):
     zeros = np.zeros((10, 28), dtype=np.float32)
     assert ranker.fit([ranker.WeekExamples(zeros, np.zeros(10, np.int8), 1, 0)]) is None
+    mixed = ranker.WeekExamples(zeros, np.array([1, 0] * 5, np.int8), 1, 5)
+    assert ranker.fit([mixed]) is None  # dưới MIN_POSITIVES
+    assert ranker.fit([mixed], min_positives=5).summary.positives == 5
     monkeypatch.setattr(ranker, "MIN_POSITIVES", 5)
     assert ranker.fit([ranker.WeekExamples(zeros, np.ones(10, np.int8), 1, 10)]) is None
 
@@ -347,7 +356,7 @@ def test_train_without_orders_gives_no_ranker(world):
 def test_learned_ranker_follows_the_age_band_trend(world, learned, model):
     _, orders, ages = world
     assert learned.summary.weeks == ranker.TRAINING_WEEKS
-    assert learned.summary.positives >= ranker.MIN_POSITIVES
+    assert learned.summary.positives >= WORLD_MIN_POSITIVES
     assert learned.summary.rows > learned.summary.positives
 
     cases = ranker.cases_at(orders, END, END + 7 * DAY, ages)

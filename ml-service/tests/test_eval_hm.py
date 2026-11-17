@@ -267,8 +267,9 @@ def test_time_split_only_sees_the_past():
     assert ev.recent_popular(shop.orders, datetime(2020, 9, 22, tzinfo=UTC), 7) == [1, 2, 3]
 
 
-def test_feature_importance_shuffles_each_group():
-    # Cửa hàng giả của test mô hình xếp hạng: đủ dữ liệu để học.
+def test_feature_importance_shuffles_each_group(monkeypatch):
+    # Cửa hàng giả của test mô hình xếp hạng: đủ dữ liệu để học khi hạ ngưỡng như test đó.
+    monkeypatch.setattr(ranker, "MIN_POSITIVES", shop.WORLD_MIN_POSITIVES)
     vectors, orders, ages = shop.make_world()
     learned = ranker.train(vectors, shop.ITEMS, orders, ages, shop.END)
     model = ranker.model_at(vectors, shop.ITEMS, orders, shop.END, ranker.age_bands(ages))
@@ -295,6 +296,46 @@ def test_open_csv_errors(tmp_path):
         pass
     with pytest.raises(FileNotFoundError), ev.open_csv(tmp_path, "customers"):
         pass
+
+
+def test_data_size_report(raw_dir, tmp_path, monkeypatch):
+    monkeypatch.setattr(ev, "RAW_DIR", raw_dir)
+    monkeypatch.setattr(ev, "RESULT_DIR", tmp_path)
+    assert ev.main(["--data-size", "--rounds", "50"]) == 0
+    # Ghi tệp riêng, không chạy báo cáo thường.
+    assert not (tmp_path / "ket-qua.md").exists()
+    report = (tmp_path / ev.DATA_SIZE_RESULT).read_text(encoding="utf-8")
+    assert report.startswith("# Cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (H&M)\n")
+    assert "Mẫu 5,0% khách (50 khách)" in report
+    assert "3 tuần kiểm định từ 25/08 đến 14/09/2020" in report
+    rows = [line for line in report.splitlines() if line.startswith("| ") and "%" in line]
+    assert [row.split(" (")[0] for row in rows[1:]] == ["| 0,2%", "| 0,5%", "| 1,0%", "| 2,5%"]
+    assert any(row.endswith(("tốt hơn |", "kém hơn |", "chưa phân biệt được |")) for row in rows)
+    assert "ít nhất 5.000 lượt (`ranker.MIN_POSITIVES`)" in report
+
+
+def test_data_size_parts():
+    assert (
+        ev._size_row(2, [3, 5], [], 10)
+        == "| 0,2% (4 khách) | 0 | — | — | — | — | — | — | chưa học được |"
+    )
+    weeks = [
+        ev.PartWeek(300, np.array([1.0, 1.0, 0.0]), np.array([0.0, 1.0, 0.0])),
+        ev.PartWeek(500, np.array([0.0, 0.0]), np.array([1.0, 0.0])),
+    ]
+    row = ev._size_row(25, [40], weeks, 50)
+    assert row.startswith(
+        "| 2,5% (40 khách) | 2 (1 lần kém hơn) | 400 | 5 | 40,0% | 40,0% | +0,0 |"
+    )
+    assert ev.evaluate_data_size(ev.Shop([], [], {}, {}), {}, 50, 10).startswith("Không có")
+
+
+def test_data_size_needs_all_products(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ev, "RAW_DIR", tmp_path / "khong-co")
+    with pytest.raises(SystemExit) as exit_info:
+        ev.main(["--data-size", "--products", "shoes-bags-accessories"])
+    assert exit_info.value.code == 2
+    assert "--data-size chỉ dùng với mọi sản phẩm" in capsys.readouterr().err
 
 
 def test_main_without_files(tmp_path, monkeypatch, capsys):
