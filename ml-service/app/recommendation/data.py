@@ -1,7 +1,7 @@
 """Đọc dữ liệu cho mô hình gợi ý từ MySQL (chỉ đọc, trừ bảng `recommendation` ở `store.py`)."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import Connection, text
 
@@ -57,16 +57,77 @@ class UserSignals:
     """Mã sản phẩm → lần tương tác gần nhất (mua, thêm giỏ, thích, xem), để ưu tiên việc vừa làm."""
     now: datetime | None = None
     """Thời điểm tính gợi ý, cùng giờ với `last_at`; None thì không ưu tiên theo thời gian."""
+    purchased_at: dict[int, datetime] = field(default_factory=dict)
+    """Mã sản phẩm đã mua → lần mua gần nhất (đặc trưng của mô hình xếp hạng)."""
+    age: int | None = None
+    """Tuổi (theo ngày sinh khách khai), None nếu không rõ."""
 
     def touch(self, product_id: int, at: datetime | None) -> None:
         """Ghi nhận 1 lần tương tác với sản phẩm, giữ thời điểm muộn nhất."""
         if at is not None and (product_id not in self.last_at or at > self.last_at[product_id]):
             self.last_at[product_id] = at
 
+    def buy(self, product_id: int, at: datetime | None) -> None:
+        """Ghi nhận 1 lần mua sản phẩm (đơn khác CANCELLED), giữ lần mua muộn nhất."""
+        self.purchased.add(product_id)
+        self.touch(product_id, at)
+        if at is not None and (
+            product_id not in self.purchased_at or at > self.purchased_at[product_id]
+        ):
+            self.purchased_at[product_id] = at
+
     @property
     def has_enough_behaviour(self) -> bool:
         """Ngưỡng BR-19: có ít nhất 1 đơn Đã giao, hoặc đã xem ít nhất 5 sản phẩm trong 30 ngày."""
         return self.delivered_orders >= 1 or len(self.viewed) >= MIN_VIEWED_PRODUCTS
+
+
+@dataclass(slots=True)
+class Order:
+    """1 đơn khác CANCELLED. `slots` bớt khoảng 40 byte mỗi đơn: toàn bộ dữ liệu H&M có hơn 9 triệu
+    đơn."""
+
+    id: int
+    account_id: int
+    created_at: datetime
+    status: str
+    products: dict[int, int] = field(default_factory=dict)
+    """Mã sản phẩm → số lượng."""
+
+
+def load_orders(conn: Connection) -> list[Order]:
+    """Mọi đơn khác CANCELLED kèm sản phẩm, theo thời gian đặt."""
+    orders: dict[int, Order] = {}
+    for oid, account_id, created_at, status, product_id, quantity in conn.execute(
+        text(
+            "SELECT o.id, o.account_id, o.created_at, o.status, v.product_id, oi.quantity "
+            "FROM orders o "
+            "JOIN order_item oi ON oi.order_id = o.id "
+            "JOIN product_variant v ON v.id = oi.variant_id "
+            "WHERE o.status <> 'CANCELLED' ORDER BY o.created_at, o.id"
+        )
+    ):
+        order = orders.setdefault(oid, Order(oid, account_id, created_at, status))
+        order.products[product_id] = order.products.get(product_id, 0) + quantity
+    return list(orders.values())
+
+
+def age_on(birthdate: date | None, today: date) -> int | None:
+    """Số tuổi tròn vào ngày `today`; None nếu không có ngày sinh."""
+    if birthdate is None:
+        return None
+    return (
+        today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+    )
+
+
+def load_ages(conn: Connection, now: datetime) -> dict[int, int]:
+    """Tuổi của các tài khoản Khách hàng có khai ngày sinh."""
+    rows = conn.execute(
+        text("SELECT id, birthdate FROM account WHERE role = 'CUSTOMER' AND birthdate IS NOT NULL")
+    )
+    ages = {int(account_id): age_on(birthdate, now.date()) for account_id, birthdate in rows}
+    return {account_id: age for account_id, age in ages.items() if age is not None and age > 0}
 
 
 def load_catalog(conn: Connection) -> list[CatalogItem]:
@@ -148,19 +209,20 @@ def load_purchase_pairs(conn: Connection) -> list[tuple[int, int]]:
     return [(int(a), int(p)) for a, p in rows]
 
 
-def load_sales(conn: Connection) -> list[tuple[int, datetime, int]]:
-    """Lượt bán trên đơn khác CANCELLED: (sản phẩm, lúc đặt, số lượng), cho điểm "đang bán chạy"
-    (tính tại thời điểm gợi ý, chỉ dùng TRENDING_WINDOW_DAYS ngày trước đó)."""
+def load_sales(conn: Connection) -> list[tuple[int, datetime, int, int]]:
+    """Lượt bán trên đơn khác CANCELLED: (sản phẩm, lúc đặt, số lượng, tài khoản người mua), cho
+    điểm "đang bán chạy" (tính tại thời điểm gợi ý, chỉ dùng TRENDING_WINDOW_DAYS ngày trước đó)
+    và số liệu bán hàng của mô hình xếp hạng."""
     rows = conn.execute(
         text(
-            "SELECT v.product_id, o.created_at, oi.quantity "
+            "SELECT v.product_id, o.created_at, oi.quantity, o.account_id "
             "FROM orders o "
             "JOIN order_item oi ON oi.order_id = o.id "
             "JOIN product_variant v ON v.id = oi.variant_id "
             "WHERE o.status <> 'CANCELLED'"
         )
     )
-    return [(int(p), at, int(q)) for p, at, q in rows]
+    return [(int(p), at, int(q), int(a)) for p, at, q, a in rows]
 
 
 def catalog_signature(conn: Connection) -> tuple:
@@ -193,13 +255,14 @@ def load_signals(conn: Connection, account_id: int, now: datetime) -> UserSignal
 
     `now` là giờ địa phương không kèm múi giờ, cùng kiểu với `viewed_at` (giờ JVM của backend).
     """
-    role = conn.execute(
-        text("SELECT role FROM account WHERE id = :id"), {"id": account_id}
-    ).scalar()
-    if role != "CUSTOMER":
+    account = conn.execute(
+        text("SELECT role, birthdate FROM account WHERE id = :id"), {"id": account_id}
+    ).one_or_none()
+    if account is None or account[0] != "CUSTOMER":
         return None
     params = {"id": account_id}
-    signals = UserSignals(account_id, now=now)
+    age = age_on(account[1], now.date())
+    signals = UserSignals(account_id, now=now, age=age if age is not None and age > 0 else None)
     for product_id, at in conn.execute(
         text(
             "SELECT v.product_id, MAX(o.created_at) "
@@ -211,8 +274,7 @@ def load_signals(conn: Connection, account_id: int, now: datetime) -> UserSignal
         ),
         params,
     ):
-        signals.purchased.add(int(product_id))
-        signals.touch(int(product_id), at)
+        signals.buy(int(product_id), at)
     signals.delivered_orders = int(
         conn.execute(
             text("SELECT COUNT(*) FROM orders WHERE account_id = :id AND status = 'DELIVERED'"),

@@ -20,12 +20,17 @@ Trang chủ (US-13), nguồn chọn theo BR-38:
 Chỉ gợi ý sản phẩm đang bán, còn hàng, khách chưa mua và chưa có trong giỏ. Danh sách được dàn
 đều danh mục: mỗi sản phẩm cùng danh mục với một sản phẩm đã chọn bị trừ `Weights.diversity`.
 
+Khi đã học được mô hình xếp hạng từ lịch sử mua của cửa hàng (ranker.py, cần đủ dữ liệu), gợi ý
+theo hành vi không dùng công thức trên để xếp thứ tự nữa: các thành phần của công thức (và chính
+điểm công thức) thành đặc trưng, mô hình xếp hạng chọn sản phẩm có xác suất mua cao nhất.
+
 Trang chi tiết (US-12): độ tương đồng nội dung với sản phẩm đang xem, cộng "hay mua cùng".
 """
 
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy import sparse
@@ -33,7 +38,10 @@ from scipy import sparse
 from app.recommendation.data import ProductStats, SurveyProfile, UserSignals
 from app.recommendation.features import CatalogItem, ItemVectors
 from app.recommendation.gender import FEMALE, MALE
-from app.recommendation.trending import SalesHistory
+from app.recommendation.trending import SalesHistory, SalesSnapshot
+
+if TYPE_CHECKING:
+    from app.recommendation.ranker import Ranker
 
 # Trọng số theo loại tương tác mạnh nhất với sản phẩm (đã mua > trong giỏ > yêu thích > đã xem),
 # vector khảo sát nhẹ nhất (BR-38). Chốt bằng đánh giá trên dữ liệu mô phỏng (evaluate.py).
@@ -62,9 +70,10 @@ class Weights:
 
     Mặc định chốt bằng đánh giá "giữ lại đơn cuối" trên dữ liệu mô phỏng (evaluate.py --grid), trừ
     w_t và chu kỳ bán rã của "đang bán chạy": dữ liệu mô phỏng không có xu hướng theo thời gian nên
-    2 tham số này chọn trên dữ liệu mua hàng thật của H&M, giữ nguyên các trọng số khác. Thử w_t
-    0; 0,5; 1; 2 với chu kỳ 3 và 7 ngày trên tuần kiểm định 09/09–15/09/2020 (mẫu 5% khách), lấy
-    bộ có NDCG@10 cao nhất, rồi mới đo trên tuần kiểm tra 16/09–22/09/2020 (data/hm/ket-qua.md).
+    2 tham số này chọn trên dữ liệu mua hàng thật của H&M (thử w_t 0; 0,5; 1; 2 với chu kỳ 3 và 7
+    ngày trên tuần kiểm định 09/09–15/09/2020 của mẫu 5% khách, lấy bộ có NDCG@10 cao nhất). Công
+    thức xếp gợi ý theo hành vi khi chưa có mô hình xếp hạng (ranker.py); khi có, điểm công thức
+    là 1 đặc trưng của mô hình đó.
     """
 
     content: float = 0.7
@@ -140,6 +149,25 @@ class Suggestion:
     source: str
 
 
+@dataclass(frozen=True)
+class BehaviourParts:
+    """Các thành phần điểm gợi ý theo hành vi của 1 khách; mỗi mảng theo hàng sản phẩm."""
+
+    rows: np.ndarray
+    """Hàng các sản phẩm khách đã tương tác."""
+    anchor_weights: np.ndarray
+    """Trọng số tương tác (theo loại, nhân hệ số gần đây) của `rows`."""
+    interactions: dict[int, tuple[float, str]]
+    content: np.ndarray
+    copurchase: np.ndarray
+    trend: np.ndarray
+    base: np.ndarray
+    """Điểm công thức hybrid chưa cộng điểm kiểu người mua."""
+    score: np.ndarray
+    """`base` cộng λ · b(j)."""
+    allowed: np.ndarray
+
+
 def short_name(name: str) -> str:
     """Rút gọn tên sản phẩm (tên từ Tiki thường rất dài) để đặt trong câu lý do."""
     name = " ".join(name.split())
@@ -161,15 +189,21 @@ class Recommender:
         brand_names: dict[int, str],
         weights: Weights = DEFAULT_WEIGHTS,
         sales: SalesHistory | None = None,
+        ranker: "Ranker | None" = None,
     ) -> None:
         """Ghép các phần đã dựng; `items` theo đúng thứ tự hàng của `vectors`. Không có `sales`
-        thì điểm đang bán chạy bằng 0."""
+        thì điểm đang bán chạy bằng 0; không có `ranker` (hoặc không có `sales`) thì gợi ý theo
+        hành vi xếp bằng công thức hybrid."""
         self.vectors = vectors
         self.copurchase = copurchase
         self.brand_names = brand_names
         self.weights = weights
         self.sales = sales
+        self.ranker = ranker
         self._trend_memo: tuple[tuple[datetime, float], np.ndarray] | None = None
+        self._snapshot_memo: tuple[datetime, SalesSnapshot] | None = None
+        categories, self.category_index = np.unique(vectors.category_ids, return_inverse=True)
+        self.category_count = len(categories)
         self.names = [item.name for item in items]
         size = len(items)
         self.available = np.zeros(size, dtype=bool)
@@ -192,6 +226,7 @@ class Recommender:
         top = np.log1p(sold.max()) if sold.size else 0
         self.popularity = np.log1p(sold) / top if top > 0 else np.zeros(size)
         self.cheapness = self._cheapness_within_category()
+        self.log_prices = np.log(np.maximum(self.prices, 1.0))
         # Điểm đánh giá đã "co" về trung bình chung (trung bình Bayes): sản phẩm có 1 đánh giá 5
         # sao không vượt sản phẩm có 30 đánh giá trung bình 4,8.
         reviews = rating_counts.sum()
@@ -226,6 +261,17 @@ class Recommender:
         if memo is None or memo[0] != key:
             memo = (key, self.sales.trending(now, key[1]))
             self._trend_memo = memo
+        return memo[1]
+
+    def snapshot(self, now: datetime) -> SalesSnapshot | None:
+        """Số liệu bán hàng tại `now` cho mô hình xếp hạng; None nếu không có lượt bán theo thời
+        gian. Nhớ lần gọi trước như `trending`."""
+        if self.sales is None:
+            return None
+        memo = self._snapshot_memo
+        if memo is None or memo[0] != now:
+            memo = (now, self.sales.snapshot(now, self.category_index, self.category_count))
+            self._snapshot_memo = memo
         return memo[1]
 
     # ---- điểm cộng theo kiểu người mua, công thức (1.4) ----
@@ -263,14 +309,14 @@ class Recommender:
 
     def for_account(self, signals: UserSignals, limit: int = HOME_LIMIT) -> list[Suggestion]:
         """Danh sách gợi ý trang chủ của 1 tài khoản theo thứ tự nguồn BR-38 (rỗng = bán chạy)."""
-        weights = self._interaction_weights(signals)
+        weights = self.interaction_weights(signals)
         if signals.has_enough_behaviour and weights:
             return self._behaviour(signals, weights, limit)
         if signals.survey is not None:
             return self.for_survey(signals.survey, limit, excluded=signals.purchased | signals.cart)
         return []
 
-    def _interaction_weights(self, signals: UserSignals) -> dict[int, tuple[float, str]]:
+    def interaction_weights(self, signals: UserSignals) -> dict[int, tuple[float, str]]:
         """Hàng ma trận → (trọng số, loại) của loại tương tác mạnh nhất với sản phẩm đó.
 
         Trọng số theo loại nhân hệ số gần đây của lần tương tác muộn nhất với sản phẩm.
@@ -298,11 +344,11 @@ class Recommender:
             age_days / self.weights.recent_half_life_days
         )
 
-    def _behaviour(
-        self, signals: UserSignals, weights: dict[int, tuple[float, str]], limit: int
-    ) -> list[Suggestion]:
-        """Gợi ý theo hành vi: P(u), hay mua cùng, bán chạy, đang bán chạy và điểm cộng theo kiểu
-        người mua."""
+    def behaviour_parts(
+        self, signals: UserSignals, weights: dict[int, tuple[float, str]]
+    ) -> BehaviourParts:
+        """P(u), hay mua cùng, đang bán chạy, điểm công thức và sản phẩm được phép gợi ý.
+        `weights` lấy từ `interaction_weights`, không rỗng."""
         rows = np.fromiter(weights, dtype=np.int64)
         w = np.array([weights[r][0] for r in rows])
         matrix = self.vectors.matrix
@@ -332,13 +378,13 @@ class Recommender:
         copurchase = bought_together / top if top > 0 else bought_together
 
         trend = self.trending(signals.now) if self.weights.trending > 0 else np.zeros(len(content))
-        score = (
+        base = (
             self.weights.content * content
             + self.weights.copurchase * copurchase
             + self.weights.popular * self.popularity
             + self.weights.trending * trend
-            + self.weights.style * self.style_bonus(survey)
         )
+        score = base + self.weights.style * self.style_bonus(survey)
         allowed = self._allowed(signals.purchased | signals.cart, survey)
         if survey is not None and survey.gender is not None:
             # Khách đã chọn đồ nam/nữ ở khảo sát: chỉ gợi ý đồ giới tính kia khi khách đã mua, thêm
@@ -352,15 +398,35 @@ class Recommender:
             ]
             if not np.any(self.vectors.genders[chosen] == other):
                 allowed &= self._fits_gender(survey.gender)
-        picked = self._pick(score, allowed, limit)
+        return BehaviourParts(rows, w, weights, content, copurchase, trend, base, score, allowed)
+
+    def _behaviour(
+        self, signals: UserSignals, weights: dict[int, tuple[float, str]], limit: int
+    ) -> list[Suggestion]:
+        """Gợi ý theo hành vi: xếp bằng mô hình xếp hạng nếu đã học được, không thì bằng công
+        thức (P(u), hay mua cùng, bán chạy, đang bán chạy và điểm cộng theo kiểu người mua)."""
+        parts = self.behaviour_parts(signals, weights)
+        ranked = None
+        if self.ranker is not None and signals.now is not None and self.sales is not None:
+            ranked = self.ranker.rank(self, signals, parts, limit)
+        if ranked is None:
+            picked = self._pick(parts.score, parts.allowed, limit)
+            scores = [float(parts.score[row]) for row in picked]
+        else:
+            picked, scores = ranked
 
         result = []
-        for row in picked:
+        for row, value in zip(picked, scores, strict=True):
             reason = self._behaviour_reason(
-                row, rows, w, weights, (content[row], copurchase[row], trend[row]), signals
+                row,
+                parts.rows,
+                parts.anchor_weights,
+                weights,
+                (parts.content[row], parts.copurchase[row], parts.trend[row]),
+                signals,
             )
             result.append(
-                Suggestion(int(self.vectors.ids[row]), float(score[row]), reason, SOURCE_BEHAVIOUR)
+                Suggestion(int(self.vectors.ids[row]), float(value), reason, SOURCE_BEHAVIOUR)
             )
         return result
 

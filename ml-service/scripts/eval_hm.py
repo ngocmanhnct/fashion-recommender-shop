@@ -9,8 +9,8 @@ ai chạy lại thì tự tải sau khi đồng ý luật (data/hm/README.md).
 
 Vì sao: dữ liệu mô phỏng (app/simulation) biết trước kiểu thật của từng khách nên đo được ARI,
 nhưng hành vi do chính quy tắc của dự án sinh ra. Script này chạy ĐÚNG mã của ml-service
-(ItemVectors, build_copurchase, Recommender, segmentation.model.train) trên hành vi mua thật,
-không sửa gì trong mô hình.
+(ItemVectors, build_copurchase, Recommender, ranker, segmentation.model.train) trên hành vi mua
+thật, không sửa gì trong mô hình.
 
 Ánh xạ sang cửa hàng:
 - 1 mã sản phẩm H&M (product_code, gồm mọi màu của 1 mẫu) = 1 sản phẩm: tên prod_name, mô tả
@@ -25,19 +25,25 @@ không sửa gì trong mô hình.
 - Phần sản phẩm: mặc định mọi sản phẩm. `--products shoes-bags-accessories` chỉ giữ nhóm hàng
   (product_group_name) Shoes, Bags, Accessories, cùng loại với hàng của website (giày, túi, phụ
   kiện): đơn, khách, R/F/M và gợi ý chỉ tính trên phần này, như thể H&M chỉ bán những loại hàng
-  đó; trọng số gợi ý giữ nguyên.
+  đó (mô hình xếp hạng học trên chính phần này, như website học trên đơn của chính nó; cấu hình
+  giữ nguyên).
 
-Gợi ý, 2 cách chia:
-1. Giữ lại đơn cuối: dùng chung hàm `split` với evaluate.py (dữ liệu mô phỏng).
-2. Cắt theo thời gian như cách chấm của cuộc thi: mô hình chỉ thấy dữ liệu trước REC_HOLDOUT_DAYS
-   ngày cuối, đoán sản phẩm MỚI khách mua trong những ngày đó (cuộc thi tính cả sản phẩm mua lại;
-   cửa hàng của dự án không gợi ý lại sản phẩm đã mua nên ở đây cũng không tính).
-Mỗi cách đánh giá tối đa MAX_CASES khách chọn ngẫu nhiên (seed cố định), kèm khoảng tin cậy 95%
-(bootstrap theo khách) cho tỷ lệ trúng và cho chênh lệch giữa hybrid với từng cách khác (bootstrap
-ghép cặp: cùng mẫu khách cho cả 2 cách). "Hybrid cũ" là bộ trọng số chọn trên dữ liệu mô phỏng,
-trước khi có "đang bán chạy". Trọng số và chu kỳ bán rã của "đang bán chạy" chọn trên tuần kiểm
-định, tuần ngay trước tuần kiểm tra của cách 2 (bảng "Chọn trọng số" trong báo cáo, model.Weights),
-nên cách 2 đo trên tuần mô hình chưa từng dùng để chọn.
+Gợi ý: cắt theo thời gian như cách chấm của cuộc thi. Mô hình chỉ thấy dữ liệu trước mốc, đoán sản
+phẩm MỚI khách mua trong REC_HOLDOUT_DAYS ngày sau mốc (cuộc thi tính cả sản phẩm mua lại; cửa
+hàng của dự án không gợi ý lại sản phẩm đã mua nên ở đây cũng không tính); trúng = ít nhất 1 trong
+K sản phẩm gợi ý được mua. Mô hình xếp hạng (ranker.py) học trên TRAINING_WEEKS tuần ngay trước mốc,
+đúng như trên website (mỗi tuần học chỉ dùng dữ liệu trước tuần đó). Cấu hình của nó (số tuần học,
+đặc trưng, ứng viên) chọn trên các tuần trước tuần kiểm tra của mẫu 5% khách; báo cáo ghi lại tuần
+kiểm định ngay trước tuần kiểm tra, mức đóng góp của từng nhóm đặc trưng trên tuần đó, rồi mới đo
+tuần kiểm tra (7 ngày cuối của dữ liệu). Mỗi tuần đánh giá tối đa MAX_CASES khách chọn ngẫu nhiên
+(seed cố định), kèm khoảng tin cậy 95% (bootstrap theo khách) cho tỷ lệ trúng và cho chênh lệch
+giữa mô hình xếp hạng với từng cách khác (bootstrap ghép cặp: cùng mẫu khách cho cả 2 cách).
+"Công thức hybrid" là cách website dùng khi chưa đủ dữ liệu học (model.Weights).
+
+Cần bao nhiêu dữ liệu (`--data-size`, căn cứ của ranker.MIN_POSITIVES): chia mẫu thành các phần
+rời nhau theo mã khách băm, cỡ PART_SIZES phần nghìn khách H&M; mỗi phần như 1 cửa hàng riêng (chỉ
+thấy đơn của khách trong phần), học mô hình xếp hạng bỏ ngưỡng rồi so với công thức ở
+VALIDATION_WEEKS tuần kiểm định (không dùng tuần kiểm tra). Ghi data/hm/ket-qua-luong-du-lieu.md.
 
 Phân nhóm: R, F, M tính đến ngày sau ngày cuối (F = số đơn, M = tổng giá), huấn luyện bằng `train`
 như trên cửa hàng; độ tuổi từng nhóm; độ ổn định (huấn luyện lại trên 80% khách, so nhóm của mọi
@@ -47,6 +53,7 @@ cuối, đo tỷ lệ khách từng nhóm mua lại và mức chi trong những 
 Chạy trong ml-service/ (không cần MySQL; đọc hết tệp 3,5 GB mất vài phút):
     uv run python -m scripts.eval_hm
     uv run python -m scripts.eval_hm --products shoes-bags-accessories
+    uv run python -m scripts.eval_hm --data-size
 Đọc articles.csv, customers.csv, transactions_train.csv (hoặc tệp .zip của từng tệp) trong
 data/hm/raw, ghi kết quả vào data/hm/ket-qua.md (chỉ giày, túi, phụ kiện:
 data/hm/ket-qua-giay-tui-phu-kien.md).
@@ -66,27 +73,21 @@ from array import array
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from operator import attrgetter
 from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import adjusted_rand_score
+from threadpoolctl import threadpool_limits
 
-from app.recommendation.data import UserSignals
-from app.recommendation.evaluate import (
-    BEHAVIOUR_METHODS,
-    Case,
-    Dataset,
-    K,
-    Order,
-    PurchasePairs,
-    build_model,
-    split,
-)
-from app.recommendation.features import CatalogItem
-from app.recommendation.model import DEFAULT_WEIGHTS
+from app.recommendation import ranker
+from app.recommendation.data import Order
+from app.recommendation.evaluate import K
+from app.recommendation.features import CatalogItem, ItemVectors
+from app.recommendation.model import DEFAULT_WEIGHTS, Recommender, Weights
+from app.recommendation.ranker import Case
 from app.segmentation.model import SegmentModel, train
 from app.segmentation.rfm import Rfm, recency_days
 
@@ -105,13 +106,27 @@ STABILITY_ROUNDS = 20
 STABILITY_FRACTION = 0.8
 SEED = 2026
 PRICE_SCALE = 1_000_000
-HYBRID = "Hybrid (mặc định)"
+RANKER = "Mô hình xếp hạng (mặc định)"
+FORMULA = "Công thức hybrid (khi chưa đủ dữ liệu học)"
 RECENT_POPULAR = f"Bán chạy {REC_HOLDOUT_DAYS} ngày trước mốc (không mô hình)"
-TUNE_TRENDING = (0.0, 0.5, 1.0, 2.0)
-TUNE_HALF_LIFE_DAYS = (3.0, 7.0)
-"""Lưới thử w_t và chu kỳ bán rã của "đang bán chạy" trên tuần kiểm định."""
+SINGLE_SOURCES = {
+    "Đang bán chạy": Weights(content=0, copurchase=0, popular=0, trending=1, style=0, diversity=0),
+    "Bán chạy (mọi thời điểm)": Weights(
+        content=0, copurchase=0, popular=1, trending=0, style=0, diversity=0
+    ),
+    "Nội dung (P(u), cosine)": Weights(
+        content=1, copurchase=0, popular=0, trending=0, style=0, diversity=0
+    ),
+    "Hay mua cùng": Weights(content=0, copurchase=1, popular=0, trending=0, style=0, diversity=0),
+}
+"""Từng nguồn gợi ý riêng lẻ của công thức hybrid."""
 AGE_BANDS = ((0, 25, "Dưới 25"), (25, 35, "25–34"), (35, 45, "35–44"), (45, 55, "45–54"))
 OLDEST_BAND = "Từ 55"
+PART_SIZES = (2, 5, 10, 25)
+"""--data-size: cỡ mỗi phần khách (phần nghìn khách H&M), mỗi phần như 1 cửa hàng riêng."""
+VALIDATION_WEEKS = 3
+"""--data-size: số tuần kiểm định ngay trước tuần kiểm tra."""
+DATA_SIZE_RESULT = "ket-qua-luong-du-lieu.md"
 TOP_TYPES = 10
 """Số loại hàng nhiều lượt mua nhất ghi trong phần mô tả dữ liệu."""
 
@@ -171,10 +186,15 @@ def open_csv(folder: Path, stem: str) -> Iterator[csv.DictReader]:
     raise FileNotFoundError(f"Không thấy {stem}.csv (hoặc tệp .zip của nó) trong {folder}")
 
 
+def customer_bucket(customer_id: str) -> int:
+    """Số 0–999 của khách: 8 ký tự đầu của mã khách (mã băm hex) chia 1000 lấy dư."""
+    return int(customer_id[:8], 16) % 1000
+
+
 def in_sample(customer_id: str, per_mille: int) -> bool:
-    """Khách thuộc mẫu: 8 ký tự đầu của mã khách (mã băm hex) chia 1000 dư nhỏ hơn `per_mille`."""
+    """Khách thuộc mẫu: `customer_bucket` nhỏ hơn `per_mille`."""
     try:
-        return int(customer_id[:8], 16) % 1000 < per_mille
+        return customer_bucket(customer_id) < per_mille
     except ValueError:
         return False
 
@@ -330,46 +350,6 @@ def load_ages(rows: Iterable[dict[str, str]], accounts: dict[str, int]) -> dict[
 # ---- gợi ý ----
 
 
-def split_by_time(orders: list[Order], cutoff: datetime) -> Dataset:
-    """Mô hình chỉ thấy đơn trước `cutoff`; đoán sản phẩm mới khách mua từ `cutoff` trở đi."""
-    before = [o for o in orders if o.created_at < cutoff]
-    history: dict[int, list[Order]] = defaultdict(list)
-    for order in before:
-        history[order.account_id].append(order)
-    future: dict[int, set[int]] = defaultdict(set)
-    for order in orders:
-        if order.created_at >= cutoff:
-            future[order.account_id].update(order.products)
-    cases = []
-    for account_id in sorted(future):
-        bought = {p for o in history.get(account_id, []) for p in o.products}
-        targets = future[account_id] - bought
-        if not bought or not targets:
-            continue
-        signals = UserSignals(
-            account_id,
-            purchased=bought,
-            delivered_orders=len(history[account_id]),
-            now=cutoff,
-        )
-        for order in history[account_id]:
-            for product_id in order.products:
-                signals.touch(product_id, order.created_at)
-        cases.append(Case(signals, targets))
-    sold: Counter = Counter()
-    for order in before:
-        sold.update(order.products)
-    return Dataset(cases, [], PurchasePairs(before), sold, before)
-
-
-def limit_cases(cases: list[Case], limit: int, seed: int = SEED) -> list[Case]:
-    """Tối đa `limit` ca, chọn ngẫu nhiên với seed cố định (giữ thứ tự)."""
-    if len(cases) <= limit:
-        return cases
-    picked = np.random.default_rng(seed).choice(len(cases), limit, replace=False)
-    return [cases[i] for i in sorted(picked)]
-
-
 def recent_popular(orders: list[Order], cutoff: datetime, days: int) -> list[int]:
     """Sản phẩm bán nhiều nhất trong `days` ngày trước `cutoff`, nhiều trước."""
     since = cutoff - timedelta(days=days)
@@ -433,36 +413,44 @@ def _mean(values: np.ndarray) -> float:
     return float(values.mean()) if len(values) else 0.0
 
 
-def evaluate_recommendations(
-    shop: Shop,
-    dataset: Dataset,
-    title: str,
+def _ids(model: Recommender, case: Case, weights: Weights, learned: ranker.Ranker | None):
+    """Mã K sản phẩm gợi ý cho 1 khách bằng bộ trọng số và mô hình xếp hạng cho trước."""
+    model.weights = weights
+    model.ranker = learned
+    return [s.product_id for s in model.for_account(case.signals, K)]
+
+
+def methods_for(
+    model: Recommender,
+    learned: ranker.Ranker | None,
+    popular_before: list[int],
+    single_sources: bool,
+) -> dict[str, Callable[[Case], list[int]]]:
+    """Các cách gợi ý so sánh trên 1 tuần (mô hình xếp hạng đứng đầu nếu đã học được)."""
+    methods: dict[str, Callable[[Case], list[int]]] = {}
+    if learned is not None:
+        methods[RANKER] = lambda case: _ids(model, case, DEFAULT_WEIGHTS, learned)
+    methods[FORMULA] = lambda case: _ids(model, case, DEFAULT_WEIGHTS, None)
+
+    def recent(case: Case) -> list[int]:
+        return [p for p in popular_before if p not in case.signals.purchased][:K]
+
+    methods[RECENT_POPULAR] = recent
+    if single_sources:
+        for name, weights in SINGLE_SOURCES.items():
+            methods[name] = lambda case, weights=weights: _ids(model, case, weights, None)
+    return methods
+
+
+def compare(
+    cases: list[Case],
+    methods: dict[str, Callable[[Case], list[int]]],
     rounds: int,
-    max_cases: int,
-    extra: dict[str, Callable[[Case], list[int]]] | None = None,
-) -> str:
-    """Bảng chỉ số, khoảng tin cậy và so sánh với hybrid trên 1 cách chia."""
-    cases = by_time(limit_cases(dataset.behaviour, max_cases))
-    _progress(f"{title}: dựng mô hình, {len(cases)}/{len(dataset.behaviour)} ca")
-    model = build_model(dataset, shop.items, {})
-    methods: dict[str, Callable[[Case], list[int]]] = dict(extra or {})
-    for name, weights in BEHAVIOUR_METHODS.items():
-
-        def recommend(case: Case, weights=weights) -> list[int]:
-            model.weights = weights
-            return [s.product_id for s in model.for_account(case.signals, K)]
-
-        methods[name] = recommend
-    lines = [f"### {title}", ""]
-    note = (
-        f"Số khách cần đoán: {len(dataset.behaviour)}"
-        if len(cases) == len(dataset.behaviour)
-        else f"Số khách cần đoán: {len(dataset.behaviour)}, đánh giá {len(cases)} khách chọn "
-        f"ngẫu nhiên (seed {SEED})"
-    )
-    lines += [
-        f"{note}; K = {K}; {len(shop.items)} sản phẩm.",
-        "",
+    products: int,
+) -> list[str]:
+    """Bảng tỷ lệ trúng của các cách gợi ý và bảng chênh lệch giữa cách đầu tiên với từng cách
+    khác (khoảng tin cậy ghép cặp)."""
+    lines = [
         "| Cách gợi ý | Tỷ lệ trúng | Khoảng tin cậy 95% | NDCG@10 | Độ phủ |",
         "|---|---:|---|---:|---:|",
     ]
@@ -473,75 +461,295 @@ def evaluate_recommendations(
         low, high = bootstrap_ci(hit, rounds)
         lines.append(
             f"| {name} | {_percent(_mean(hit))} | {_percent(low)} – {_percent(high)} "
-            f"| {_decimal(_mean(ndcg), 3)} | {_percent(len(shown) / max(len(shop.items), 1))} |"
+            f"| {_decimal(_mean(ndcg), 3)} | {_percent(len(shown) / max(products, 1))} |"
         )
         _progress(f"  {name}: {_percent(_mean(hit))}")
+    best, *others = hits
     lines += [
         "",
         "| So sánh | Chênh lệch tỷ lệ trúng (điểm %) | Khoảng tin cậy 95% | Kết luận |",
         "|---|---:|---|---|",
     ]
-    for name, other in hits.items():
-        if name == HYBRID:
-            continue
-        diff = hits[HYBRID] - other
+    short = best.split(" (")[0]
+    for name in others:
+        diff = hits[best] - hits[name]
         low, high = bootstrap_ci(diff, rounds)
-        verdict = (
-            "hybrid tốt hơn" if low > 0 else "hybrid kém hơn" if high < 0 else "chưa phân biệt được"
-        )
+        verdict = "tốt hơn" if low > 0 else "kém hơn" if high < 0 else "chưa phân biệt được"
         lines.append(
-            f"| Hybrid − {name} | {_signed(_mean(diff))} | {_signed(low)} – {_signed(high)} "
+            f"| {short} − {name} | {_signed(_mean(diff))} | {_signed(low)} – {_signed(high)} "
             f"| {verdict} |"
         )
-    return "\n".join(lines)
+    return lines
 
 
-def tune_trending(shop: Shop, cutoff: datetime, max_cases: int) -> str:
-    """Thử w_t và chu kỳ bán rã của "đang bán chạy" trên tuần kiểm định: mô hình thấy dữ liệu
-    trước `cutoff`, đoán REC_HOLDOUT_DAYS ngày sau đó; không dùng gì của tuần kiểm tra (cách 2).
-    Các trọng số khác giữ như mặc định."""
-    end = cutoff + timedelta(days=REC_HOLDOUT_DAYS)
-    dataset = split_by_time([o for o in shop.orders if o.created_at < end], cutoff)
-    cases = by_time(limit_cases(dataset.behaviour, max_cases))
-    _progress(f"Chọn trọng số: dựng mô hình, {len(cases)}/{len(dataset.behaviour)} ca")
-    model = build_model(dataset, shop.items, {})
-    current = (DEFAULT_WEIGHTS.trending, DEFAULT_WEIGHTS.trending_half_life_days)
-    rows = []
-    for trending in TUNE_TRENDING:
-        for half_life in TUNE_HALF_LIFE_DAYS if trending else TUNE_HALF_LIFE_DAYS[:1]:
-            model.weights = replace(
-                DEFAULT_WEIGHTS, trending=trending, trending_half_life_days=half_life
-            )
-            hit, ndcg, _ = case_scores(
-                cases, lambda case: [s.product_id for s in model.for_account(case.signals, K)]
-            )
-            rows.append((trending, half_life, _mean(hit), _mean(ndcg)))
-            _progress(f"  w_t = {trending}, bán rã {half_life} ngày: {_percent(_mean(hit))}")
-    best = max(rows, key=lambda r: r[3])
-    week = f"{cutoff:%d/%m}–{end - timedelta(days=1):%d/%m/%Y}"
-    note = (
-        f"Mô hình thấy đến hết {cutoff - timedelta(days=1):%d/%m/%Y}, đoán {REC_HOLDOUT_DAYS} ngày "
-        f"sau; số khách cần đoán: {len(dataset.behaviour)}, đánh giá {len(cases)}. Các trọng số "
-        "khác giữ như mặc định; chọn bộ có NDCG@10 cao nhất, rồi mới đo trên tuần kiểm tra ở cách 2."
-    )
+def _top_hits(groups: np.ndarray, labels: np.ndarray, score: np.ndarray, cases: int) -> np.ndarray:
+    """Trúng (0/1) của từng khách khi lấy K ứng viên điểm cao nhất của khách đó."""
+    order = np.lexsort((-score, groups))
+    grouped, labelled = groups[order], labels[order]
+    first = np.flatnonzero(np.r_[True, grouped[1:] != grouped[:-1]])
+    rank = np.arange(len(grouped)) - np.repeat(first, np.diff(np.r_[first, len(grouped)]))
+    top = rank < K
+    return (np.bincount(grouped[top], weights=labelled[top], minlength=cases) > 0).astype(float)
+
+
+def feature_importance(
+    model: Recommender, learned: ranker.Ranker, cases: list[Case], rounds: int
+) -> list[str]:
+    """Mức đóng góp của từng nhóm đặc trưng: xáo trộn giá trị cả nhóm giữa các dòng ứng viên
+    (mô hình giữ nguyên), đo tỷ lệ trúng giảm bao nhiêu."""
+    features, labels, groups = [], [], []
+    for number, case in enumerate(cases):
+        computed = ranker.case_rows(model, case)
+        if computed is not None:
+            _, x, y = computed
+            features.append(x)
+            labels.append(y)
+            groups.append(np.full(len(y), number, dtype=np.int64))
+    if not features:
+        return ["Không có ứng viên nào để đo."]
+    matrix, label, group = np.vstack(features), np.concatenate(labels), np.concatenate(groups)
+    full = _top_hits(group, label, learned.predict(matrix), len(cases))
+    rng = np.random.default_rng(SEED)
     lines = [
-        f'### Chọn trọng số "đang bán chạy" (tuần kiểm định {week})',
+        f"Đủ đặc trưng: tỷ lệ trúng {_percent(_mean(full))}.",
         "",
-        note,
-        "",
-        "| w_t | Chu kỳ bán rã (ngày) | Tỷ lệ trúng | NDCG@10 | Ghi chú |",
-        "|---:|---:|---:|---:|---|",
+        "| Nhóm đặc trưng xáo trộn | Tỷ lệ trúng | Giảm (điểm %) | Khoảng tin cậy 95% |",
+        "|---|---:|---:|---|",
     ]
-    for trending, half_life, hit, ndcg in rows:
-        notes = []
-        if (trending, half_life) == best[:2]:
-            notes.append("NDCG cao nhất")
-        if (trending, half_life) == current:
-            notes.append("đang dùng (model.Weights)")
+    for name, members in ranker.FEATURE_GROUPS.items():
+        shuffled = matrix.copy()
+        columns = [ranker.FEATURES.index(m) for m in members]
+        shuffled[:, columns] = matrix[rng.permutation(len(matrix))][:, columns]
+        hit = _top_hits(group, label, learned.predict(shuffled), len(cases))
+        low, high = bootstrap_ci(full - hit, rounds)
         lines.append(
-            f"| {_decimal(trending)} | {_decimal(half_life, 0) if trending else '—'} "
-            f"| {_percent(hit)} | {_decimal(ndcg, 3)} | {', '.join(notes)} |"
+            f"| {name} | {_percent(_mean(hit))} | {_signed(_mean(full - hit))} "
+            f"| {_signed(low)} – {_signed(high)} |"
         )
+    return lines
+
+
+def _training_note(learned: ranker.Ranker | None, cutoff: datetime) -> str:
+    """1 câu về dữ liệu học của mô hình xếp hạng dùng cho tuần bắt đầu ở `cutoff`."""
+    first = cutoff - timedelta(days=ranker.LABEL_DAYS * ranker.TRAINING_WEEKS)
+    if learned is None:
+        return (
+            f"Mô hình xếp hạng: chưa đủ dữ liệu để học (cần ít nhất {_decimal(ranker.MIN_POSITIVES, 0)} lượt "
+            f"mua trúng ứng viên trong {ranker.TRAINING_WEEKS} tuần trước mốc), chỉ có công thức."
+        )
+    info = learned.summary
+    return (
+        f"Mô hình xếp hạng học trên {info.weeks} tuần từ {first:%d/%m} đến "
+        f"{cutoff - timedelta(days=1):%d/%m/%Y}: {_decimal(info.cases, 0)} lượt khách, "
+        f"{_decimal(info.rows, 0)} dòng ứng viên, {_decimal(info.positives, 0)} lượt mua trúng "
+        f"ứng viên ({len(ranker.FEATURES)} đặc trưng)."
+    )
+
+
+def evaluate_week(
+    shop: Shop,
+    model: Recommender,
+    learned: ranker.Ranker | None,
+    cases: list[Case],
+    cutoff: datetime,
+    rounds: int,
+    single_sources: bool,
+) -> list[str]:
+    """Bảng so sánh các cách gợi ý trên tuần bắt đầu ở `cutoff`."""
+    popular = recent_popular(shop.orders, cutoff, REC_HOLDOUT_DAYS)
+    return [
+        _training_note(learned, cutoff),
+        "",
+        *compare(
+            cases, methods_for(model, learned, popular, single_sources), rounds, len(shop.items)
+        ),
+    ]
+
+
+def evaluate_recommendations(
+    shop: Shop, ages: dict[int, int], rounds: int, max_cases: int
+) -> list[str]:
+    """Tuần kiểm định (kèm mức đóng góp của đặc trưng) và tuần kiểm tra."""
+    end = max(o.created_at for o in shop.orders) + timedelta(days=1)
+    test_cutoff = end - timedelta(days=REC_HOLDOUT_DAYS)
+    validation_cutoff = test_cutoff - timedelta(days=REC_HOLDOUT_DAYS)
+    vectors = ItemVectors(shop.items)
+    weeks: dict[datetime, ranker.WeekExamples] = {}
+    lines: list[str] = []
+    cutoffs = ranker.weekly_cutoffs(test_cutoff, ranker.TRAINING_WEEKS + 1)
+    for cutoff, model, cases, week in ranker.training_weeks(
+        vectors, shop.items, shop.orders, ages, cutoffs, max_cases, SEED
+    ):
+        weeks[cutoff] = week
+        _progress(f"Tuần {cutoff:%d/%m}: {week.cases} khách, {week.positives} lượt mua trúng")
+        if cutoff != validation_cutoff:
+            continue
+        learned = ranker.fit([weeks[c] for c in ranker.weekly_cutoffs(cutoff) if c in weeks])
+        cases = by_time(cases)
+        lines += [
+            f"### Tuần kiểm định {cutoff:%d/%m}–{test_cutoff - timedelta(days=1):%d/%m/%Y}",
+            "",
+            (
+                f"Mô hình thấy đến hết {cutoff - timedelta(days=1):%d/%m/%Y}; đánh giá "
+                f"{_decimal(len(cases), 0)} khách. Tuần này dùng để chọn cấu hình, không phải kết quả."
+            ),
+            "",
+            *evaluate_week(shop, model, learned, cases, cutoff, rounds, False),
+        ]
+        if learned is not None:
+            lines += [
+                "",
+                "#### Đóng góp của từng nhóm đặc trưng (tuần kiểm định)",
+                "",
+                (
+                    "Xáo trộn giá trị 1 nhóm đặc trưng giữa mọi dòng ứng viên (mô hình giữ nguyên): "
+                    "tỷ lệ trúng giảm càng nhiều thì nhóm đó càng quan trọng."
+                ),
+                "",
+                *feature_importance(model, learned, cases, rounds),
+            ]
+    learned = ranker.fit([weeks[c] for c in ranker.weekly_cutoffs(test_cutoff) if c in weeks])
+    model = ranker.model_at(vectors, shop.items, shop.orders, test_cutoff, ranker.age_bands(ages))
+    cases = by_time(
+        ranker.sample(ranker.cases_at(shop.orders, test_cutoff, end, ages), max_cases, SEED)
+    )
+    _progress(f"Tuần kiểm tra {test_cutoff:%d/%m}: {len(cases)} khách")
+    lines += [
+        "",
+        f"### Tuần kiểm tra {test_cutoff:%d/%m}–{end - timedelta(days=1):%d/%m/%Y} (kết quả)",
+        "",
+        (
+            f"Mô hình thấy đến hết {test_cutoff - timedelta(days=1):%d/%m/%Y}, đoán "
+            f"{REC_HOLDOUT_DAYS} ngày sau; đánh giá {_decimal(len(cases), 0)} khách; K = {K}; "
+            f"{_decimal(len(shop.items), 0)} sản phẩm."
+        ),
+        "",
+        *evaluate_week(shop, model, learned, cases, test_cutoff, rounds, True),
+    ]
+    return lines
+
+
+# ---- cần bao nhiêu dữ liệu (--data-size) ----
+
+
+@dataclass
+class PartWeek:
+    """1 phần khách ở 1 tuần kiểm định: lượt mua trúng ứng viên lúc học và trúng (0/1) của từng
+    khách với mô hình xếp hạng và với công thức."""
+
+    positives: int
+    ranker_hits: np.ndarray
+    formula_hits: np.ndarray
+
+
+def evaluate_part(
+    shop: Shop,
+    ages: dict[int, int],
+    vectors: ItemVectors,
+    accounts: set[int],
+    cutoffs: list[datetime],
+    validation: set[datetime],
+) -> list[PartWeek]:
+    """1 phần khách như 1 cửa hàng riêng: chỉ thấy đơn của khách trong phần, học mô hình xếp hạng
+    như website nhưng bỏ ngưỡng MIN_POSITIVES, so với công thức ở từng tuần kiểm định."""
+    orders = [o for o in shop.orders if o.account_id in accounts]
+    part_ages = {account: age for account, age in ages.items() if account in accounts}
+    weeks: dict[datetime, ranker.WeekExamples] = {}
+    results = []
+    for cutoff, model, cases, week in ranker.training_weeks(
+        vectors, shop.items, orders, part_ages, cutoffs, MAX_CASES, SEED
+    ):
+        weeks[cutoff] = week
+        if cutoff not in validation:
+            continue
+        used = [weeks[c] for c in ranker.weekly_cutoffs(cutoff) if c in weeks]
+        learned = ranker.fit(used, min_positives=1)
+        if learned is None or not cases:
+            continue
+        cases = by_time(cases)
+        ranked, formula = (
+            case_scores(
+                cases, lambda case, m=m, current=model: _ids(current, case, DEFAULT_WEIGHTS, m)
+            )[0]
+            for m in (learned, None)
+        )
+        results.append(PartWeek(sum(w.positives for w in used), ranked, formula))
+    return results
+
+
+def _size_row(size: int, customers: list[int], results: list[PartWeek], rounds: int) -> str:
+    """1 dòng bảng: gộp mọi phần, mọi tuần kiểm định của 1 cỡ phần."""
+    label = f"{_decimal(size / 10)}% ({_decimal(statistics.mean(customers), 0)} khách)"
+    if not results:
+        return f"| {label} | 0 | — | — | — | — | — | — | chưa học được |"
+    ranked = np.concatenate([r.ranker_hits for r in results])
+    formula = np.concatenate([r.formula_hits for r in results])
+    diff = ranked - formula
+    low, high = bootstrap_ci(diff, rounds)
+    verdict = "tốt hơn" if low > 0 else "kém hơn" if high < 0 else "chưa phân biệt được"
+    worse = sum(_mean(r.ranker_hits) < _mean(r.formula_hits) for r in results)
+    return (
+        f"| {label} | {len(results)} ({worse} lần kém hơn) "
+        f"| {_decimal(statistics.mean(r.positives for r in results), 0)} "
+        f"| {_decimal(len(diff), 0)} | {_percent(_mean(ranked))} | {_percent(_mean(formula))} "
+        f"| {_signed(_mean(diff))} | {_signed(low)} – {_signed(high)} | {verdict} |"
+    )
+
+
+def evaluate_data_size(shop: Shop, ages: dict[int, int], per_mille: int, rounds: int) -> str:
+    """Cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (căn cứ của MIN_POSITIVES): chia
+    mẫu thành các phần rời nhau theo `customer_bucket`, gộp kết quả theo cỡ phần."""
+    if not shop.orders:
+        return "Không có giao dịch nào của khách trong mẫu."
+    started = time.perf_counter()
+    end = max(o.created_at for o in shop.orders) + timedelta(days=1)
+    test_cutoff = end - timedelta(days=REC_HOLDOUT_DAYS)
+    cutoffs = ranker.weekly_cutoffs(test_cutoff, ranker.TRAINING_WEEKS + VALIDATION_WEEKS)
+    validation = set(cutoffs[-VALIDATION_WEEKS:])
+    vectors = ItemVectors(shop.items)
+    buckets: dict[int, set[int]] = defaultdict(set)
+    for customer, account in shop.accounts.items():
+        buckets[customer_bucket(customer)].add(account)
+    first = min(validation)
+    lines = [
+        "# Cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (H&M)",
+        "",
+        (
+            f"Mẫu {_decimal(per_mille / 10)}% khách ({_decimal(len(shop.accounts), 0)} khách) "
+            "chia thành các phần rời nhau theo mã khách băm. Mỗi phần như 1 cửa hàng riêng: chỉ "
+            f"thấy đơn của khách trong phần, mô hình xếp hạng học trên {ranker.TRAINING_WEEKS} tuần "
+            "trước mốc như website (bỏ ngưỡng số lượt mua trúng) rồi so với công thức hybrid trên "
+            f"chính khách của phần, ở {VALIDATION_WEEKS} tuần kiểm định từ {first:%d/%m} đến "
+            f"{test_cutoff - timedelta(days=1):%d/%m/%Y} (không dùng tuần kiểm tra). Trúng = ít "
+            f"nhất 1 trong {K} sản phẩm gợi ý được mua trong 7 ngày sau mốc."
+        ),
+        "",
+        (
+            "| Mỗi phần | Lần học | Lượt mua trúng ứng viên khi học (TB) | Khách đánh giá "
+            "| Mô hình xếp hạng | Công thức hybrid | Chênh lệch (điểm %) | Khoảng tin cậy 95% "
+            "| Kết luận |"
+        ),
+        "|---|---:|---:|---:|---:|---:|---:|---|---|",
+    ]
+    for size in (s for s in PART_SIZES if s <= per_mille):
+        customers, results = [], []
+        for start in range(0, per_mille - size + 1, size):
+            accounts = set().union(*(buckets[b] for b in range(start, start + size)))
+            customers.append(len(accounts))
+            results += evaluate_part(shop, ages, vectors, accounts, cutoffs, validation)
+        _progress(f"Phần {_decimal(size / 10)}%: {len(results)} lần học")
+        lines.append(_size_row(size, customers, results, rounds))
+    lines += [
+        "",
+        (
+            "Lượt mua trúng ứng viên: số lần khách mua 1 sản phẩm mới nằm trong danh sách ứng viên, "
+            f"cộng trên {ranker.TRAINING_WEEKS} tuần học. Website chỉ dùng mô hình xếp hạng khi có "
+            f"ít nhất {_decimal(ranker.MIN_POSITIVES, 0)} lượt (`ranker.MIN_POSITIVES`), ít hơn thì "
+            "dùng công thức hybrid."
+        ),
+        "",
+        f"Thời gian chạy (sau khi đọc tệp): {_decimal(time.perf_counter() - started, 0)} giây.",
+    ]
     return "\n".join(lines)
 
 
@@ -750,7 +958,8 @@ def summary(shop: Shop, ages: dict[int, int], per_mille: int, scope: Scope = ALL
                 f"cùng loại với hàng của website): {_decimal(shop.lines, 0)} trên "
                 f"{_decimal(bought, 0)} lượt mua của khách trong mẫu "
                 f"({_percent(shop.lines / max(bought, 1))}). Đơn, khách, R/F/M và gợi ý chỉ tính "
-                "trên phần này, như thể H&M chỉ bán những loại hàng đó; trọng số gợi ý giữ nguyên."
+                "trên phần này, như thể H&M chỉ bán những loại hàng đó (mô hình xếp hạng học trên "
+                "chính phần này; cấu hình giữ nguyên)."
             ),
         ]
     if shop.skipped:
@@ -787,13 +996,7 @@ def run(
         title += f", chỉ {scope.label}"
     started = time.perf_counter()
     end = max(o.created_at for o in shop.orders) + timedelta(days=1)
-    rec_cutoff = end - timedelta(days=REC_HOLDOUT_DAYS)
     segment_cutoff = end - timedelta(days=SEGMENT_HOLDOUT_DAYS)
-    popular_before = recent_popular(shop.orders, rec_cutoff, REC_HOLDOUT_DAYS)
-
-    def recent(case: Case) -> list[int]:
-        return [p for p in popular_before if p not in case.signals.purchased][:K]
-
     parts = [
         title,
         "",
@@ -801,25 +1004,15 @@ def run(
         "",
         "## Gợi ý sản phẩm",
         "",
-        evaluate_recommendations(
-            shop,
-            split(shop.orders, {}, {}),
-            "Cách 1: giữ lại đơn cuối (như đánh giá trên dữ liệu mô phỏng)",
-            rounds,
-            max_cases,
+        (
+            "Cắt theo thời gian như cách chấm của cuộc thi: mô hình chỉ thấy dữ liệu trước mốc, đoán "
+            f"sản phẩm mới (chưa từng mua) khách mua trong {REC_HOLDOUT_DAYS} ngày sau mốc; trúng = "
+            f"ít nhất 1 trong {K} sản phẩm gợi ý được mua. Mô hình xếp hạng học trên "
+            f"{ranker.TRAINING_WEEKS} tuần ngay trước mốc, mỗi tuần học chỉ dùng dữ liệu trước tuần "
+            "đó (như website học lại mỗi đêm)."
         ),
         "",
-        tune_trending(shop, rec_cutoff - timedelta(days=REC_HOLDOUT_DAYS), max_cases),
-        "",
-        evaluate_recommendations(
-            shop,
-            split_by_time(shop.orders, rec_cutoff),
-            f"Cách 2: cắt theo thời gian (mô hình thấy đến hết "
-            f"{rec_cutoff - timedelta(days=1):%d/%m/%Y}, đoán {REC_HOLDOUT_DAYS} ngày sau)",
-            rounds,
-            max_cases,
-            {RECENT_POPULAR: recent},
-        ),
+        *evaluate_recommendations(shop, ages, rounds, max_cases),
         "",
         "## Phân nhóm khách hàng",
         "",
@@ -847,7 +1040,7 @@ def main(argv: list[str] | None = None) -> int:
         help="số lần huấn luyện lại phân nhóm để đo độ ổn định",
     )
     parser.add_argument(
-        "--max-cases", type=int, default=MAX_CASES, help="số khách tối đa mỗi cách chia"
+        "--max-cases", type=int, default=MAX_CASES, help="số khách tối đa mỗi tuần đánh giá"
     )
     parser.add_argument(
         "--products",
@@ -855,6 +1048,12 @@ def main(argv: list[str] | None = None) -> int:
         default="all",
         help="phần sản phẩm: all (mọi sản phẩm, ghi ket-qua.md) hoặc shoes-bags-accessories "
         "(chỉ nhóm hàng Shoes, Bags, Accessories như website, ghi ket-qua-giay-tui-phu-kien.md)",
+    )
+    parser.add_argument(
+        "--data-size",
+        action="store_true",
+        help="chỉ đo cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (chia mẫu thành phần "
+        f"nhỏ, chỉ tuần kiểm định), ghi {DATA_SIZE_RESULT}",
     )
     args = parser.parse_args(argv)
     # Chọn bằng phép so sánh, không tra dict bằng chuỗi dòng lệnh: tên tệp kết quả và nhãn trong
@@ -871,6 +1070,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--sample phải từ 1 đến 1000 (phần nghìn khách)")
     if min(rounds, stability_rounds, max_cases) < 1:
         parser.error("--rounds, --stability-rounds và --max-cases phải từ 1 trở lên")
+    if args.data_size and scope is not ALL_PRODUCTS:
+        parser.error("--data-size chỉ dùng với mọi sản phẩm")
     try:
         _progress("Đọc articles.csv")
         with open_csv(RAW_DIR, "articles") as rows:
@@ -884,8 +1085,14 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as error:
         print(error, file=sys.stderr)
         return 1
-    report = run(shop, ages, sample, rounds, stability_rounds, max_cases, scope)
-    result_file = RESULT_DIR / scope.result_name
+    # 1 luồng cho numpy, scikit-learn: hàng chục nghìn phép tính nhỏ mỗi tuần, nhiều luồng chỉ tốn
+    # công đồng bộ (chậm gấp đôi, xem Dockerfile của ml-service).
+    with threadpool_limits(limits=1):
+        if args.data_size:
+            report = evaluate_data_size(shop, ages, sample, rounds)
+        else:
+            report = run(shop, ages, sample, rounds, stability_rounds, max_cases, scope)
+    result_file = RESULT_DIR / (DATA_SIZE_RESULT if args.data_size else scope.result_name)
     result_file.parent.mkdir(parents=True, exist_ok=True)
     with result_file.open("w", encoding="utf-8", newline="\n") as handle:
         handle.write(report + "\n")

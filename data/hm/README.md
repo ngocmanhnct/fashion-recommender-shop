@@ -11,8 +11,9 @@ của chính nó, tính lại mỗi đêm.
   và giáo dục; 7B không được truyền, sao chép, công bố hay chia sẻ lại dữ liệu cho người chưa đồng
   ý luật. Vì vậy repo **không** chứa tệp gốc hay tệp đã lọc (`data/hm/raw/`, `data/hm/mau/` nằm
   trong `.gitignore`), chỉ có kết quả tổng hợp: `ket-qua.md` (mẫu 5% khách),
-  `ket-qua-toan-bo.md` (toàn bộ khách) và `ket-qua-giay-tui-phu-kien.md` (toàn bộ khách, chỉ giày,
-  túi, phụ kiện).
+  `ket-qua-toan-bo.md` (toàn bộ khách), `ket-qua-giay-tui-phu-kien.md` (toàn bộ khách, chỉ giày,
+  túi, phụ kiện) và `ket-qua-luong-du-lieu.md` (cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công
+  thức, mẫu 5% khách).
 - Nội dung: lịch sử mua thật của khách H&M (cửa hàng và trực tuyến) từ 20/09/2018 đến 22/09/2020;
   `articles.csv` có loại hàng, màu, mô tả của từng sản phẩm; `customers.csv` có tuổi khách. Mã khách
   đã được băm, giá đã được quy đổi về thang riêng (không phải tiền thật).
@@ -32,9 +33,9 @@ của chính nó, tính lại mỗi đêm.
    uv run python -m scripts.eval_hm
    ```
 
-   Script ghi `data/hm/ket-qua.md`. Với mẫu 5% khách, lần chạy ngày 06/11/2026 mất 36 phút trên
-   máy 4 nhân đang chạy song song việc khác, RAM cao nhất khoảng 1 GB. Cách ánh xạ sang cửa hàng,
-   cách lấy mẫu 5% khách, 2 cách chia, cách chọn trọng số đang bán chạy và các phép kiểm tra phân
+   Script ghi `data/hm/ket-qua.md`. Với mẫu 5% khách, lần chạy ngày 17/11/2026 mất 11 phút (máy 4
+   nhân, 16 GB RAM), RAM cao nhất khoảng 1,6 GB. Cách ánh xạ sang cửa hàng, cách lấy mẫu 5% khách,
+   cách cắt theo thời gian, cách học và chọn cấu hình mô hình xếp hạng và các phép kiểm tra phân
    nhóm ghi ở đầu `ml-service/scripts/eval_hm.py`.
 
 4. Chạy trên toàn bộ khách:
@@ -43,11 +44,10 @@ của chính nó, tính lại mỗi đêm.
    uv run python -m scripts.eval_hm --sample 1000 --stability-rounds 5
    ```
 
-   Lần chạy ngày 06/11/2026 (máy 4 nhân, 16 GB RAM) đọc tệp mất khoảng 4 phút, phần đánh giá
-   57 phút, RAM cao nhất khoảng 8,5 GB (lúc dựng mô hình cho cách giữ lại đơn cuối), nên trên máy
-   16 GB cần tắt bớt ứng dụng khác (Docker Desktop, trình duyệt). Script ghi đè `ket-qua.md`: đổi
-   tên tệp vừa ghi thành `ket-qua-toan-bo.md`, rồi lấy lại kết quả mẫu 5% bằng
-   `git checkout -- data/hm/ket-qua.md`.
+   Lần chạy ngày 17/11/2026 (máy 4 nhân, 16 GB RAM) đọc tệp mất khoảng 4 phút, phần đánh giá
+   69 phút, RAM cao nhất khoảng 8,4 GB, nên trên máy 16 GB cần tắt bớt ứng dụng khác (Docker
+   Desktop, trình duyệt). Script ghi đè `ket-qua.md`: đổi tên tệp vừa ghi thành
+   `ket-qua-toan-bo.md`, rồi lấy lại kết quả mẫu 5% bằng `git checkout -- data/hm/ket-qua.md`.
 
 5. Chỉ giày, túi, phụ kiện (cùng loại hàng với website):
 
@@ -57,10 +57,26 @@ của chính nó, tính lại mỗi đêm.
 
    Script chỉ giữ nhóm hàng `Shoes`, `Bags`, `Accessories` (cột `product_group_name` của
    `articles.csv`), coi như H&M chỉ bán những loại hàng đó: đơn, khách, R/F/M và gợi ý chỉ tính
-   trên phần này, trọng số gợi ý giữ nguyên. Kết quả ghi vào `ket-qua-giay-tui-phu-kien.md`, không
-   đè `ket-qua.md`; phần đầu tệp có tỷ lệ lượt mua được giữ và 10 loại hàng mua nhiều nhất. Lần
-   chạy ngày 07/11/2026 (máy 4 nhân, 16 GB RAM) mất khoảng 15 phút: đọc tệp 2,5 phút, phần đánh
-   giá 12 phút.
+   trên phần này, mô hình xếp hạng học trên chính phần này (cấu hình giữ nguyên). Kết quả ghi vào
+   `ket-qua-giay-tui-phu-kien.md`, không đè `ket-qua.md`; phần đầu tệp có tỷ lệ lượt mua được giữ
+   và 10 loại hàng mua nhiều nhất. Lần chạy ngày 17/11/2026 (máy 4 nhân, 16 GB RAM, chạy cùng lúc
+   việc khác) mất khoảng 23 phút: đọc tệp 2,5 phút, phần đánh giá 20 phút; RAM cao nhất khoảng
+   3,7 GB.
+
+6. Cần bao nhiêu dữ liệu để mô hình xếp hạng hơn công thức (căn cứ của ngưỡng `MIN_POSITIVES`
+   trong `ml-service/app/recommendation/ranker.py`):
+
+   ```powershell
+   uv run python -m scripts.eval_hm --data-size
+   ```
+
+   Chia mẫu 5% khách thành các phần rời nhau theo mã khách băm (mỗi phần 0,2%, 0,5%, 1% hoặc 2,5%
+   khách H&M), mỗi phần như 1 cửa hàng riêng: tự học mô hình xếp hạng rồi so với công thức hybrid
+   trên 3 tuần kiểm định (không dùng tuần kiểm tra). Kết quả ghi vào `ket-qua-luong-du-lieu.md`.
+   Lần chạy ngày 17/11/2026 mất khoảng 34 phút (máy 4 nhân, 16 GB RAM, numpy và scikit-learn chạy 1
+   luồng), RAM cao nhất khoảng 1,1 GB. Kết quả: phần có trung bình 370 và 1.059 lượt mua trúng ứng
+   viên thì mô hình xếp hạng kém công thức (−1,6 và −1,2 điểm %), 2.285 lượt thì ngang (+0,1, khoảng
+   tin cậy chứa 0), 6.067 lượt thì hơn rõ (+2,0, từ +1,3 đến +2,6), nên ngưỡng đặt ở 5.000.
 
 ## Giới hạn
 

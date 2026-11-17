@@ -158,8 +158,9 @@ def test_background_thread_picks_up_new_requests(clean_db, make_worker):
     with clean_db.begin() as conn:
         request_recompute(conn, a, RECOMMENDATION)
 
+    # Hàm xử lý chạy trước khi worker commit và tăng bộ đếm: chờ bộ đếm, không chờ `done` (#167).
     deadline = time.monotonic() + 5
-    while not done and time.monotonic() < deadline:
+    while worker.status()["processed"] < 1 and time.monotonic() < deadline:
         time.sleep(0.02)
     status = worker.status()
     worker.stop()

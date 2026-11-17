@@ -4,7 +4,7 @@
 
 Mẫu 100,0% khách (8 ký tự đầu của mã khách đổi sang số, chia 1000 dư nhỏ hơn 1000). Từ 20/09/2018 đến 22/09/2020: 587.605 khách, 1.549.261 đơn (khách, ngày, kênh), 2.352.427 lượt mua, 9.202 sản phẩm; 51,5% khách có từ 2 đơn, trung bình 2,6 đơn mỗi khách; 99,3% khách có tuổi.
 
-Chỉ giữ nhóm hàng Accessories, Bags, Shoes của H&M (giày, túi, phụ kiện, cùng loại với hàng của website): 2.352.427 trên 31.788.324 lượt mua của khách trong mẫu (7,4%). Đơn, khách, R/F/M và gợi ý chỉ tính trên phần này, như thể H&M chỉ bán những loại hàng đó; trọng số gợi ý giữ nguyên.
+Chỉ giữ nhóm hàng Accessories, Bags, Shoes của H&M (giày, túi, phụ kiện, cùng loại với hàng của website): 2.352.427 trên 31.788.324 lượt mua của khách trong mẫu (7,4%). Đơn, khách, R/F/M và gợi ý chỉ tính trên phần này, như thể H&M chỉ bán những loại hàng đó (mô hình xếp hạng học trên chính phần này; cấu hình giữ nguyên).
 
 Loại hàng nhiều lượt mua nhất (product_type_name, 10 loại đầu):
 
@@ -23,67 +23,66 @@ Loại hàng nhiều lượt mua nhất (product_type_name, 10 loại đầu):
 
 ## Gợi ý sản phẩm
 
-### Cách 1: giữ lại đơn cuối (như đánh giá trên dữ liệu mô phỏng)
+Cắt theo thời gian như cách chấm của cuộc thi: mô hình chỉ thấy dữ liệu trước mốc, đoán sản phẩm mới (chưa từng mua) khách mua trong 7 ngày sau mốc; trúng = ít nhất 1 trong 10 sản phẩm gợi ý được mua. Mô hình xếp hạng học trên 5 tuần ngay trước mốc, mỗi tuần học chỉ dùng dữ liệu trước tuần đó (như website học lại mỗi đêm).
 
-Số khách cần đoán: 283728, đánh giá 10000 khách chọn ngẫu nhiên (seed 2026); K = 10; 9202 sản phẩm.
+### Tuần kiểm định 09/09–15/09/2020
+
+Mô hình thấy đến hết 08/09/2020; đánh giá 8.253 khách. Tuần này dùng để chọn cấu hình, không phải kết quả.
+
+Mô hình xếp hạng học trên 5 tuần từ 05/08 đến 08/09/2020: 46.703 lượt khách, 3.388.966 dòng ứng viên, 29.863 lượt mua trúng ứng viên (28 đặc trưng).
 
 | Cách gợi ý | Tỷ lệ trúng | Khoảng tin cậy 95% | NDCG@10 | Độ phủ |
 |---|---:|---|---:|---:|
-| Bán chạy | 9,4% | 8,9% – 10,0% | 0,043 | 0,2% |
-| Đang bán chạy | 13,7% | 13,0% – 14,3% | 0,062 | 2,1% |
-| Nội dung (P(u), cosine) | 1,6% | 1,4% – 1,8% | 0,007 | 76,1% |
-| Hay mua cùng | 7,0% | 6,5% – 7,5% | 0,031 | 67,4% |
-| Hybrid cũ (chưa có đang bán chạy) | 5,6% | 5,1% – 6,0% | 0,024 | 63,2% |
-| Hybrid, không ưu tiên gần đây | 14,9% | 14,1% – 15,5% | 0,067 | 13,1% |
-| Hybrid (mặc định) | 14,9% | 14,1% – 15,5% | 0,067 | 13,2% |
+| Mô hình xếp hạng (mặc định) | 15,7% | 14,9% – 16,4% | 0,070 | 5,2% |
+| Công thức hybrid (khi chưa đủ dữ liệu học) | 14,1% | 13,3% – 14,8% | 0,060 | 3,9% |
+| Bán chạy 7 ngày trước mốc (không mô hình) | 13,5% | 12,8% – 14,3% | 0,059 | 0,2% |
 
 | So sánh | Chênh lệch tỷ lệ trúng (điểm %) | Khoảng tin cậy 95% | Kết luận |
 |---|---:|---|---|
-| Hybrid − Bán chạy | +5,4 | +4,8 – +6,0 | hybrid tốt hơn |
-| Hybrid − Đang bán chạy | +1,2 | +0,6 – +1,8 | hybrid tốt hơn |
-| Hybrid − Nội dung (P(u), cosine) | +13,3 | +12,5 – +14,0 | hybrid tốt hơn |
-| Hybrid − Hay mua cùng | +7,9 | +7,2 – +8,5 | hybrid tốt hơn |
-| Hybrid − Hybrid cũ (chưa có đang bán chạy) | +9,3 | +8,6 – +10,0 | hybrid tốt hơn |
-| Hybrid − Hybrid, không ưu tiên gần đây | +0,0 | −0,0 – +0,1 | chưa phân biệt được |
+| Mô hình xếp hạng − Công thức hybrid (khi chưa đủ dữ liệu học) | +1,6 | +1,0 – +2,3 | tốt hơn |
+| Mô hình xếp hạng − Bán chạy 7 ngày trước mốc (không mô hình) | +2,2 | +1,5 – +2,8 | tốt hơn |
 
-### Chọn trọng số "đang bán chạy" (tuần kiểm định 09/09–15/09/2020)
+#### Đóng góp của từng nhóm đặc trưng (tuần kiểm định)
 
-Mô hình thấy đến hết 08/09/2020, đoán 7 ngày sau; số khách cần đoán: 8253, đánh giá 8253. Các trọng số khác giữ như mặc định; chọn bộ có NDCG@10 cao nhất, rồi mới đo trên tuần kiểm tra ở cách 2.
+Xáo trộn giá trị 1 nhóm đặc trưng giữa mọi dòng ứng viên (mô hình giữ nguyên): tỷ lệ trúng giảm càng nhiều thì nhóm đó càng quan trọng.
 
-| w_t | Chu kỳ bán rã (ngày) | Tỷ lệ trúng | NDCG@10 | Ghi chú |
-|---:|---:|---:|---:|---|
-| 0,0 | — | 4,8% | 0,021 |  |
-| 0,5 | 3 | 14,0% | 0,058 |  |
-| 0,5 | 7 | 13,2% | 0,055 |  |
-| 1,0 | 3 | 14,6% | 0,063 | NDCG cao nhất |
-| 1,0 | 7 | 14,1% | 0,060 | đang dùng (model.Weights) |
-| 2,0 | 3 | 14,5% | 0,063 |  |
-| 2,0 | 7 | 13,8% | 0,060 |  |
+Đủ đặc trưng: tỷ lệ trúng 15,7%.
 
-### Cách 2: cắt theo thời gian (mô hình thấy đến hết 15/09/2020, đoán 7 ngày sau)
+| Nhóm đặc trưng xáo trộn | Tỷ lệ trúng | Giảm (điểm %) | Khoảng tin cậy 95% |
+|---|---:|---:|---|
+| Đang bán chạy (theo thời gian) | 7,9% | +7,8 | +6,9 – +8,6 |
+| Sản phẩm mới hay cũ | 13,5% | +2,2 | +1,7 – +2,7 |
+| Nhóm tuổi | 14,2% | +1,5 | +1,0 – +2,1 |
+| Giống sản phẩm khách đã mua (nội dung) | 15,0% | +0,7 | +0,3 – +1,1 |
+| Hay mua cùng | 13,7% | +2,0 | +1,4 – +2,5 |
+| Điểm công thức hybrid | 11,5% | +4,3 | +3,5 – +4,9 |
+| Giá | 15,7% | +0,0 | −0,3 – +0,3 |
+| Thói quen của khách | 15,1% | +0,6 | +0,1 – +1,0 |
 
-Số khách cần đoán: 8202; K = 10; 9202 sản phẩm.
+### Tuần kiểm tra 16/09–22/09/2020 (kết quả)
+
+Mô hình thấy đến hết 15/09/2020, đoán 7 ngày sau; đánh giá 8.202 khách; K = 10; 9.202 sản phẩm.
+
+Mô hình xếp hạng học trên 5 tuần từ 12/08 đến 15/09/2020: 45.500 lượt khách, 3.303.202 dòng ứng viên, 29.279 lượt mua trúng ứng viên (28 đặc trưng).
 
 | Cách gợi ý | Tỷ lệ trúng | Khoảng tin cậy 95% | NDCG@10 | Độ phủ |
 |---|---:|---|---:|---:|
+| Mô hình xếp hạng (mặc định) | 14,5% | 13,7% – 15,2% | 0,068 | 5,5% |
+| Công thức hybrid (khi chưa đủ dữ liệu học) | 13,5% | 12,8% – 14,3% | 0,059 | 3,7% |
 | Bán chạy 7 ngày trước mốc (không mô hình) | 12,9% | 12,3% – 13,6% | 0,059 | 0,2% |
-| Bán chạy | 8,8% | 8,2% – 9,5% | 0,043 | 0,2% |
 | Đang bán chạy | 13,5% | 12,8% – 14,2% | 0,058 | 0,2% |
+| Bán chạy (mọi thời điểm) | 8,8% | 8,2% – 9,5% | 0,043 | 0,2% |
 | Nội dung (P(u), cosine) | 1,3% | 1,1% – 1,6% | 0,005 | 69,9% |
 | Hay mua cùng | 6,0% | 5,5% – 6,5% | 0,026 | 54,2% |
-| Hybrid cũ (chưa có đang bán chạy) | 4,4% | 3,9% – 4,9% | 0,019 | 53,7% |
-| Hybrid, không ưu tiên gần đây | 13,5% | 12,8% – 14,3% | 0,059 | 3,7% |
-| Hybrid (mặc định) | 13,5% | 12,8% – 14,3% | 0,059 | 3,7% |
 
 | So sánh | Chênh lệch tỷ lệ trúng (điểm %) | Khoảng tin cậy 95% | Kết luận |
 |---|---:|---|---|
-| Hybrid − Bán chạy 7 ngày trước mốc (không mô hình) | +0,5 | −0,1 – +1,2 | chưa phân biệt được |
-| Hybrid − Bán chạy | +4,7 | +4,1 – +5,3 | hybrid tốt hơn |
-| Hybrid − Đang bán chạy | −0,0 | −0,6 – +0,6 | chưa phân biệt được |
-| Hybrid − Nội dung (P(u), cosine) | +12,2 | +11,5 – +12,9 | hybrid tốt hơn |
-| Hybrid − Hay mua cùng | +7,5 | +6,9 – +8,1 | hybrid tốt hơn |
-| Hybrid − Hybrid cũ (chưa có đang bán chạy) | +9,1 | +8,5 – +9,8 | hybrid tốt hơn |
-| Hybrid − Hybrid, không ưu tiên gần đây | +0,0 | +0,0 – +0,0 | chưa phân biệt được |
+| Mô hình xếp hạng − Công thức hybrid (khi chưa đủ dữ liệu học) | +1,0 | +0,3 – +1,6 | tốt hơn |
+| Mô hình xếp hạng − Bán chạy 7 ngày trước mốc (không mô hình) | +1,5 | +0,8 – +2,2 | tốt hơn |
+| Mô hình xếp hạng − Đang bán chạy | +1,0 | +0,2 – +1,6 | tốt hơn |
+| Mô hình xếp hạng − Bán chạy (mọi thời điểm) | +5,7 | +4,9 – +6,4 | tốt hơn |
+| Mô hình xếp hạng − Nội dung (P(u), cosine) | +13,2 | +12,4 – +13,9 | tốt hơn |
+| Mô hình xếp hạng − Hay mua cùng | +8,4 | +7,8 – +9,3 | tốt hơn |
 
 ## Phân nhóm khách hàng
 
@@ -133,4 +132,4 @@ Mô hình chỉ thấy dữ liệu trước mốc (546.110 khách, K = 3, Silhou
 | Khách VIP | 138.771 | 33,3% | 0,02 |
 | Tất cả | 546.110 | 18,0% | 0,01 |
 
-Thời gian chạy (sau khi đọc tệp): 707 giây.
+Thời gian chạy (sau khi đọc tệp): 1.231 giây.
