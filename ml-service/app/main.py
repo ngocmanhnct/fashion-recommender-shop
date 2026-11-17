@@ -34,8 +34,8 @@ def task_handlers(cache: ModelCache) -> dict[str, Handler]:
 
 def nightly_job(cache: ModelCache) -> Callable[[Connection], None]:
     """Việc mỗi đêm và khi khởi động: huấn luyện lại phân nhóm nếu đã đủ 1 tuần (BR-23), chưa đủ
-    thì gán lại nhóm theo R, F, M mới nhất; dựng lại mô hình gợi ý, yêu cầu tính lại gợi ý cho
-    mọi khách."""
+    thì gán lại nhóm theo R, F, M mới nhất; học lại mô hình xếp hạng gợi ý, dựng lại mô hình gợi
+    ý, yêu cầu tính lại gợi ý cho mọi khách."""
     logger = logging.getLogger(__name__)
 
     def run(conn: Connection) -> None:
@@ -45,6 +45,10 @@ def nightly_job(cache: ModelCache) -> Callable[[Connection], None]:
                 segmentation_store.retrain_if_due(conn, local_now())
         except Exception:
             logger.exception("Huấn luyện lại phân nhóm khách hàng bị lỗi")
+        try:
+            cache.train_ranker(conn, local_now())
+        except Exception:
+            logger.exception("Học lại mô hình xếp hạng gợi ý bị lỗi, giữ mô hình cũ")
         cache.invalidate()
         count = enqueue_all(conn, local_now() - timedelta(days=VIEW_WINDOW_DAYS))
         logger.info("Đã yêu cầu tính lại gợi ý (%d dòng đổi)", count)

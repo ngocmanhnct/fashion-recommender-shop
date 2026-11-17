@@ -33,9 +33,10 @@ from app.config import Settings
 from app.db import create_db_engine
 from app.recommendation import data
 from app.recommendation.copurchase import build_copurchase
-from app.recommendation.data import ProductStats, SurveyProfile, UserSignals
+from app.recommendation.data import Order, ProductStats, SurveyProfile, UserSignals, load_orders
 from app.recommendation.features import ItemVectors
 from app.recommendation.model import DEFAULT_WEIGHTS, Recommender, Weights
+from app.recommendation.ranker import Case
 from app.recommendation.trending import SalesHistory
 
 K = 10
@@ -45,19 +46,6 @@ SESSION_GAP = timedelta(hours=48)
 mua ngay trước khi đặt; giữ các lượt xem đó thì sản phẩm cần đoán nằm sẵn trong đầu vào: chỉ cần
 gợi ý lại "sản phẩm vừa xem" đã trúng 100% (rò rỉ nhãn, hội đồng thử hỏi 01/11/2026). Bỏ phiên mua
 đó thì đo được khả năng đoán từ hành vi trước, đúng câu hỏi của gợi ý."""
-
-
-@dataclass(slots=True)
-class Order:
-    """1 đơn khác CANCELLED. `slots` bớt khoảng 40 byte mỗi đơn: toàn bộ dữ liệu H&M có hơn 9 triệu
-    đơn."""
-
-    id: int
-    account_id: int
-    created_at: datetime
-    status: str
-    products: dict[int, int] = field(default_factory=dict)
-    """Mã sản phẩm → số lượng."""
 
 
 @dataclass(frozen=True)
@@ -73,14 +61,6 @@ class PurchasePairs:
 
 
 @dataclass
-class Case:
-    """1 khách cần đoán: dữ liệu mô hình được thấy và các sản phẩm đúng."""
-
-    signals: UserSignals
-    targets: set[int]
-
-
-@dataclass
 class Dataset:
     """Dữ liệu đã chia: khách cần đoán, cặp mua để dựng "hay mua cùng", số đã bán và các đơn mô
     hình được thấy (cho "đang bán chạy")."""
@@ -90,23 +70,6 @@ class Dataset:
     train_pairs: Iterable[tuple[int, int]]
     train_sold: Counter
     train_orders: list[Order] = field(default_factory=list)
-
-
-def load_orders(conn: Connection) -> list[Order]:
-    """Mọi đơn khác CANCELLED kèm sản phẩm, theo thời gian đặt."""
-    orders: dict[int, Order] = {}
-    for oid, account_id, created_at, status, product_id, quantity in conn.execute(
-        text(
-            "SELECT o.id, o.account_id, o.created_at, o.status, v.product_id, oi.quantity "
-            "FROM orders o "
-            "JOIN order_item oi ON oi.order_id = o.id "
-            "JOIN product_variant v ON v.id = oi.variant_id "
-            "WHERE o.status <> 'CANCELLED' ORDER BY o.created_at, o.id"
-        )
-    ):
-        order = orders.setdefault(oid, Order(oid, account_id, created_at, status))
-        order.products[product_id] = order.products.get(product_id, 0) + quantity
-    return list(orders.values())
 
 
 def load_views(conn: Connection) -> dict[int, list[tuple[int, datetime]]]:
@@ -158,7 +121,7 @@ def split(
         )
         for order in earlier:
             for product_id in order.products:
-                signals.touch(product_id, order.created_at)
+                signals.buy(product_id, order.created_at)
         for product_id, at in seen:
             signals.touch(product_id, at)
         behaviour.append(Case(signals, targets))
@@ -230,7 +193,11 @@ def build_model(dataset: Dataset, items: list, brands: dict[int, str]) -> Recomm
     }
     copurchase = build_copurchase(dataset.train_pairs, vectors.index, len(items))
     sales = SalesHistory(
-        ((p, o.created_at, q) for o in dataset.train_orders for p, q in o.products.items()),
+        (
+            (p, o.created_at, q, o.account_id)
+            for o in dataset.train_orders
+            for p, q in o.products.items()
+        ),
         vectors.index,
         len(items),
     )

@@ -5,6 +5,8 @@
 - Tồn kho, số đã bán, lượt bán theo thời gian (cho điểm "đang bán chạy", tính tại lúc gợi ý nên
   không cần dựng lại khi thời gian trôi), điểm đánh giá và ma trận "hay mua cùng" (vài chục mili
   giây) dựng lại khi có đơn hàng, đánh giá hay tồn kho đổi.
+- Mô hình xếp hạng (ranker.py) học lại khi gọi `train_ranker` (mỗi đêm và lúc khởi động, trong
+  tiến trình lấy việc), không học lại sau mỗi đơn: học mất vài giây, còn API phải trả lời ngay.
 Kiểm tra dấu hiệu thay đổi tối đa mỗi CHECK_INTERVAL_SECONDS giây. Tiến trình lấy việc và các
 request API dùng chung 1 bộ đệm, nên việc dựng lại được khóa; mô hình đã dựng không bao giờ sửa,
 chỉ thay bằng bản mới.
@@ -13,13 +15,15 @@ chỉ thay bằng bản mới.
 import logging
 import threading
 import time
+from datetime import datetime
 
 from sqlalchemy import Connection
 
-from app.recommendation import data
+from app.recommendation import data, ranker
 from app.recommendation.copurchase import build_copurchase
 from app.recommendation.features import CatalogItem, ItemVectors
 from app.recommendation.model import Recommender
+from app.recommendation.ranker import Ranker
 from app.recommendation.trending import SalesHistory
 
 logger = logging.getLogger(__name__)
@@ -40,6 +44,7 @@ class ModelCache:
         self._catalog_signature: tuple | None = None
         self._activity_signature: tuple | None = None
         self._checked_at = float("-inf")
+        self._ranker: Ranker | None = None
         self.built_at: float | None = None
 
     def get(self, conn: Connection) -> Recommender | None:
@@ -51,6 +56,34 @@ class ModelCache:
             self._refresh(conn)
             self._checked_at = now
             return self._model
+
+    def train_ranker(self, conn: Connection, now: datetime) -> Ranker | None:
+        """Học lại mô hình xếp hạng từ lịch sử đơn đến `now` (giờ địa phương như cột DATETIME);
+        chưa đủ dữ liệu thì bỏ mô hình cũ, gợi ý theo hành vi dùng công thức hybrid."""
+        with self._lock:
+            self._refresh(conn)
+            vectors, items = self._vectors, self._items
+        if vectors is None:
+            return None
+        started = time.perf_counter()
+        learned = ranker.train(
+            vectors, items, data.load_orders(conn), data.load_ages(conn, now), now
+        )
+        with self._lock:
+            self._ranker = learned
+            self._activity_signature = None  # lần `get` sau dựng lại mô hình kèm bộ xếp hạng mới
+            self._checked_at = float("-inf")
+        if learned is None:
+            logger.info("Chưa đủ dữ liệu để học mô hình xếp hạng, gợi ý dùng công thức hybrid")
+        else:
+            logger.info(
+                "Đã học mô hình xếp hạng: %d tuần, %d khách, %d lượt mua trúng ứng viên (%.0f ms)",
+                learned.summary.weeks,
+                learned.summary.cases,
+                learned.summary.positives,
+                (time.perf_counter() - started) * 1000,
+            )
+        return learned
 
     def invalidate(self) -> None:
         """Bắt lần `get` sau dựng lại toàn bộ (vd mỗi đêm)."""
@@ -88,7 +121,8 @@ class ModelCache:
         copurchase = build_copurchase(
             data.load_purchase_pairs(conn), self._vectors.index, len(self._items)
         )
-        sales = SalesHistory(data.load_sales(conn), self._vectors.index, len(self._items))
+        bands = ranker.age_bands(data.load_ages(conn, datetime.now()))
+        sales = SalesHistory(data.load_sales(conn), self._vectors.index, len(self._items), bands)
         self._model = Recommender(
             self._vectors,
             self._items,
@@ -96,14 +130,16 @@ class ModelCache:
             copurchase,
             data.load_brand_names(conn),
             sales=sales,
+            ranker=self._ranker,
         )
         self._catalog_signature = catalog_signature
         self._activity_signature = activity_signature
         self.built_at = time.time()
         logger.info(
-            "Đã dựng mô hình gợi ý (%d sản phẩm%s) trong %.0f ms",
+            "Đã dựng mô hình gợi ý (%d sản phẩm%s%s) trong %.0f ms",
             len(self._items),
             ", dựng lại vector" if rebuilt_vectors else "",
+            ", có mô hình xếp hạng" if self._ranker is not None else "",
             (time.perf_counter() - started) * 1000,
         )
 

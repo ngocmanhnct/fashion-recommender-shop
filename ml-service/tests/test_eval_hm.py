@@ -10,9 +10,10 @@ from datetime import UTC, datetime, timedelta
 import numpy as np
 import pytest
 
-from app.recommendation.data import UserSignals
-from app.recommendation.evaluate import Case
+from app.recommendation import ranker
+from app.recommendation.features import ItemVectors
 from scripts import eval_hm as ev
+from tests import test_ranker as shop
 
 TYPES = [
     (253, "Vest top", "Garment Upper body"),
@@ -128,14 +129,15 @@ def test_report_end_to_end(raw_dir, tmp_path, monkeypatch):
     assert "| T-shirt |" in report and "| Sneakers |" in report
     assert "Mẫu 100,0% khách" in report
     assert "60 khách" in report
-    assert "Cách 1: giữ lại đơn cuối" in report
-    assert "Cách 2: cắt theo thời gian" in report
-    assert ev.RECENT_POPULAR in report
-    assert "| Đang bán chạy |" in report
-    assert "| Hybrid − Hybrid cũ (chưa có đang bán chạy) |" in report
-    assert 'Chọn trọng số "đang bán chạy" (tuần kiểm định 08/09–14/09/2020)' in report
-    assert "đang dùng (model.Weights)" in report
-    assert "Hybrid − Bán chạy" in report
+    assert "### Tuần kiểm định 08/09–14/09/2020" in report
+    assert "### Tuần kiểm tra 15/09–21/09/2020 (kết quả)" in report
+    # Dữ liệu giả quá ít để học mô hình xếp hạng: chỉ so công thức với bán chạy.
+    assert "Mô hình xếp hạng: chưa đủ dữ liệu để học" in report
+    assert ev.RANKER not in report
+    assert f"| {ev.FORMULA} |" in report
+    assert f"| Công thức hybrid − {ev.RECENT_POPULAR} |" in report
+    # Từng nguồn riêng lẻ chỉ đo ở tuần kiểm tra.
+    assert report.count("| Đang bán chạy |") == 1
     assert "Độ tuổi trong từng nhóm" in report
     assert "Độ ổn định" in report
     assert "Kiểm tra trên tương lai" in report
@@ -147,6 +149,8 @@ def test_report_end_to_end(raw_dir, tmp_path, monkeypatch):
 def test_report_only_shoes_bags_accessories(raw_dir, tmp_path, monkeypatch):
     monkeypatch.setattr(ev, "RAW_DIR", raw_dir)
     monkeypatch.setattr(ev, "RESULT_DIR", tmp_path)
+    # Hạ ngưỡng để mô hình xếp hạng học được trên dữ liệu giả rất nhỏ.
+    monkeypatch.setattr(ranker, "MIN_POSITIVES", 1)
     assert ev.main([*SMALL_RUN, "--products", "shoes-bags-accessories"]) == 0
     # Ghi tệp riêng, không đè kết quả của mọi sản phẩm.
     assert not (tmp_path / "ket-qua.md").exists()
@@ -157,7 +161,10 @@ def test_report_only_shoes_bags_accessories(raw_dir, tmp_path, monkeypatch):
     assert "Chỉ giữ nhóm hàng Accessories, Bags, Shoes của H&M (giày, túi, phụ kiện" in report
     assert "| Sneakers |" in report and "| Bag |" in report
     assert "T-shirt" not in report and "Vest top" not in report
-    assert "Cách 2: cắt theo thời gian" in report
+    assert "mô hình xếp hạng học trên chính phần này" in report
+    assert f"| {ev.RANKER} |" in report
+    assert f"| Mô hình xếp hạng − {ev.FORMULA} |" in report
+    assert "Mô hình xếp hạng học trên 5 tuần" in report
     assert "Kiểm tra trên tương lai" in report
 
 
@@ -227,7 +234,7 @@ def test_build_shop_maps_orders_and_products():
     assert shop.lines == 3
 
 
-def test_split_by_time_only_sees_the_past():
+def test_time_split_only_sees_the_past():
     articles = ev.load_articles(articles_rows())
     rows = [
         {
@@ -250,15 +257,35 @@ def test_split_by_time_only_sees_the_past():
     )
     shop = ev.build_shop(rows, articles, per_mille=1000)
     cutoff = datetime(2020, 9, 16, tzinfo=UTC)
-    dataset = ev.split_by_time(shop.orders, cutoff)
     # Khách 2 chưa mua gì trước mốc nên không có ca; khách 1 mua lại sản phẩm 1 không tính.
-    assert len(dataset.behaviour) == 1
-    case = dataset.behaviour[0]
+    (case,) = ranker.cases_at(shop.orders, cutoff, cutoff + timedelta(days=7))
     assert case.signals.purchased == {1}
     assert case.targets == {2}
     assert case.signals.now == cutoff
-    assert dataset.train_sold == Counter({1: 1})
+    model = ranker.model_at(ItemVectors(shop.items), shop.items, shop.orders, cutoff)
+    assert model.snapshot(cutoff).sold_all.tolist() == [1, 0, 0]
     assert ev.recent_popular(shop.orders, datetime(2020, 9, 22, tzinfo=UTC), 7) == [1, 2, 3]
+
+
+def test_feature_importance_shuffles_each_group():
+    # Cửa hàng giả của test mô hình xếp hạng: đủ dữ liệu để học.
+    vectors, orders, ages = shop.make_world()
+    learned = ranker.train(vectors, shop.ITEMS, orders, ages, shop.END)
+    model = ranker.model_at(vectors, shop.ITEMS, orders, shop.END, ranker.age_bands(ages))
+    cases = ranker.cases_at(orders, shop.END, shop.END + timedelta(days=7), ages)
+    lines = ev.feature_importance(model, learned, cases, 50)
+    assert lines[0].startswith("Đủ đặc trưng: tỷ lệ trúng ")
+    assert len(lines) == 4 + len(ranker.FEATURE_GROUPS)
+    assert sum(line.startswith("| Nhóm tuổi |") for line in lines) == 1
+    assert ev.feature_importance(model, learned, [], 50) == ["Không có ứng viên nào để đo."]
+
+
+def test_top_hits_takes_k_best_candidates_per_customer():
+    # Khách 0: món mua đứng thứ K + 1 (trượt); khách 1: món mua có điểm cao nhất (trúng).
+    groups = np.array([0] * (ev.K + 1) + [1, 1])
+    labels = np.array([0] * ev.K + [1] + [0, 1])
+    score = np.array([float(ev.K + 1 - i) for i in range(ev.K + 1)] + [0.1, 0.9])
+    assert ev._top_hits(groups, labels, score, 3).tolist() == [0.0, 1.0, 0.0]
 
 
 def test_open_csv_errors(tmp_path):
@@ -305,10 +332,6 @@ def test_helpers():
     low, high = ev.bootstrap_ci(np.array([1.0] * 30 + [0.0] * 70), 500)
     assert low < 0.3 < high
     assert ev.bootstrap_ci(np.array([]), 10) == (0.0, 0.0)
-    cases = [Case(UserSignals(i), {i}) for i in range(10)]
-    assert ev.limit_cases(cases, 20) is cases
-    picked = ev.limit_cases(cases, 4)
-    assert len(picked) == 4 and picked == sorted(picked, key=lambda c: c.signals.account_id)
     assert ev.load_ages(customer_rows(10), {customer_id(1): 7, customer_id(5): 8}) == {7: 25}
 
 

@@ -7,9 +7,9 @@ from fastapi.testclient import TestClient
 from sqlalchemy import text
 
 from app.main import app, nightly_job, task_handlers
-from app.recommendation import evaluate
+from app.recommendation import evaluate, ranker
 from app.recommendation.cache import ModelCache
-from app.recommendation.data import load_sales, load_signals
+from app.recommendation.data import load_ages, load_sales, load_signals
 from app.recommendation.store import enqueue_all, make_handler, replace_recommendations
 from app.recompute.queue import RECOMMENDATION, RecomputeRequest
 from app.recompute.worker import RecomputeWorker
@@ -162,8 +162,11 @@ def test_load_signals_reads_each_kind_of_interaction(rec_db):
             {"a": a},
         )
         add_survey(conn, a, [SHOES, SOCKS], "BRAND", brand_id=10)
+        conn.execute(text("UPDATE account SET birthdate = '2000-11-20' WHERE id = :a"), {"a": a})
         signals = load_signals(conn, a, NOW)
     assert signals.purchased == {1, 5}
+    assert signals.purchased_at == {1: NOW - timedelta(days=10), 5: NOW - timedelta(days=10)}
+    assert signals.age == 25  # chưa tới sinh nhật năm 2026
     assert signals.delivered_orders == 1
     assert signals.viewed == {2, 4}
     assert signals.cart == {6} and signals.wishlist == {2}
@@ -188,6 +191,24 @@ def test_load_signals_only_for_customers(rec_db):
         )
         assert load_signals(conn, admin, NOW) is None
         assert load_signals(conn, skipped, NOW).survey is None
+        assert load_signals(conn, skipped, NOW).age is None
+
+
+def test_load_ages_only_for_customers_with_a_birthdate(rec_db):
+    with rec_db.begin() as conn:
+        a = create_account(conn, "a@test.vn")
+        create_account(conn, "no-birthdate@test.vn")
+        future = create_account(conn, "future@test.vn")
+        admin = create_account(conn, "admin@test.vn")
+        conn.execute(text("UPDATE account SET role = 'ADMIN' WHERE id = :a"), {"a": admin})
+        conn.execute(
+            text("UPDATE account SET birthdate = '2000-10-26' WHERE id IN (:a, :admin)"),
+            {"a": a, "admin": admin},
+        )
+        conn.execute(
+            text("UPDATE account SET birthdate = '2030-01-01' WHERE id = :a"), {"a": future}
+        )
+        assert load_ages(conn, NOW) == {a: 26}
 
 
 # ---- ghi bảng recommendation ----
@@ -297,7 +318,9 @@ def test_model_cache_reads_sales_for_trending(rec_db):
         add_order(conn, a, [5], status="CANCELLED", at=NOW - timedelta(days=1))
         add_order(conn, a, [6], at=NOW + timedelta(hours=1))
     with rec_db.connect() as conn:
-        assert sorted((p, q) for p, _, q in load_sales(conn)) == [(2, 1), (3, 1), (6, 1)]
+        sales = load_sales(conn)
+        assert sorted((p, q) for p, _, q, _ in sales) == [(2, 1), (3, 1), (6, 1)]
+        assert {buyer for *_, buyer in sales} == {a}
         model = ModelCache().get(conn)
     trend = model.trending(NOW)
     index = model.vectors.index
@@ -346,6 +369,35 @@ def test_enqueue_all_requests_customers_with_data_and_merges(rec_db):
     assert {r.account_id for r in rows} == {buyer, viewer, surveyed, listed}
     merged = next(r for r in rows if r.account_id == buyer)
     assert merged.version == 2 and merged.due == 1
+
+
+def test_train_ranker_learns_from_past_weeks_and_ranks(rec_db, monkeypatch):
+    # Cửa hàng test rất nhỏ: hạ ngưỡng, giữ mọi ứng viên khách không mua để có đủ 2 loại nhãn.
+    monkeypatch.setattr(ranker, "MIN_POSITIVES", 1)
+    monkeypatch.setattr(ranker, "NEGATIVE_RATE", 1.0)
+    with rec_db.begin() as conn:
+        accounts = [create_account(conn, f"k{i}@test.vn") for i in range(4)]
+        for a in accounts:
+            add_order(conn, a, [1], at=NOW - timedelta(days=20))
+            add_order(conn, a, [2], at=NOW - timedelta(days=3))
+        conn.execute(text("UPDATE account SET birthdate = '2000-01-15'"))
+    cache = ModelCache(check_interval_seconds=60)
+    with rec_db.connect() as conn:
+        assert cache.get(conn).ranker is None
+        learned = cache.train_ranker(conn, NOW)
+        # Tuần học cuối (7 ngày trước NOW): 4 khách đã mua giày 1, rồi mua giày 2 trong tuần đó.
+        assert learned.summary.weeks == ranker.TRAINING_WEEKS
+        assert learned.summary.cases == learned.summary.positives == 4
+        assert cache.get(conn).ranker is learned
+    handle(rec_db, accounts[0], cache)
+    rows = stored(rec_db, accounts[0])
+    assert rows and not {r.product_id for r in rows} & {1, 2, 8}  # đã mua, hết hàng
+
+    # Không còn đủ dữ liệu: bỏ mô hình cũ, quay về công thức.
+    monkeypatch.setattr(ranker, "MIN_POSITIVES", 100)
+    with rec_db.connect() as conn:
+        assert cache.train_ranker(conn, NOW) is None
+        assert cache.get(conn).ranker is None
 
 
 def test_nightly_job_rebuilds_model_and_enqueues(rec_db):

@@ -12,6 +12,12 @@ RUN uv sync --locked --no-dev --no-install-project
 
 COPY app/ app/
 
+# Container chỉ được 1 CPU (docker-compose.yml). numpy (OpenBLAS) và scikit-learn (OpenMP) mặc định
+# mở 1 luồng cho mỗi lõi của máy; với hàng nghìn phép tính nhỏ của việc gợi ý, các luồng phụ chỉ
+# tốn công đồng bộ và giành CPU với luồng chính (đo 17/11/2026: chậm gấp đôi khi máy rảnh, gấp
+# hàng chục lần khi máy bận). Giữ 1 luồng.
+ENV OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MKL_NUM_THREADS=1
+
 EXPOSE 8000
 # "fastapi run" là chế độ production (không tự nạp lại khi sửa code như "fastapi dev").
 CMD ["uv", "run", "--no-sync", "fastapi", "run", "app/main.py", "--host", "0.0.0.0", "--port", "8000"]
