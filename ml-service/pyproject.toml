@@ -5,19 +5,19 @@ requires-python = ">=3.13"
 dependencies = [
     "bcrypt>=5.0.0",
     "fastapi[standard]>=0.162.0",
-    "numpy>=2.5.4",
+    "numpy>=2.5.5",
     "pymysql[rsa]>=1.2.3",
     "scikit-learn>=1.9.1",
     "scipy>=1.18.1",
-    "sqlalchemy>=2.1.8",
+    "sqlalchemy>=2.1.9",
 ]
 
 [dependency-groups]
 dev = [
-    "httpx2>=2.16.0",
+    "httpx2>=2.16.2",
     "pytest>=9.2.0",
     "pytest-cov>=7.1.0",
-    "ruff>=0.17.4",
+    "ruff>=0.17.6",
 ]
 eda = [
     "ipykernel>=7.4.0",
