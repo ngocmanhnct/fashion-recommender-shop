@@ -46,7 +46,19 @@ public class SegmentCampaign {
   private boolean autoEnabled;
 
   @Column(nullable = false, updatable = false)
+  private int holdoutPercent;
+
+  @Column(updatable = false)
+  private Integer maxRecipients;
+
+  @Column(updatable = false)
+  private Integer grossMarginPercent;
+
+  @Column(nullable = false, updatable = false)
   private int recipientCount;
+
+  @Column(nullable = false, updatable = false)
+  private int holdoutCount;
 
   @Column(nullable = false, updatable = false)
   private LocalDateTime createdAt;
@@ -87,6 +99,24 @@ public class SegmentCampaign {
     this.autoEnabled = validDays != null;
   }
 
+  /**
+   * Đặt nhóm đối chứng và cách tính lãi lúc tạo (rà soát 12/11/2026, việc 3 và 4).
+   *
+   * @param holdoutPercent phần trăm khách đủ điều kiện bị giữ lại, không nhận mã
+   * @param holdoutCount số khách đã bị giữ lại
+   * @param maxRecipients trần số khách của chương trình tự tặng, null là không giới hạn
+   * @param grossMarginPercent lãi gộp trên tiền hàng (%), null là không tính lãi
+   * @return chính chiến dịch này
+   */
+  public SegmentCampaign withMeasurement(
+      int holdoutPercent, int holdoutCount, Integer maxRecipients, Integer grossMarginPercent) {
+    this.holdoutPercent = holdoutPercent;
+    this.holdoutCount = holdoutCount;
+    this.maxRecipients = maxRecipients;
+    this.grossMarginPercent = grossMarginPercent;
+    return this;
+  }
+
   /** Dừng tự tặng: khách vào nhóm sau đó không nhận mã nữa, khách đã nhận vẫn dùng được. */
   public void stopAuto() {
     this.autoEnabled = false;
@@ -114,6 +144,22 @@ public class SegmentCampaign {
 
   public int getRecipientCount() {
     return recipientCount;
+  }
+
+  public int getHoldoutCount() {
+    return holdoutCount;
+  }
+
+  public int getHoldoutPercent() {
+    return holdoutPercent;
+  }
+
+  public Integer getMaxRecipients() {
+    return maxRecipients;
+  }
+
+  public Integer getGrossMarginPercent() {
+    return grossMarginPercent;
   }
 
   public LocalDateTime getCreatedAt() {

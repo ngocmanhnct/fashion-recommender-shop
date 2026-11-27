@@ -198,6 +198,7 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Admin tặng mã bằng biểu mẫu mã giảm giá đã điền sẵn ưu đãi gợi ý, sửa được trước khi tặng; danh sách khách được tặng chốt lúc tặng
 - Mã tặng là mã riêng: chỉ khách được tặng dùng được (BR-43); khách thấy mã ở trang "Ưu đãi của bạn" và chọn mã bằng 1 lần bấm ở trang thanh toán
 - Kết quả mỗi lần tặng: số khách được tặng, số khách đã đặt đơn với mã và tỷ lệ, số đơn, doanh thu, tổng tiền đã giảm, doanh thu trên mỗi đồng giảm (chỉ tính đơn chưa hủy)
+- Admin chọn tỷ lệ khách giữ lại làm đối chứng (mặc định 10%) và nhập lãi gộp nếu biết; kết quả so tỷ lệ mua của khách nhận mã với khách giữ lại và tính lãi tăng thêm, âm là tặng mã lỗ (BR-43c, bổ sung 27/11/2026)
 
 *Tự tặng mã cho khách mới vào nhóm:*
 
@@ -206,6 +207,7 @@ Cài đặt (31/10/2026): trang quản trị "Mã giảm giá" (nhóm Bán hàng
 - Khách nhận mã chậm nhất khoảng 1 phút sau khi được xếp vào nhóm; mã hiện ở "Ưu đãi của bạn", ở trang thanh toán và ở dải báo trên trang chủ
 - Mỗi nhóm có tối đa 1 chương trình đang chạy; admin dừng được, khách đã nhận vẫn dùng được đến hạn riêng
 - Kết quả của chương trình hiện cùng bảng kết quả các lần tặng mã, số khách được tặng tăng dần theo thời gian
+- Admin đặt được số khách tối đa và tỷ lệ giữ lại; khách đổi nhóm chỉ vì huấn luyện lại mô hình không nhận mã (BR-43b, bổ sung 27/11/2026)
 
 **US-13 (mở rộng): Xem hiệu quả gợi ý** *(bổ sung 31/10/2026; bỏ phần thử nghiệm A/B ngày 16/11/2026)* Là admin, tôi muốn xem khách bấm vào gợi ý nhiều hay ít ở từng vị trí, để biết khối gợi ý nào được dùng. Tiêu chí chấp nhận:
 
@@ -358,7 +360,7 @@ Các rule dưới đây rút ra trực tiếp từ acceptance criteria ở Mục
 
   Cơ chế: `UPDATE voucher SET used_count = used_count - 1 WHERE id = :voucherId`, thực hiện cùng lúc với hoàn tồn kho (BR-16), tại đúng thời điểm đơn chuyển "Đã hủy".
 
-- **BR-43 — Mã tặng theo nhóm khách hàng** *(bổ sung 31/10/2026, US-24)*: (a) **Mã riêng:** mã tạo từ chiến dịch theo nhóm (US-24) có `recipients_only = TRUE` và chỉ dùng được bởi các tài khoản trong `voucher_recipient` của mã đó; khách khác nhập mã thì bước xem trước báo "Mã này chỉ dành cho khách được tặng" và bước xác nhận từ chối như các điều kiện khác của BR-30. Danh sách người nhận chốt lúc tặng: khách vào nhóm sau đó không nhận được, khách rời nhóm sau đó vẫn dùng được. Mã riêng mặc định mỗi khách 1 lượt, không giới hạn tổng. (b) **Tự tặng khi khách mới vào nhóm:** mỗi nhóm có tối đa 1 chương trình tự tặng đang chạy. ml-service ghi đè `account_segment` mỗi lần xếp nhóm nên không giữ lúc khách vào nhóm; backend tự ghi nhóm hiện tại và lúc vào nhóm của mỗi khách vào `segment_entry` (khách mới được phân nhóm hoặc đổi sang nhóm khác thì lúc vào nhóm là thời điểm backend thấy thay đổi, khách vẫn ở nhóm cũ thì giữ nguyên). Mỗi phút, chương trình tự tặng đang chạy (mã còn bật và trong thời hạn) tặng mã cho khách đang thuộc nhóm có lúc vào nhóm **sau** lúc bật chương trình và chưa nhận mã đó; hạn dùng riêng của khách = min(lúc nhận + số ngày đã đặt, hạn của mã), tính theo giờ Việt Nam như BR-30. Khách rời nhóm rồi quay lại không nhận lần hai từ cùng chương trình. Mỗi khách nhận tối đa 1 mã tự tặng trong 30 ngày (tính theo lúc nhận), dù lượt xếp nhóm lại chuyển khách qua nhiều nhóm có chương trình đang chạy; khách vào nhóm trong thời gian đó được hoãn, đủ 30 ngày mà vẫn ở nhóm và chương trình còn chạy thì nhận mã của nhóm *(sửa 04/11/2026)*. **\[Giả định\]** quét mỗi phút là đủ gần thời gian thực vì khách chỉ đổi nhóm sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm.
+- **BR-43 — Mã tặng theo nhóm khách hàng** *(bổ sung 31/10/2026, US-24)*: (a) **Mã riêng:** mã tạo từ chiến dịch theo nhóm (US-24) có `recipients_only = TRUE` và chỉ dùng được bởi các tài khoản trong `voucher_recipient` của mã đó; khách khác nhập mã thì bước xem trước báo "Mã này chỉ dành cho khách được tặng" và bước xác nhận từ chối như các điều kiện khác của BR-30. Danh sách người nhận chốt lúc tặng: khách vào nhóm sau đó không nhận được, khách rời nhóm sau đó vẫn dùng được. Mã riêng mặc định mỗi khách 1 lượt, không giới hạn tổng. (b) **Tự tặng khi khách mới vào nhóm:** mỗi nhóm có tối đa 1 chương trình tự tặng đang chạy. ml-service ghi đè `account_segment` mỗi lần xếp nhóm nên không giữ lúc khách vào nhóm; backend tự ghi nhóm hiện tại và lúc vào nhóm của mỗi khách vào `segment_entry` (khách mới được phân nhóm hoặc đổi sang nhóm khác thì lúc vào nhóm là thời điểm backend thấy thay đổi, khách vẫn ở nhóm cũ thì giữ nguyên). Mỗi phút, chương trình tự tặng đang chạy (mã còn bật và trong thời hạn) tặng mã cho khách đang thuộc nhóm có lúc vào nhóm **sau** lúc bật chương trình và chưa nhận mã đó; hạn dùng riêng của khách = min(lúc nhận + số ngày đã đặt, hạn của mã), tính theo giờ Việt Nam như BR-30. Khách rời nhóm rồi quay lại không nhận lần hai từ cùng chương trình. Mỗi khách nhận tối đa 1 mã tự tặng trong 30 ngày (tính theo lúc nhận), dù lượt xếp nhóm lại chuyển khách qua nhiều nhóm có chương trình đang chạy; khách vào nhóm trong thời gian đó được hoãn, đủ 30 ngày mà vẫn ở nhóm và chương trình còn chạy thì nhận mã của nhóm *(sửa 04/11/2026)*. **\[Giả định\]** quét mỗi phút là đủ gần thời gian thực vì khách chỉ đổi nhóm sau đơn Đã giao hoặc lần xếp nhóm mỗi đêm. Khách đổi nhóm chỉ vì mô hình phân nhóm được huấn luyện lại (mã mô hình đổi, số đơn F và tổng tiền M giữ nguyên) không tính là khách mới vào nhóm và không được tự tặng *(bổ sung 27/11/2026, migration V14)*. Chương trình có thể đặt số khách tối đa được tặng; đủ số thì ngừng tặng (kể cả khách giữ lại làm đối chứng). (c) **Nhóm đối chứng và lãi tăng thêm** *(bổ sung 27/11/2026, migration V14)*: mỗi lần tặng giữ lại ngẫu nhiên một tỷ lệ khách (0–50%, mặc định 10% trên giao diện) không nhận mã; với tự tặng, mỗi khách đủ điều kiện bị giữ lại với đúng xác suất đó và vẫn tính vào thời gian chờ 30 ngày. Khách giữ lại không thấy mã, không dùng được mã. Kết quả so tỷ lệ khách mua (đơn chưa hủy bất kỳ, trong thời hạn mã của từng khách) giữa 2 nhóm; nếu admin nhập lãi gộp (% trên tiền hàng) thì tính lãi tăng thêm = (tiền hàng nhóm nhận mã − tiền hàng nhóm đối chứng × số khách nhận mã / số khách đối chứng) × lãi gộp − tiền đã giảm. Số âm nghĩa là tặng mã lỗ. "Doanh thu / 1đ giảm" giữ nguyên nhưng là số gộp (gồm cả khách vốn sẽ mua).
 
 
 
@@ -777,6 +779,7 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 | voucher\_recipient | account\_id | BIGINT UNSIGNED | PK, FK → account.id, INDEX | Khách được tặng; chỉ những khách này dùng được mã (BR-43) |
 | voucher\_recipient | granted\_at | DATETIME | NULLABLE | Lúc nhận mã tự tặng (giờ Việt Nam, V8); NULL ở lần tặng tay |
 | voucher\_recipient | expires\_at | DATETIME | NULLABLE | Hạn dùng riêng của khách (BR-43, giờ Việt Nam, V8); NULL \= theo hạn của mã |
+| voucher\_recipient | held\_out | BOOLEAN | NOT NULL, DEFAULT FALSE | TRUE \= khách giữ lại làm đối chứng: không nhận, không dùng được mã, chỉ để so kết quả (BR-43c, V14) |
 | segment\_campaign | id | BIGINT UNSIGNED | PK |  |
 | segment\_campaign | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng created\_at) | Mã nhóm lúc tặng (VIP, LOYAL...) |
 | segment\_campaign | segment\_name | VARCHAR(100) | NOT NULL | Tên nhóm lúc tặng: ml-service ghi đè `customer_segment` mỗi lần huấn luyện lại nên lưu bản sao, không dùng khóa ngoại |
@@ -784,13 +787,20 @@ Nhánh tìm quà (purpose GIFT) chỉ hiện gợi ý, không ghi `survey_result
 | segment\_campaign | valid\_days | INT | NULLABLE | AUTO: số ngày mỗi khách được dùng mã kể từ lúc nhận (V8) |
 | segment\_campaign | auto\_enabled | BOOLEAN | NOT NULL, DEFAULT FALSE | AUTO đang chạy; mỗi nhóm tối đa 1 (kiểm tra ở backend, V8) |
 | segment\_campaign | voucher\_id | BIGINT UNSIGNED | UNIQUE, NOT NULL, FK → voucher.id | Mỗi chiến dịch 1 mã riêng |
-| segment\_campaign | recipient\_count | INT | NOT NULL | Số khách được tặng |
+| segment\_campaign | recipient\_count | INT | NOT NULL | Số khách được tặng (không gồm khách giữ lại) |
+| segment\_campaign | holdout\_percent | INT | NOT NULL, DEFAULT 0 | Tỷ lệ khách giữ lại làm đối chứng, 0–50 (V14) |
+| segment\_campaign | holdout\_count | INT | NOT NULL, DEFAULT 0 | Số khách giữ lại (V14) |
+| segment\_campaign | max\_recipients | INT | NULLABLE | AUTO: số khách tối đa (kể cả giữ lại); NULL \= không giới hạn (V14) |
+| segment\_campaign | gross\_margin\_percent | INT | NULLABLE | Lãi gộp trên tiền hàng (%) admin nhập để tính lãi tăng thêm; NULL \= chưa biết (V14) |
 | segment\_campaign | created\_at | DATETIME | NOT NULL |  |
 | segment\_entry | account\_id | BIGINT UNSIGNED | PK, FK → account.id | Khách đã phân nhóm (V8, US-24) |
 | segment\_entry | segment\_code | VARCHAR(20) | NOT NULL, INDEX (cùng entered\_at) | Nhóm hiện tại, backend chép từ `account_segment` mỗi phút |
 | segment\_entry | entered\_at | DATETIME | NOT NULL | Lúc backend thấy khách vào nhóm này (BR-43) |
+| segment\_entry | model\_id | BIGINT UNSIGNED | NULLABLE | Lần huấn luyện đã xếp khách vào nhóm (chép từ `account_segment`, V14) |
+| segment\_entry | rfm\_frequency, rfm\_monetary | INT UNSIGNED, BIGINT UNSIGNED | NULLABLE | F và M lúc xếp, để biết khách đổi nhóm vì mua thêm hay vì huấn luyện lại (V14) |
+| segment\_entry | moved\_by\_model | BOOLEAN | NOT NULL, DEFAULT FALSE | TRUE \= vào nhóm chỉ vì mô hình đổi (F, M không đổi): không được tự tặng (BR-43b, V14) |
 
-Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (các đơn chưa hủy có `voucher_id` của chiến dịch): số khách mua, số đơn, doanh thu (`total_amount`), tiền đã giảm (`discount_amount`).
+Kết quả chiến dịch không lưu sẵn mà tính khi xem từ `orders` (các đơn chưa hủy có `voucher_id` của chiến dịch): số khách mua, số đơn, doanh thu (`total_amount`), tiền đã giảm (`discount_amount`). Khi có khách giữ lại (V14), backend tính thêm cho cả 2 nhóm số khách có đơn chưa hủy bất kỳ và tổng tiền hàng (`subtotal_amount`) trong thời hạn mã của từng khách, rồi ra tỷ lệ mua, chênh lệch (điểm %) và lãi tăng thêm (BR-43c).
 
 ### 3.18 (đã bỏ) Thử nghiệm A/B gợi ý
 

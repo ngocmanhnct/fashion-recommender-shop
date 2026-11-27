@@ -175,6 +175,9 @@ describe('SegmentDetailPage', () => {
     const [code, request] = customerAdminApi.createCampaign.mock.calls[0];
     expect(code).toBe('LOYAL');
     expect(request.target).toBe('CARE');
+    expect(request.holdoutPercent).toBe(10);
+    expect(request.grossMarginPercent).toBeUndefined();
+    expect(request.maxRecipients).toBeUndefined();
     expect(request.voucher).toMatchObject({
       discountType: 'FIXED',
       discountValue: 50000,
@@ -240,6 +243,54 @@ describe('SegmentDetailPage', () => {
     expect(screen.getByText(/1\/3 khách đã quay lại mua/)).toBeInTheDocument();
   });
 
+  it('so với nhóm đối chứng và lãi tăng thêm (âm là lỗ)', async () => {
+    customerAdminApi.getCampaigns.mockResolvedValue([
+      {
+        ...CAMPAIGN,
+        holdoutPercent: 10,
+        holdoutCount: 5,
+        grossMarginPercent: 40,
+        purchaseRate: 42,
+        holdoutPurchaseRate: 38.5,
+        liftPoints: 3.5,
+        incrementalProfit: -14000000,
+      },
+      {
+        ...CAMPAIGN,
+        id: 5,
+        voucher: { ...CAMPAIGN.voucher, code: 'LOYAL-KHONGLAI' },
+        holdoutCount: 5,
+        purchaseRate: 30,
+        holdoutPurchaseRate: 40,
+        liftPoints: -10,
+        incrementalProfit: null,
+      },
+      {
+        ...CAMPAIGN,
+        id: 6,
+        target: 'AUTO',
+        autoEnabled: false,
+        validDays: 7,
+        maxRecipients: 100,
+        voucher: { ...CAMPAIGN.voucher, code: 'LOYAL-AUTO' },
+      },
+    ]);
+    renderProfile();
+    await screen.findByText('LOYAL-AUTO');
+    const section = screen
+      .getByRole('heading', { name: 'Kết quả các lần tặng mã' })
+      .closest('section');
+    const rows = within(section).getAllByRole('row');
+    expect(rows[1]).toHaveTextContent('42% so với 38,5%');
+    expect(rows[1]).toHaveTextContent('5 khách giữ lại, +3,5 điểm');
+    expect(within(rows[1]).getByText(/14\.000\.000/)).toHaveClass('text-danger');
+    expect(rows[2]).toHaveTextContent('-10 điểm');
+    expect(rows[2]).toHaveTextContent('Chưa nhập lãi gộp');
+    expect(rows[3]).toHaveTextContent('Không giữ lại khách');
+    expect(rows[3]).toHaveTextContent('Cần nhóm đối chứng');
+    expect(rows[3]).toHaveTextContent('Đã dừng, mỗi khách 7 ngày, tối đa 100 khách');
+  });
+
   it('bật tự tặng mã cho khách mới vào nhóm với số ngày dùng riêng (US-24)', async () => {
     const user = userEvent.setup();
     customerAdminApi.createCampaign.mockResolvedValue({
@@ -257,10 +308,21 @@ describe('SegmentDetailPage', () => {
     expect(days).toHaveValue(14);
     await user.clear(days);
     await user.type(days, '10');
+    await user.type(screen.getByLabelText(/Tặng tối đa/), '200');
+    await user.type(screen.getByLabelText(/Lãi gộp/), '35');
+    const holdout = screen.getByLabelText('Giữ lại làm đối chứng (%)');
+    await user.clear(holdout);
+    await user.type(holdout, '20');
     await user.click(screen.getByRole('button', { name: 'Bật tự tặng' }));
     const [code, request] = customerAdminApi.createCampaign.mock.calls[0];
     expect(code).toBe('LOYAL');
-    expect(request).toMatchObject({ target: 'AUTO', validDays: 10 });
+    expect(request).toMatchObject({
+      target: 'AUTO',
+      validDays: 10,
+      holdoutPercent: 20,
+      grossMarginPercent: 35,
+      maxRecipients: 200,
+    });
     expect(await screen.findByRole('status')).toHaveTextContent(
       'Đã bật tự tặng mã LOYAL-TUDONG-3110'
     );

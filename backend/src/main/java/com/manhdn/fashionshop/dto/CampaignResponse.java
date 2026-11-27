@@ -21,7 +21,20 @@ import java.time.LocalDateTime;
  * @param orders số đơn dùng mã
  * @param revenue tổng thanh toán của các đơn dùng mã (VNĐ)
  * @param discount tổng tiền đã giảm (VNĐ)
- * @param revenuePerDiscount doanh thu mang về trên mỗi đồng giảm; null khi chưa giảm đồng nào
+ * @param revenuePerDiscount doanh thu các đơn dùng mã trên mỗi đồng giảm; null khi chưa giảm đồng
+ *     nào. Chưa trừ những khách vốn sẽ mua dù không có mã, nên không phải hiệu quả tăng thêm
+ * @param holdoutPercent phần trăm khách đủ điều kiện giữ lại làm nhóm đối chứng
+ * @param holdoutCount số khách bị giữ lại, không nhận mã
+ * @param maxRecipients với AUTO: trần số khách (kể cả khách bị giữ lại); null là không giới hạn
+ * @param grossMarginPercent lãi gộp trên tiền hàng (%) admin nhập; null là không tính lãi
+ * @param purchaseRate tỷ lệ khách nhận mã đã đặt ít nhất 1 đơn chưa hủy trong thời gian dùng mã
+ *     (dùng mã hay không, %); null khi chưa ai nhận
+ * @param holdoutPurchaseRate cùng tỷ lệ đó của khách bị giữ lại; null khi không giữ lại ai
+ * @param liftPoints tỷ lệ mua của khách nhận mã trừ của khách bị giữ lại (điểm %); null khi không
+ *     có nhóm đối chứng
+ * @param incrementalProfit lãi tăng thêm nhờ mã (VNĐ): (tiền hàng của khách nhận mã − tiền hàng của
+ *     khách bị giữ lại quy về cùng số khách) × lãi gộp − tiền đã giảm; âm là lỗ; null khi không có
+ *     nhóm đối chứng hoặc chưa nhập lãi gộp
  */
 public record CampaignResponse(
     long id,
@@ -38,4 +51,12 @@ public record CampaignResponse(
     long orders,
     long revenue,
     long discount,
-    Double revenuePerDiscount) {}
+    Double revenuePerDiscount,
+    int holdoutPercent,
+    int holdoutCount,
+    Integer maxRecipients,
+    Integer grossMarginPercent,
+    Double purchaseRate,
+    Double holdoutPurchaseRate,
+    Double liftPoints,
+    Long incrementalProfit) {}
