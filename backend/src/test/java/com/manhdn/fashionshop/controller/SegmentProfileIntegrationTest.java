@@ -384,6 +384,140 @@ class SegmentProfileIntegrationTest {
     customer(loyal, post("/api/admin/campaigns/" + id + "/stop")).andExpect(status().isForbidden());
   }
 
+  @Test
+  void holdoutKeepsSomeCustomersWithoutCodeAndMeasuresIncrementalProfit() throws Exception {
+    // Đơn cũ của nhóm đẩy về hôm qua, để chỉ đơn đặt sau lúc tặng nằm trong khoảng đo.
+    jdbcTemplate.update(
+        "UPDATE orders SET created_at = ? WHERE account_id IN (?, ?, ?)",
+        LocalDateTime.now().minusDays(1),
+        loyal,
+        regular,
+        silent);
+    String code = ("DOICHUNG-" + marker).toUpperCase();
+    adminDo(
+            campaignWith(
+                "LOYAL", "ALL", code, ", \"holdoutPercent\": 50, \"grossMarginPercent\": 40"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.recipientCount").value(2))
+        .andExpect(jsonPath("$.holdoutCount").value(1))
+        .andExpect(jsonPath("$.holdoutPercent").value(50))
+        .andExpect(jsonPath("$.grossMarginPercent").value(40));
+    List<Long> held =
+        jdbcTemplate.queryForList(
+            "SELECT r.account_id FROM voucher_recipient r JOIN voucher v ON v.id = r.voucher_id"
+                + " WHERE v.code = ? AND r.held_out",
+            Long.class,
+            code);
+    List<Long> treated =
+        jdbcTemplate.queryForList(
+            "SELECT r.account_id FROM voucher_recipient r JOIN voucher v ON v.id = r.voucher_id"
+                + " WHERE v.code = ? AND NOT r.held_out ORDER BY r.account_id",
+            Long.class,
+            code);
+    assertThat(held).hasSize(1);
+    assertThat(treated).hasSize(2).doesNotContain(held.get(0));
+
+    // Khách bị giữ lại không dùng được, không thấy mã.
+    assertThat(voucherService.check(held.get(0), code, 300_000).error())
+        .isEqualTo("Mã này chỉ dành cho khách được tặng");
+    customer(held.get(0), get("/api/vouchers/me")).andExpect(jsonPath("$.length()").value(0));
+    assertThat(voucherService.check(treated.get(0), code, 300_000).discount()).isEqualTo(50_000);
+
+    // 1/2 khách nhận mã mua 300.000đ tiền hàng bằng mã (giảm 30.000đ); khách bị giữ lại tự mua
+    // 200.000đ. Lãi tăng thêm = (300.000 − 200.000 × 2/1) × 40% − 30.000 = −70.000đ.
+    LocalDateTime later = LocalDateTime.now().plusMinutes(1);
+    useCode(treated.get(0), code, "PENDING", 270_000, 30_000);
+    jdbcTemplate.update(
+        "UPDATE orders SET subtotal_amount = 300000, created_at = ? WHERE account_id = ?"
+            + " AND voucher_id IS NOT NULL",
+        later,
+        treated.get(0));
+    long heldOrder = delivered(held.get(0), 200_000, later);
+    jdbcTemplate.update("UPDATE orders SET subtotal_amount = 200000 WHERE id = ?", heldOrder);
+
+    admin("/api/admin/campaigns?segment=LOYAL")
+        .andExpect(jsonPath("$[0].buyers").value(1))
+        .andExpect(jsonPath("$[0].purchaseRate").value(50.0))
+        .andExpect(jsonPath("$[0].holdoutPurchaseRate").value(100.0))
+        .andExpect(jsonPath("$[0].liftPoints").value(-50.0))
+        .andExpect(jsonPath("$[0].incrementalProfit").value(-70_000));
+  }
+
+  @Test
+  void campaignWithoutHoldoutHasNoIncrementalNumbers() throws Exception {
+    String code = ("KHONGDC-" + marker).toUpperCase();
+    adminDo(campaignWith("LOYAL", "ALL", code, ", \"grossMarginPercent\": 40"))
+        .andExpect(jsonPath("$.holdoutCount").value(0));
+    admin("/api/admin/campaigns?segment=LOYAL")
+        .andExpect(jsonPath("$[0].purchaseRate").exists())
+        .andExpect(jsonPath("$[0].holdoutPurchaseRate").doesNotExist())
+        .andExpect(jsonPath("$[0].liftPoints").doesNotExist())
+        .andExpect(jsonPath("$[0].incrementalProfit").doesNotExist());
+    adminDo(campaignWith("LOYAL", "ALL", "QUA-" + marker, ", \"holdoutPercent\": 51"))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void autoOfferStopsAtTheRecipientCap() throws Exception {
+    long id =
+        idOf(
+            adminDo(autoCampaignWith("NEW", "TRAN-" + marker, ", \"maxRecipients\": 1"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.maxRecipients").value(1)));
+    startedAMinuteAgo(id);
+    long newSegment =
+        jdbcTemplate.queryForObject(
+            "SELECT segment_id FROM account_segment WHERE account_id = ?", Long.class, other);
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ? WHERE account_id IN (?, ?)",
+        newSegment,
+        loyal,
+        regular);
+    assertThat(campaignService.grantAutoOffers()).isEqualTo(1);
+    assertThat(campaignService.grantAutoOffers()).isZero();
+    entityManager.clear();
+    admin("/api/admin/campaigns?segment=NEW").andExpect(jsonPath("$[0].recipientCount").value(1));
+  }
+
+  @Test
+  void autoOfferSkipsCustomersMovedOnlyByRetraining() throws Exception {
+    long id =
+        idOf(
+            adminDo(autoCampaign("LOYAL", "HUANLUYEN-" + marker, "7"))
+                .andExpect(status().isCreated()));
+    startedAMinuteAgo(id);
+    long newSegment =
+        jdbcTemplate.queryForObject(
+            "SELECT segment_id FROM account_segment WHERE account_id = ?", Long.class, other);
+    // Huấn luyện lại: mô hình mới, tâm nhóm dịch chuyển; khách không mua thêm (F, M như cũ).
+    long retrained =
+        insert(
+            "INSERT INTO segment_model (cluster_count, elbow_cluster_count, customer_count,"
+                + " silhouette, log_recency_mean, log_recency_std, log_frequency_mean,"
+                + " log_frequency_std, log_monetary_mean, log_monetary_std, trained_at)"
+                + " VALUES (2, 2, 40, 0.40, 3, 1, 1, 0.5, 13, 1, '2026-11-04 02:00:00')");
+    jdbcTemplate.update("UPDATE customer_segment SET model_id = ?", retrained);
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ? WHERE account_id = ?", loyalSegment, other);
+    assertThat(campaignService.grantAutoOffers()).isZero();
+    assertThat(
+            jdbcTemplate.queryForObject(
+                "SELECT moved_by_model FROM segment_entry WHERE account_id = ?",
+                Boolean.class,
+                other))
+        .isTrue();
+
+    // Sau đó khách mua thêm rồi mới vào nhóm (cùng mô hình): đó là vào nhóm thật, được tặng.
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ? WHERE account_id = ?", newSegment, other);
+    campaignService.grantAutoOffers();
+    jdbcTemplate.update(
+        "UPDATE account_segment SET segment_id = ?, rfm_frequency = 2 WHERE account_id = ?",
+        loyalSegment,
+        other);
+    assertThat(campaignService.grantAutoOffers()).isEqualTo(1);
+  }
+
   // ---------- Tiện ích ----------
 
   /** Lùi lúc bật chương trình và lúc vào nhóm của khách hiện có, như thể đã bật 1 phút trước. */
@@ -410,6 +544,32 @@ class SegmentProfileIntegrationTest {
                     + " \"validFrom\": \"%s\", \"validUntil\": \"%s\","
                     + " \"usageLimitPerAccount\": 1}}")
                 .formatted(validDays, code, now.minusDays(1), now.plusDays(14)));
+  }
+
+  private static MockHttpServletRequestBuilder autoCampaignWith(
+      String segment, String code, String extra) {
+    LocalDateTime now = LocalDateTime.now(VoucherService.ZONE).truncatedTo(ChronoUnit.MINUTES);
+    return post(PROFILE + segment + "/campaigns")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(
+            ("{\"target\": \"AUTO\", \"validDays\": 7%s, \"voucher\": {\"code\": \"%s\","
+                    + " \"discountType\": \"FIXED\", \"discountValue\": 50000,"
+                    + " \"validFrom\": \"%s\", \"validUntil\": \"%s\","
+                    + " \"usageLimitPerAccount\": 1}}")
+                .formatted(extra, code, now.minusDays(1), now.plusDays(14)));
+  }
+
+  private static MockHttpServletRequestBuilder campaignWith(
+      String segment, String target, String code, String extra) {
+    LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+    return post(PROFILE + segment + "/campaigns")
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(
+            ("{\"target\": \"%s\"%s, \"voucher\": {\"code\": \"%s\", \"discountType\": \"FIXED\","
+                    + " \"discountValue\": 50000, \"minOrderAmount\": 250000,"
+                    + " \"validFrom\": \"%s\", \"validUntil\": \"%s\","
+                    + " \"usageLimitPerAccount\": 1}}")
+                .formatted(target, extra, code, now.minusDays(1), now.plusDays(14)));
   }
 
   private static MockHttpServletRequestBuilder campaign(

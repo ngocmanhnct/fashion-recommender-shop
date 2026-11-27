@@ -3331,10 +3331,10 @@
                     "campaigns"
                   ]
                 },
-                "description": "US-24. target CARE: tặng cho khách cần chăm sóc của nhóm (BR-44) lúc tặng; ALL: cả nhóm. voucher là điều kiện mã như \"Tạo mã giảm giá\"; mã tạo ra là mã riêng (recipientsOnly = true): chỉ khách được tặng dùng được (BR-43), khách khác nhập thì preview báo \"Mã này chỉ dành cho khách được tặng\" và đặt hàng trả 409. Trả 201 kèm chiến dịch như \"Kết quả các lần tặng mã\". Nhóm không có trong lần phân nhóm gần nhất 404; không có khách để tặng 409; trùng mã 409.",
+                "description": "US-24. target CARE: tặng cho khách cần chăm sóc của nhóm (BR-44) lúc tặng; ALL: cả nhóm. voucher là điều kiện mã như \"Tạo mã giảm giá\"; mã tạo ra là mã riêng (recipientsOnly = true): chỉ khách được tặng dùng được (BR-43), khách khác nhập thì preview báo \"Mã này chỉ dành cho khách được tặng\" và đặt hàng trả 409. Trả 201 kèm chiến dịch như \"Kết quả các lần tặng mã\". Nhóm không có trong lần phân nhóm gần nhất 404; không có khách để tặng 409; trùng mã 409. holdoutPercent (0–50, bỏ trống = 0): giữ lại ngẫu nhiên chừng đó % khách làm đối chứng, không nhận mã (BR-43c); grossMarginPercent (1–100, tùy chọn): lãi gộp trên tiền hàng để tính lãi tăng thêm.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"target\": \"CARE\",\n  \"voucher\": {\n    \"code\": \"AT_RISK-0111\",\n    \"discountType\": \"PERCENT\",\n    \"discountValue\": 20,\n    \"maxDiscountAmount\": 100000,\n    \"minOrderAmount\": null,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2026-11-08T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
+                  "raw": "{\n  \"target\": \"CARE\",\n  \"holdoutPercent\": 10,\n  \"grossMarginPercent\": 35,\n  \"voucher\": {\n    \"code\": \"AT_RISK-0111\",\n    \"discountType\": \"PERCENT\",\n    \"discountValue\": 20,\n    \"maxDiscountAmount\": 100000,\n    \"minOrderAmount\": null,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2026-11-08T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3381,7 +3381,7 @@
                 "description": "US-24. Như trên với target ALL: mọi khách đang trong nhóm lúc tặng (khách vào nhóm sau đó không nhận được). Ví dụ ưu đãi gợi ý của nhóm Khách thân thiết: giảm 50.000đ cho đơn từ 1,3 lần giá trị đơn trung bình của nhóm.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"target\": \"ALL\",\n  \"voucher\": {\n    \"code\": \"LOYAL-0111\",\n    \"discountType\": \"FIXED\",\n    \"discountValue\": 50000,\n    \"maxDiscountAmount\": null,\n    \"minOrderAmount\": 250000,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2026-11-15T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
+                  "raw": "{\n  \"target\": \"ALL\",\n  \"holdoutPercent\": 10,\n  \"voucher\": {\n    \"code\": \"LOYAL-0111\",\n    \"discountType\": \"FIXED\",\n    \"discountValue\": 50000,\n    \"maxDiscountAmount\": null,\n    \"minOrderAmount\": 250000,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2026-11-15T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3424,10 +3424,10 @@
                     "campaigns"
                   ]
                 },
-                "description": "US-24, BR-43. target AUTO kèm validDays (1 đến 90): số ngày mỗi khách được dùng mã kể từ lúc nhận. Thời hạn của voucher là thời gian chạy chương trình. Lúc bật chưa ai nhận (recipientCount 0); mỗi phút backend ghi lúc khách vào nhóm (bảng segment_entry) và thêm khách vào nhóm sau lúc bật vào danh sách nhận mã, hạn riêng = min(lúc nhận + validDays, hạn của mã). Khách đang ở trong nhóm lúc bật không nhận. Mỗi nhóm tối đa 1 chương trình đang chạy (409); thiếu validDays 400. Lưu id vào biến campaignId.",
+                "description": "US-24, BR-43. target AUTO kèm validDays (1 đến 90): số ngày mỗi khách được dùng mã kể từ lúc nhận. Thời hạn của voucher là thời gian chạy chương trình. Lúc bật chưa ai nhận (recipientCount 0); mỗi phút backend ghi lúc khách vào nhóm (bảng segment_entry) và thêm khách vào nhóm sau lúc bật vào danh sách nhận mã, hạn riêng = min(lúc nhận + validDays, hạn của mã). Khách đang ở trong nhóm lúc bật không nhận; khách đổi nhóm chỉ vì mô hình phân nhóm huấn luyện lại (F, M không đổi) cũng không nhận. holdoutPercent: mỗi khách đủ điều kiện bị giữ lại làm đối chứng với xác suất này; maxRecipients (1–100000, tùy chọn): đủ số khách (kể cả giữ lại) thì ngừng tặng; grossMarginPercent như trên. Mỗi nhóm tối đa 1 chương trình đang chạy (409); thiếu validDays 400. Lưu id vào biến campaignId.",
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"target\": \"AUTO\",\n  \"validDays\": 14,\n  \"voucher\": {\n    \"code\": \"NEW-TUDONG-0111\",\n    \"discountType\": \"PERCENT\",\n    \"discountValue\": 15,\n    \"maxDiscountAmount\": 50000,\n    \"minOrderAmount\": null,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2027-01-30T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
+                  "raw": "{\n  \"target\": \"AUTO\",\n  \"validDays\": 14,\n  \"holdoutPercent\": 10,\n  \"maxRecipients\": 200,\n  \"grossMarginPercent\": 35,\n  \"voucher\": {\n    \"code\": \"NEW-TUDONG-0111\",\n    \"discountType\": \"PERCENT\",\n    \"discountValue\": 15,\n    \"maxDiscountAmount\": 50000,\n    \"minOrderAmount\": null,\n    \"validFrom\": \"2026-11-01T00:00:00\",\n    \"validUntil\": \"2027-01-30T23:59:00\",\n    \"usageLimitTotal\": null,\n    \"usageLimitPerAccount\": 1\n  }\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -3472,7 +3472,7 @@
                     }
                   ]
                 },
-                "description": "US-24. Tối đa 50 chiến dịch, mới nhất trước: segmentCode, segmentName (tên lúc tặng), target, validDays và autoEnabled (chương trình tự tặng, US-24), createdAt, recipientCount, voucher (như danh sách mã), buyers (số khách được tặng đã đặt đơn với mã), conversionRate (% buyers / recipientCount), orders, revenue (tổng tiền các đơn đó sau giảm), discount (tổng tiền đã giảm), revenuePerDiscount (revenue / discount, null khi chưa giảm đồng nào). Chỉ tính đơn chưa hủy."
+                "description": "US-24. Tối đa 50 chiến dịch, mới nhất trước: segmentCode, segmentName (tên lúc tặng), target, validDays và autoEnabled (chương trình tự tặng, US-24), createdAt, recipientCount, voucher (như danh sách mã), buyers (số khách được tặng đã đặt đơn với mã), conversionRate (% buyers / recipientCount), orders, revenue (tổng tiền các đơn đó sau giảm), discount (tổng tiền đã giảm), revenuePerDiscount (revenue / discount, null khi chưa giảm đồng nào; số gộp, gồm cả khách vốn sẽ mua). Chỉ tính đơn chưa hủy. Đối chứng (BR-43c): holdoutPercent, holdoutCount, maxRecipients, grossMarginPercent; purchaseRate và holdoutPurchaseRate (% khách có đơn chưa hủy bất kỳ trong thời hạn mã, nhóm nhận mã và nhóm giữ lại; null khi không giữ lại ai), liftPoints (chênh lệch, điểm %), incrementalProfit (lãi tăng thêm, đồng; âm là lỗ; null khi chưa nhập lãi gộp hoặc không có đối chứng)."
               },
               "event": [
                 {

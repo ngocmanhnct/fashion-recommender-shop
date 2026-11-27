@@ -182,6 +182,7 @@ function NextAction({ profile, campaigns }) {
   const [target, setTarget] = useState(null);
   const [message, setMessage] = useState('');
   const [autoDays, setAutoDays] = useState(String(suggestion.validDays));
+  const [measure, setMeasure] = useState(DEFAULT_MEASURE);
   const [stopError, setStopError] = useState('');
   const recipients = target === 'CARE' ? careCount : customerCount;
   const latest = campaigns.data?.find((c) => c.target !== 'AUTO');
@@ -190,6 +191,7 @@ function NextAction({ profile, campaigns }) {
   const open = (next) => {
     setMessage('');
     setStopError('');
+    setMeasure(DEFAULT_MEASURE);
     setTarget(next);
   };
 
@@ -199,6 +201,7 @@ function NextAction({ profile, campaigns }) {
       target,
       voucher,
       validDays: auto ? Number(autoDays) : undefined,
+      ...measurementRequest(measure, auto),
     });
     setTarget(null);
     setMessage(
@@ -329,6 +332,7 @@ function NextAction({ profile, campaigns }) {
               onChange={(event) => setAutoDays(event.target.value)}
             />
           </div>
+          <MeasurementFields measure={measure} onChange={setMeasure} auto />
         </VoucherForm>
       )}
       {(target === 'ALL' || target === 'CARE') && (
@@ -348,21 +352,117 @@ function NextAction({ profile, campaigns }) {
             Đã điền sẵn ưu đãi gợi ý, sửa được trước khi tặng. Mã chỉ dành cho những khách này
             (khách khác nhập mã sẽ bị từ chối); khách đang trong nhóm lúc tặng mới nhận được.
           </p>
+          <MeasurementFields measure={measure} onChange={setMeasure} />
         </VoucherForm>
       )}
     </section>
   );
 }
 
-/** Kết quả các lần tặng mã cho nhóm: bao nhiêu khách quay lại mua, doanh thu so với tiền giảm. */
+const DEFAULT_MEASURE = { holdout: '10', margin: '', max: '' };
+
+/** Đổi các ô đo hiệu quả thành trường gửi lên API; ô để trống thì không gửi. */
+function measurementRequest(measure, auto) {
+  const optional = (value) => (value === '' ? undefined : Number(value));
+  return {
+    holdoutPercent: optional(measure.holdout) ?? 0,
+    grossMarginPercent: optional(measure.margin),
+    maxRecipients: auto ? optional(measure.max) : undefined,
+  };
+}
+
+/**
+ * Ô đo hiệu quả của lần tặng: tỷ lệ khách giữ lại làm đối chứng, lãi gộp để tính lãi tăng thêm,
+ * và (tự tặng) trần số khách.
+ */
+function MeasurementFields({ measure, onChange, auto = false }) {
+  const field = (key, id, label, props) => (
+    <div className="field">
+      <label className="field-label" htmlFor={id}>
+        {label}
+      </label>
+      <input
+        id={id}
+        type="number"
+        value={measure[key]}
+        onChange={(event) => onChange({ ...measure, [key]: event.target.value })}
+        {...props}
+      />
+    </div>
+  );
+  return (
+    <>
+      <p className="muted small">
+        Để biết mã có làm khách mua nhiều hơn không, nên giữ lại ngẫu nhiên một phần khách (không
+        tặng) rồi so tỷ lệ mua của hai bên. Nhập lãi gộp để tính lãi tăng thêm sau khi trừ tiền
+        giảm.
+      </p>
+      {field('holdout', 'holdout-percent', 'Giữ lại làm đối chứng (%)', {
+        min: 0,
+        max: 50,
+        required: true,
+      })}
+      {field('margin', 'gross-margin', 'Lãi gộp trên tiền hàng (%, để trống nếu chưa biết)', {
+        min: 1,
+        max: 100,
+      })}
+      {auto &&
+        field('max', 'max-recipients', 'Tặng tối đa (khách, để trống là không giới hạn)', {
+          min: 1,
+          max: 100000,
+        })}
+    </>
+  );
+}
+
+/** So khách nhận mã với khách bị giữ lại: tỷ lệ mua hai bên và chênh lệch. */
+function HoldoutCell({ campaign: c }) {
+  if (!c.holdoutCount) {
+    return <span className="muted small">Không giữ lại khách</span>;
+  }
+  return (
+    <>
+      {c.purchaseRate == null ? '—' : `${DECIMAL.format(c.purchaseRate)}%`} so với{' '}
+      {c.holdoutPurchaseRate == null ? '—' : `${DECIMAL.format(c.holdoutPurchaseRate)}%`}
+      <div className="muted small">
+        {formatNumber(c.holdoutCount)} khách giữ lại
+        {c.liftPoints != null &&
+          `, ${c.liftPoints > 0 ? '+' : ''}${DECIMAL.format(c.liftPoints)} điểm`}
+      </div>
+    </>
+  );
+}
+
+/** Lãi tăng thêm nhờ mã; cần nhóm đối chứng và lãi gộp. */
+function ProfitCell({ campaign: c }) {
+  if (c.incrementalProfit != null) {
+    return (
+      <strong className={c.incrementalProfit < 0 ? 'text-danger' : undefined}>
+        {formatPrice(c.incrementalProfit)}
+      </strong>
+    );
+  }
+  return (
+    <span className="muted small">
+      {c.holdoutCount ? 'Chưa nhập lãi gộp' : 'Cần nhóm đối chứng'}
+    </span>
+  );
+}
+
+/**
+ * Kết quả các lần tặng mã cho nhóm: bao nhiêu khách quay lại mua, so với nhóm đối chứng, lãi tăng
+ * thêm.
+ */
 function CampaignResults({ campaigns }) {
   const { data, error, loading, reload } = campaigns;
   return (
     <section id="campaign-results" className="checkout-section">
       <h2>Kết quả các lần tặng mã</h2>
       <p className="muted small">
-        Tính trên các đơn chưa hủy có dùng mã. "Quay lại mua" là số khách được tặng đã đặt đơn với
-        mã; doanh thu là tổng tiền các đơn đó (sau giảm).
+        "Quay lại mua", doanh thu và tiền giảm tính trên các đơn chưa hủy có dùng mã. Cột "So với
+        đối chứng" so tỷ lệ khách nhận mã đặt đơn (dùng mã hay không) với khách bị giữ lại, trong
+        cùng thời gian dùng mã. Doanh thu trên mỗi đồng giảm tính cả những khách vốn sẽ mua dù không
+        có mã, nên chỉ để tham khảo; lãi tăng thêm mới là phần mã thực sự mang lại.
       </p>
       {loading && <p className="muted">Đang tải...</p>}
       {error && (
@@ -383,9 +483,11 @@ function CampaignResults({ campaigns }) {
                 <th>Mã</th>
                 <th>Đã tặng</th>
                 <th>Quay lại mua</th>
+                <th>So với đối chứng</th>
                 <th>Doanh thu</th>
                 <th>Đã giảm</th>
-                <th>Doanh thu / 1đ giảm</th>
+                <th>Doanh thu / 1đ giảm (gộp)</th>
+                <th>Lãi tăng thêm</th>
               </tr>
             </thead>
             <tbody>
@@ -405,12 +507,17 @@ function CampaignResults({ campaigns }) {
                     {c.target === 'AUTO' && (
                       <div className="muted small">
                         {c.autoEnabled ? 'Đang chạy' : 'Đã dừng'}, mỗi khách {c.validDays} ngày
+                        {c.maxRecipients != null &&
+                          `, tối đa ${formatNumber(c.maxRecipients)} khách`}
                       </div>
                     )}
                   </td>
                   <td>
                     <strong>{formatNumber(c.buyers)} khách</strong>
                     <div className="muted small">{DECIMAL.format(c.conversionRate)}%</div>
+                  </td>
+                  <td>
+                    <HoldoutCell campaign={c} />
                   </td>
                   <td>
                     {formatPrice(c.revenue)}
@@ -423,6 +530,9 @@ function CampaignResults({ campaigns }) {
                     ) : (
                       `${DECIMAL.format(c.revenuePerDiscount)}đ`
                     )}
+                  </td>
+                  <td>
+                    <ProfitCell campaign={c} />
                   </td>
                 </tr>
               ))}

@@ -3648,3 +3648,8 @@ legend {
   gap: 4px;
   margin: 0 0 12px;
 }
+
+/* Lãi tăng thêm âm (chiến dịch lỗ) ở bảng kết quả tặng mã. */
+.text-danger {
+  color: var(--danger);
+}
