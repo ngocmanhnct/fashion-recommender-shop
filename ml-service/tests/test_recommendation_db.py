@@ -265,7 +265,9 @@ def test_handler_for_admin_or_empty_catalog_writes_nothing(rec_db):
 def test_worker_computes_requests_end_to_end(rec_db):
     with rec_db.begin() as conn:
         a = create_account(conn, "a@test.vn")
-        add_views(conn, a, [1, 2, 3, 4, 5])
+        # Tiến trình lấy việc dùng giờ thật: lượt xem phải nằm trong 30 ngày tính đến hôm nay,
+        # không theo NOW cố định (NOW quá 30 ngày thì khách không đủ ngưỡng, test đỏ từ 25/11).
+        add_views(conn, a, [1, 2, 3, 4, 5], at=datetime.now() - timedelta(hours=1))
         request_recompute(conn, a, RECOMMENDATION)
     worker = RecomputeWorker(rec_db, task_handlers(ModelCache()))
     try:
